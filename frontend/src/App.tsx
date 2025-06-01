@@ -25,8 +25,8 @@ function App() {
 
   const webapp = window.Telegram?.WebApp;
   if (webapp && telegramData?.themeParams.secondary_bg_color) {
-  webapp.setBackgroundColor(telegramData.themeParams.secondary_bg_color);
-}
+    webapp.setBackgroundColor(telegramData.themeParams.secondary_bg_color);
+  }
 
   return (
       <BrowserRouter>

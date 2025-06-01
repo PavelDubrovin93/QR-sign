@@ -1,12 +1,30 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function ScanPage() {
-    const [company, setCompany] = useState('');
+    const navigate = useNavigate();
+    const webapp = window.Telegram?.WebApp;
+
+    useEffect(() => {
+        const text = { text: "Отсканируйте QR-код объекта" };
+        webapp?.showScanQrPopup(text);
+
+        const handleQrPopupClosed = () => {
+            navigate("/profile");
+        };
+
+        webapp?.onEvent('scanQrPopupClosed', handleQrPopupClosed);
+
+        // Очистка обработчика при размонтировании компонента
+        return () => {
+            webapp?.offEvent('scanQrPopupClosed', handleQrPopupClosed);
+        };
+    }, [navigate, webapp]);
 
     return (
-        <div>Scan</div>
+        <div>
+            {/* Ваш контент здесь */}
+        </div>
     );
 }
 
