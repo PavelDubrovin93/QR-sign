@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
-from loguru import logger
+from .logger import logger
 
 
 async def global_exception_handler(request: Request, exc: Exception):

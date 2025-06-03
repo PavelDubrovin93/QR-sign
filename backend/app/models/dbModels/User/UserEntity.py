@@ -1,6 +1,7 @@
 from app.models.dbModels.EntityDB import EntityDB
 from sqlalchemy import Column, String, UUID
 
+
 class UserEntity(EntityDB):
     __tablename__ = 'users'
 
@@ -14,7 +15,6 @@ class UserEntity(EntityDB):
         self.name = username
         self.email = email
         self.hashed_password = hashed_password
-
 
     def to_dict(self) -> dict:
         return {

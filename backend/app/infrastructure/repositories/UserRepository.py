@@ -6,7 +6,6 @@ from typing import List, Optional
 from uuid import UUID
 
 
-
 class UserRepository(IUserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session

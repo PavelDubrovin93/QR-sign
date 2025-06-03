@@ -1,15 +1,19 @@
-import sys
-
-from loguru import logger
 import logging
 
-# Настройка логирования
-logger.remove()  # Удаляем стандартную настройку loguru (если она есть)
+from datetime import datetime
 
-# Логирование в файл с ротацией (пишет в app.log)
-logger.add("app.log", rotation="10 MB", level="INFO")
+LOG_FILE = f"{datetime.now().strftime('%Y-%m-%d')}.log"
 
-# Логирование на консоль
-logger.add(sys.stdout, level="INFO")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# Теперь можно использовать logger.info(), logger.error() и т.д. везде в приложении
+formatter = logging.Formatter("%(asctime)s [%(levelname)-8s] %(message)s")
+
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setFormatter(formatter)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
