@@ -17,11 +17,12 @@ class ModeEnum(str, Enum):
 
 
 class Settings(BaseSettings):
-    DATABASE_USER: str = ...
-    DATABASE_PASSWORD: str = ...
-    DATABASE_HOST: str = "localhost"
-    DATABASE_PORT: int = 5432
-    DATABASE_NAME: str = ...
+    DATABASE_USER: str = env("DATABASE_USER")
+    DATABASE_PASSWORD: str = env("DATABASE_PASSWORD")
+    DATABASE_HOST: str = env("DATABASE_HOST")
+    DATABASE_PORT: int = env("DATABASE_PORT")
+    DATABASE_NAME: str = env("DATABASE_NAME")
+
     ASYNC_DATABASE_URI: PostgresDsn | None = None
 
     @field_validator("ASYNC_DATABASE_URI", mode="after")
@@ -31,8 +32,8 @@ class Settings(BaseSettings):
                 scheme="postgresql+asyncpg",
                 username=info.data["DATABASE_USER"],
                 password=info.data["DATABASE_PASSWORD"],
-                host=info.data["DATABASE_HOST"],
-                port=info.data["DATABASE_PORT"],  # Ensure this is passed as an integer
+                host='localhost', #info.data["DATABASE_HOST"],
+                port=info.data["DATABASE_PORT"],
                 path=f'{info.data["DATABASE_NAME"]}',
             )
         return v
@@ -40,4 +41,4 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-print(settings.ASYNC_DATABASE_URI)
+print(333, settings.ASYNC_DATABASE_URI)
