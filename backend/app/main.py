@@ -1,13 +1,12 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
-import sys
 import logging
 import uvicorn
 from environs import Env
 
-from infrastructure.exception_handler import global_exception_handler
-from infrastructure.init_db import init_db
-from infrastructure.logger import logger
-from api.main import api_router
+from app.infrastructure.exception_handler import global_exception_handler
+from app.infrastructure.init_db import init_db
+from app.infrastructure.logger import logger
+from app.api.main import api_router
 
 env = Env()
 env.read_env()

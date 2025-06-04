@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from infrastructure.core import settings
-from models.dbModels.EntityDB import EntityDB, metadata
+from app.infrastructure.core import settings
+from app.models.dbModels.EntityDB import EntityDB, metadata
 
 # Создание асинхронного двигателя
 async_engine = create_async_engine(

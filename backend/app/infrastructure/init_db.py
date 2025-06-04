@@ -1,6 +1,6 @@
-from models.dbModels.EntityDB import EntityDB
-from infrastructure.core.config import settings
 from sqlalchemy.ext.asyncio import create_async_engine
+from app.models.dbModels.EntityDB import EntityDB
+from app.infrastructure.core.config import settings
 
 
 async def init_db():
