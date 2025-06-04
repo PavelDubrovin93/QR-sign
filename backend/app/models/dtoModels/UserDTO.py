@@ -1,6 +1,6 @@
 import uuid
 
-from app.models.dtoModels.Entity import Entity
+from models.dtoModels.Entity import Entity
 
 
 class UserDTO(Entity):
