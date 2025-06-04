@@ -1,21 +1,21 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
-import sys
 import logging
 import uvicorn
 from environs import Env
 
-from infrastructure.exception_handler import global_exception_handler
-from infrastructure.init_db import init_db
-from api.main import api_router
+from app.infrastructure.exception_handler import global_exception_handler
+from app.infrastructure.init_db import init_db
+from app.infrastructure.logger import logger
+from app.api.main import api_router
 
 env = Env()
 env.read_env()
 logging.basicConfig(level=logging.INFO)
 
 # Настройка loguru для логирования в файл и на консоль
-logger.remove()  # Удаляем стандартную настройку loguru
-logger.add("app.log", rotation="10 MB", level="INFO")  # Логи в файл
-logger.add(sys.stdout, level="INFO")  # Логи на консоль
+
+# logger.add("app.log", rotation="10 MB", level="INFO")  # Логи в файл
+# logger.add(sys.stdout, level="INFO")  # Логи на консоль
 
 # Настройка роутеров
 main_router = APIRouter()
