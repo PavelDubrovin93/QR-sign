@@ -1,5 +1,4 @@
 import logging
-
 from datetime import datetime
 
 LOG_FILE = f"{datetime.now().strftime('%Y-%m-%d')}.log"

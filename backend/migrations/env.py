@@ -1,9 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+from sqlalchemy.engine.url import URL
+from app.models.dbModels import EntityDB
+from app.infrastructure.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -14,11 +15,31 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+
+database_host = "localhost"  # settings.DATABASE_HOST
+database_port = settings.DATABASE_PORT
+database_user = settings.DATABASE_USER
+database_password = settings.DATABASE_PASSWORD
+database_name = settings.DATABASE_NAME
+
+
+sync_url = URL.create(
+    drivername="postgresql",
+    username=database_user,
+    password=database_password,
+    host=database_host,
+    port=str(database_port),
+    database=database_name
+).render_as_string(hide_password=False)
+
+# Set the correct sync URL into the alembic config
+config.set_main_option("sqlalchemy.url", sync_url)
+
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = EntityDB.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -64,9 +85,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

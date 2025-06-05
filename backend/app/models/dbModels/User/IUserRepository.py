@@ -1,37 +1,45 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
-from uuid import UUID
+from typing import Dict, List, Optional
 
 from app.models import UserEntity
 
 
 class IUserRepository(ABC):
+    """
+    Интерфейс репозитория для работы с пользователями.
+    """
+
     @abstractmethod
-    async def find_by_username(self, username: str) -> UserEntity:
-        """Найти пользователя по имени пользователя."""
+    async def get_user_by_id(self, id: int) -> Optional[Dict[str, any]]:
+        """
+        Возвращает пользователя по указанному ID.
+        :param id: Идентификатор пользователя
+        :return: словарь с информацией о пользователе или None, если не найден
+        """
         pass
 
     @abstractmethod
-    async def find_by_email(self, email: str) -> Optional[dict]:
-        """Найти пользователя по email."""
+    async def get_user_by_tg_id(self, tg_id: int) -> Optional[UserEntity]:
+        """
+        Возвращает пользователя по его Telegram ID.
+        :param tg_id: Телеграм-идентификатор пользователя
+        :return: экземпляр User или None, если пользователь не найден
+        """
         pass
 
     @abstractmethod
-    async def find_by_id(self, id: UUID) -> Optional[dict]:
-        """Найти пользователя по ID."""
+    async def get_user_all(self) -> List[Dict[str, any]]:
+        """
+        Возвращает список всех пользователей.
+        :return: Список словарей с информацией обо всех пользователях
+        """
         pass
 
     @abstractmethod
-    async def find_all(self) -> List[dict]:
-        """Получить всех пользователей."""
-        pass
-
-    @abstractmethod
-    async def add_user(self, new_user: UserEntity) -> dict:
-        """Добавить нового пользователя."""
-        pass
-
-    @abstractmethod
-    async def get_hashed_password(self, user_name: str) -> str:
-        """Получить хэшированный пароль"""
+    async def add_user(self, new_user: UserEntity) -> Dict[str, any]:
+        """
+        Добавляет нового пользователя в базу данных.
+        :param new_user: новый экземпляр пользователя
+        :return: словарь с информацией о добавленном пользователе
+        """
         pass
