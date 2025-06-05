@@ -1,25 +1,18 @@
+from app.models.dbModels.AbstractDB import AbstractDB
 from app.models.dbModels.EntityDB import EntityDB
-from sqlalchemy import Column, String, UUID
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 
-class UserEntity(EntityDB):
-    __tablename__ = 'users'
+class UserEntity(EntityDB, AbstractDB):
+    __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
+    tg_id = Column(Integer, nullable=False)
     name = Column(String(50), nullable=False)
-    email = Column(String(50), nullable=False)
-    hashed_password = Column(String(200), nullable=False)
-
-    def __init__(self, id=None, username=None, email=None, hashed_password=None):
-        self.id = id
-        self.name = username
-        self.email = email
-        self.hashed_password = hashed_password
+    company_id = Column(Integer, ForeignKey("company.id"))
+    # Доделать свять м2м
+    ui_settings = relationship("UISettings", back_populates="user", uselist=False)
+    #  Доделать связть o2o
 
     def to_dict(self) -> dict:
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "email": self.email,
-            "hashed_password": self.hashed_password
-        }
+        return {"id": str(self.id), "name": self.name, "company_id": self.company_id}
