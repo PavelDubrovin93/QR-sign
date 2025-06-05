@@ -1,10 +1,9 @@
-from app.models.dbModels.AbstractDB import AbstractDB
 from app.models.dbModels.EntityDB import EntityDB
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 
-class UserEntity(EntityDB, AbstractDB):
+class UserEntity(EntityDB):
     __tablename__ = "users"
 
     tg_id = Column(Integer, nullable=False)
