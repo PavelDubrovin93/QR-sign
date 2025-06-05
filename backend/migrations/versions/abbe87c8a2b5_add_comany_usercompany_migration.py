@@ -1,16 +1,16 @@
-"""add user migration
+"""add comany, usercompany migration
 
-Revision ID: 4fd3fdf7cf51
-Revises:
-Create Date: 2025-06-05 11:11:41.300436
+Revision ID: abbe87c8a2b5
+Revises: 4fd3fdf7cf51
+Create Date: 2025-06-05 13:22:09.542586
 
 """
 
 from typing import Sequence, Union
 
 # revision identifiers, used by Alembic.
-revision: str = "4fd3fdf7cf51"
-down_revision: Union[str, None] = None
+revision: str = "abbe87c8a2b5"
+down_revision: Union[str, None] = "4fd3fdf7cf51"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

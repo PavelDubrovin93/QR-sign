@@ -1,9 +1,10 @@
 from typing import List, Optional
 
-from app.models.dbModels.User.IUserRepository import IUserRepository
-from app.models.dbModels.User.UserEntity import UserEntity as User
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from app.models.dbModels.User.IUserRepository import IUserRepository
+from app.models.dbModels.User.UserEntity import UserEntity as User
 
 
 class UserRepository(IUserRepository):
