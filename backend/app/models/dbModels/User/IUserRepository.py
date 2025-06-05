@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-from app.models import UserEntity
+from app.models.dbModels.User.UserEntity import UserEntity
 
 
 class IUserRepository(ABC):

@@ -3,8 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.engine.url import URL
-from app.models.dbModels import EntityDB
+
 from app.infrastructure.core.config import settings
+from app.models.dbModels import EntityDB
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,7 +30,7 @@ sync_url = URL.create(
     password=database_password,
     host=database_host,
     port=str(database_port),
-    database=database_name
+    database=database_name,
 ).render_as_string(hide_password=False)
 
 # Set the correct sync URL into the alembic config
