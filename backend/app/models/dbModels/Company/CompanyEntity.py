@@ -1,7 +1,5 @@
 from sqlalchemy import LargeBinary, Column, DateTime, String, Text
-from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.orm import relationship
-
 from app.models.dbModels.EntityDB import EntityDB
 from enum import Enum
 
@@ -20,10 +18,16 @@ class CompanyEntity(EntityDB):
     expire_at = Column(DateTime, nullable=True)
     invite_qr = Column(LargeBinary, nullable=True)
 
-    # Связь с пользователями (один ко многим)
     user_company_entities = relationship("UserCompanyEntity", back_populates="company")
-    ui_settings = relationship("UISettingsEntity", back_populates="default_company_choice")
-
+    ui_settings = relationship("UISettingsEntity", back_populates="default_company", cascade="all, delete-orphan")
+    work_groups = relationship("WorkGroupEntity", back_populates="company")
 
     def to_dict(self) -> dict:
-        return {"id": str(self.id), "name": self.name, "company_id": self.company_id}
+        return {
+            "id": str(self.id),
+            "title": self.title,
+            "description": self.description,
+            "subscription_type": self.subscription_type,
+            "expire_at": self.expire_at,
+            "invite_qr": self.invite_qr
+        }

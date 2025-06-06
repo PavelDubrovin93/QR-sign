@@ -11,9 +11,8 @@ class UISettingsEntity(EntityDB):
     default_company_choice = Column(Integer, ForeignKey("companies.id"))
     default_color = Column(String(50))
 
-    # Связь с пользователем (one-to-one)
-    user = relationship("User", back_populates="ui_setting", uselist=False)
-    default_company_choice = relationship("companies", back_populates="ui_settings")
+    user = relationship("UserEntity", back_populates="ui_settings", uselist=False)
+    default_company = relationship("CompanyEntity", back_populates="ui_settings")
 
     def to_dict(self):
         return {
