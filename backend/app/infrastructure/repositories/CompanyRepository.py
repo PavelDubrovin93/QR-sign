@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.models.dbModels.Company.CompanyEntity import CompanyEntity as Company
-from app.models.dbModels.Company.ICompanyRepository import IUserRepository
+from app.models.dbModels.Company.ICompanyRepository import ICompanyRepository
 
 
-class CompanyRepository(IUserRepository):
+class CompanyRepository(ICompanyRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
