@@ -10,4 +10,4 @@ class TaskBoardDTO(Entity):
     location: list
     type: str
     description: str
-    done_at: str  # но это не точно
+    done_at: str
