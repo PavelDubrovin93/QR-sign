@@ -22,6 +22,7 @@ class CompanyEntity(EntityDB):
 
     # Связь с пользователями (один ко многим)
     user_company_entities = relationship("UserCompanyEntity", back_populates="company")
+    ui_settings = relationship("UISetting", back_populates="default_company_choice")
 
     def to_dict(self) -> dict:
         return {"id": str(self.id), "name": self.name, "company_id": self.company_id}

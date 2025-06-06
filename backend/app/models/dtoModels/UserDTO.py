@@ -5,4 +5,4 @@ class UserDTO(Entity):
     id: int
     tg_ig: int
     name: str
-    company: int  # дописать при добавлении модели company
+    company_id: int  # дописать при добавлении модели company
