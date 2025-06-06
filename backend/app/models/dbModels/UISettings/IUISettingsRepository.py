@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-#from app.models.dbModels.UISettings.UISettingsEntity import UISettingsEntity as UISettings
+# from app.models.dbModels.UISettings.UISettingsEntity import UISettingsEntity as UISettings
 from app.models.dbModels.UISettings.UISettingsEntity import UISettingsEntity
 
 
@@ -11,7 +11,9 @@ class IUISettingsRepository(ABC):
     """
 
     @abstractmethod
-    async def get_ui_settings_by_user_id(self, user_id: int) -> Optional[UISettingsEntity]:
+    async def get_ui_settings_by_user_id(
+        self, user_id: int
+    ) -> Optional[UISettingsEntity]:
         """
         Получить настройки интерфейса по идентификатору пользователя.
         :param user_id: ID пользователя

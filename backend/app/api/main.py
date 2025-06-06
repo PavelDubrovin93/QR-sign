@@ -1,9 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import UserRoute
-from app.api.routes import TestRoute
-
-
+from app.api.routes import TestRoute, UserRoute
 
 api_router = APIRouter()
 

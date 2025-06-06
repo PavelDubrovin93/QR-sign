@@ -1,12 +1,16 @@
-from sqlalchemy import LargeBinary, Column, DateTime, String, Text
-from sqlalchemy.orm import relationship
-from app.models.dbModels.EntityDB import EntityDB
 from enum import Enum
+
+from sqlalchemy import Column, DateTime, LargeBinary, String, Text
+from sqlalchemy.orm import relationship
+
+from app.models.dbModels.EntityDB import EntityDB
+
 
 class SubscriptionType(str, Enum):
     PERSONNEL = "personnel"
     ENTERPRISE = "enterprise"
     OTHER = "other"
+
 
 class CompanyEntity(EntityDB):
     __tablename__ = "companies"
@@ -19,7 +23,11 @@ class CompanyEntity(EntityDB):
     invite_qr = Column(LargeBinary, nullable=True)
 
     user_company_entities = relationship("UserCompanyEntity", back_populates="company")
-    ui_settings = relationship("UISettingsEntity", back_populates="default_company", cascade="all, delete-orphan")
+    ui_settings = relationship(
+        "UISettingsEntity",
+        back_populates="default_company",
+        cascade="all, delete-orphan",
+    )
     work_groups = relationship("WorkGroupEntity", back_populates="company")
 
     def to_dict(self) -> dict:
@@ -29,5 +37,5 @@ class CompanyEntity(EntityDB):
             "description": self.description,
             "subscription_type": self.subscription_type,
             "expire_at": self.expire_at,
-            "invite_qr": self.invite_qr
+            "invite_qr": self.invite_qr,
         }

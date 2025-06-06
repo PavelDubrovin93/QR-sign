@@ -6,11 +6,14 @@ from sqlalchemy.future import select
 from app.models.dbModels.UISettings.IUISettingsRepository import IUISettingsRepository
 from app.models.dbModels.UISettings.UISettingsEntity import UISettingsEntity
 
+
 class UISettingsRepository(IUISettingsRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_ui_settings_by_user_id(self, user_id: int) -> Optional[UISettingsEntity]:
+    async def get_ui_settings_by_user_id(
+        self, user_id: int
+    ) -> Optional[UISettingsEntity]:
         query = select(UISettingsEntity).where(UISettingsEntity.user_id == user_id)
         result = await self.session.execute(query)
 

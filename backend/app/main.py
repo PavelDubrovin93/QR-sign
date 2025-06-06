@@ -22,7 +22,6 @@ app.include_router(main_router, prefix="/api")
 app.add_exception_handler(Exception, global_exception_handler)
 
 
-
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"Request: {request.method} {request.url}")
@@ -35,7 +34,6 @@ async def log_requests(request: Request, call_next):
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.error(f"HTTP Exception: {exc.detail} - {exc.status_code}")
     return await global_exception_handler(request, exc)
-
 
 
 @app.on_event("startup")

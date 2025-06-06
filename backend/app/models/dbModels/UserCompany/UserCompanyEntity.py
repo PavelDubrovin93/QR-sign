@@ -1,12 +1,16 @@
-from sqlalchemy import Column, String, ForeignKey, Integer
-from sqlalchemy.orm import relationship
-from app.models.dbModels.EntityDB import EntityDB
 from enum import Enum
+
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+
+from app.models.dbModels.EntityDB import EntityDB
+
 
 class RoleType(str, Enum):
     EMPLOYER = "employer"
     ADMIN = "admin"
     MEMBER = "member"
+
 
 class UserCompanyEntity(EntityDB):
     __tablename__ = "user_company"

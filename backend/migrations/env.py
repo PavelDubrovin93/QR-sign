@@ -7,7 +7,6 @@ from sqlalchemy.engine.url import URL
 from app.infrastructure.core.config import settings
 from app.models.dbModels import EntityDB
 
-
 config = context.config
 
 

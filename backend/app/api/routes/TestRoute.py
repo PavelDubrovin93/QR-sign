@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
-from app.services.testservice import test_service
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.infrastructure.db.session import fastapi_get_db
+from app.services.testservice import test_service
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ router = APIRouter()
 @router.get("/test")
 async def test():
     return {"test": "test"}
+
 
 @router.post("/create_user")
 async def create_user(session: AsyncSession = Depends(fastapi_get_db)):

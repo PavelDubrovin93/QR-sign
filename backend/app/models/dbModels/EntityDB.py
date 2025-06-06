@@ -1,7 +1,6 @@
 from sqlalchemy import Column, DateTime, Integer, MetaData, func
 from sqlalchemy.orm import as_declarative, declared_attr
 
-
 metadata = MetaData()
 
 
