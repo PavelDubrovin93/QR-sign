@@ -19,7 +19,7 @@ class IWorkGroupRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_work_groups_for_company(self, company_id: int) -> List[WorkGroup]:
+    async def get_work_groups_by_company(self, company_id: int) -> List[WorkGroup]:
         """
         Получить все рабочие группы для указанной компании.
         :param company_id: ID компании

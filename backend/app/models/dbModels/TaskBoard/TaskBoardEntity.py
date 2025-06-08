@@ -7,8 +7,8 @@ class TaskBoardEntity(EntityDB):
     __tablename__ = "task_boards"
 
     title = Column(String(50), nullable=False)
-    company_id = Column(Integer, ForeignKey("company.id"))
-    work_group_id = Column(Integer, ForeignKey("work_groups.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    work_group_id = Column(Integer, ForeignKey("work_group.id"), nullable=False)
     image = Column(String, nullable=False)
     location = Column(ARRAY(Float), nullable=False)
     type = Column(String, nullable=False)
