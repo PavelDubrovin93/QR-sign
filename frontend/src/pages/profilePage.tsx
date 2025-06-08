@@ -13,23 +13,28 @@ function ProfilePage() {
         <>
 
         <Section 
-          header="Цвет по умолчанию"
-          style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)'}}
           className='pb-6'
         >
+            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
+                Цвет по умолчанию
+            </Section.Header>
+
             <div style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)' }}>
                 <ColorInput status="focused" placeholder={telegramData?.themeParams.link_color} value={telegramData?.themeParams.link_color} />
             </div>
-            <Section.Footer style={{ color: 'var(--tgui--bg_color)'}}>
+
+            <Section.Footer style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
                 Цвет приложения, по умолчанию - основные цвета телеграма
             </Section.Footer>
         </Section>
 
         <Section 
-          header="Компания по умолчанию"
-          style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)'}}
           className='pb-6'
         >
+            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
+                Организация по умолчанию
+            </Section.Header>
+
             <div style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)' }}>
                 <Select 
                   status='focused'
@@ -38,16 +43,19 @@ function ProfilePage() {
                     <option>Компания Б</option>
                 </Select>
             </div>
-            <Section.Footer style={{ color: 'var(--tgui--bg_color)'}}>
+
+            <Section.Footer style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
                 Компания, задачи которой будут отображаться вам в первую очередь.
             </Section.Footer>
         </Section>
         
         <Section 
-          header="ФИО для администратора"
-          style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)'}}
           className='pb-6'
         >
+            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
+                ФИО для администратора
+            </Section.Header>
+
             <div style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)' }}>
                 <Select 
                   status='focused'
@@ -56,17 +64,19 @@ function ProfilePage() {
                     <option>Компания Б</option>
                 </Select>
             </div>
-            <Section.Footer style={{ color: 'var(--tgui--bg_color)'}}>
+            <Section.Footer style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
                 Имя, которое будет отображаться вашему администратору.
             </Section.Footer>
         </Section>
 
         <Section 
-          header="Выполнение задания"
-          style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)'}}
           className='pb-6'
         >
-            <div style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)' }}>
+            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
+               Выполнение задания
+            </Section.Header>
+
+            <div style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
                 <Cell
                     className='flex items-center justify-between'
                     Component="label"
@@ -83,7 +93,8 @@ function ProfilePage() {
                     <p style={{ color: 'var(--tgui--text_color)'}}>Цвета</p>
                 </Cell>
             </div>
-            <Section.Footer style={{ color: 'var(--tgui--bg_color)'}}>
+
+            <Section.Footer style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
                 При выборе цветов задания будут отмечены соответствующим цветом (зеленый / красный). Настройка цветов будет расширена.
             </Section.Footer>
         </Section>

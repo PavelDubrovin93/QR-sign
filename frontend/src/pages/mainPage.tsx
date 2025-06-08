@@ -11,13 +11,14 @@ function HomePage() {
 
     return (
         
-          <Section header="Компания">
-            <div style={{ backgroundColor: '${telegramData?.themeParams.section_bg_color}', color: 'var(--tgui--bg_color)' }}>
+          <Section>
+            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
+              Организация
+            </Section.Header>
               <Select status='focused' style={{ border: 'none', color: 'var(--tgui--text_color)' }}>
                 <option>Компания А</option>
                 <option>Компания Б</option>
               </Select>
-            </div>
           </Section>  
      
     );

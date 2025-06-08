@@ -51,6 +51,46 @@ function App() {
             className='display-block w-[144px] h-[144px]'
           />
         </Placeholder>
+        <Placeholder
+          header="Упс, что-то пошло не так"
+          description="Проверь себя"
+        >
+          <img
+            alt="Telegram sticker"
+            src="https://xelene.me/telegram.gif"
+            className='display-block w-[144px] h-[144px]'
+          />
+        </Placeholder>
+        <Placeholder
+          header="Упс, что-то пошло не так"
+          description="Проверь себя"
+        >
+          <img
+            alt="Telegram sticker"
+            src="https://xelene.me/telegram.gif"
+            className='display-block w-[144px] h-[144px]'
+          />
+        </Placeholder>
+        <Placeholder
+          header="Упс, что-то пошло не так"
+          description="Проверь себя"
+        >
+          <img
+            alt="Telegram sticker"
+            src="https://xelene.me/telegram.gif"
+            className='display-block w-[144px] h-[144px]'
+          />
+        </Placeholder>
+        <Placeholder
+          header="Упс, что-то пошло не так"
+          description="Проверь себя"
+        >
+          <img
+            alt="Telegram sticker"
+            src="https://xelene.me/telegram.gif"
+            className='display-block w-[144px] h-[144px]'
+          />
+        </Placeholder>
       </BrowserRouter>
   );
 };
