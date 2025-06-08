@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-from app.models import TaskBoardEntity
+from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity
 
 
 class ITaskBoardRepository(ABC):

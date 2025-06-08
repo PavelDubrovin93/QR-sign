@@ -14,7 +14,7 @@ class WorkGroupEntity(EntityDB):
 
     company = relationship("CompanyEntity", back_populates="work_groups")
     user_company_entities = relationship(
-        "UserCompanyEntity", back_populates="workgroup"
+        "UserCompanyEntity", back_populates="work_groups"
     )
 
     def to_dict(self):

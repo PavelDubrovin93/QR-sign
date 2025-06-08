@@ -40,7 +40,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_boards = result.scalars().all()
         return [task_board.to_dict() for task_board in task_boards]
     
-    async def add_task_board(self, new_user: TaskBoard) -> dict:
-        self.session.add(new_user)
+    async def add_task_board(self, new_task_board: TaskBoard) -> dict:
+        self.session.add(new_task_board)
         await self.session.commit()
-        return new_user.to_dict()
+        return new_task_board.to_dict()

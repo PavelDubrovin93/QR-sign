@@ -1,5 +1,7 @@
 from app.models.dtoModels.Entity import Entity
 
+from typing import Optional
+
 
 class TaskBoardDTO(Entity):
     id: int
@@ -9,5 +11,5 @@ class TaskBoardDTO(Entity):
     image: str
     location: list
     type: str
-    description: str
-    done_at: str
+    description: Optional[str]
+    done_at: Optional[str]

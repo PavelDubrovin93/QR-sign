@@ -50,6 +50,7 @@ class TaskPointRepository(ITaskPointRepository):
         return [task_point.to_dict() for task_point in task_points]
     
     async def add_task_point(self, new_task_point: TaskPoint) -> dict:
+        
         self.session.add(new_task_point)
         await self.session.commit()
         return new_task_point.to_dict()

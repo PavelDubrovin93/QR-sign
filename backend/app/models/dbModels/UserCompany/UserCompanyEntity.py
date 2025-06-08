@@ -23,7 +23,7 @@ class UserCompanyEntity(EntityDB):
 
     user = relationship("UserEntity", back_populates="user_company_entities")
     company = relationship("CompanyEntity", back_populates="user_company_entities")
-    workgroup = relationship("WorkGroupEntity", back_populates="user_company_entities")
+    work_groups = relationship("WorkGroupEntity", back_populates="user_company_entities")
 
     def __init__(self, role: RoleType, **kwargs):
         super().__init__(**kwargs)
