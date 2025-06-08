@@ -17,11 +17,11 @@ class ModeEnum(str, Enum):
 
 
 class Settings(BaseSettings):
-    DATABASE_USER: str = "postgres"
-    DATABASE_PASSWORD: str = "8491"
-    DATABASE_HOST: str = "127.0.0.1"
-    DATABASE_PORT: int = 5432
-    DATABASE_NAME: str = "qr_db_test"
+    DATABASE_USER: str = env("DATABASE_USER")
+    DATABASE_PASSWORD: str = env("DATABASE_PASSWORD")
+    DATABASE_HOST: str = env("DATABASE_HOST")
+    DATABASE_PORT: int = env("DATABASE_PORT")
+    DATABASE_NAME: str = env("DATABASE_NAME")
 
     ASYNC_DATABASE_URI: PostgresDsn | None = None
 
