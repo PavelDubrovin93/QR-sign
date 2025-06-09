@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Select, Section, Cell } from '@telegram-apps/telegram-ui';
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 
+import TaskCard from '../components/TaskCard'
 
 function HomePage() {
     const [company, setCompany] = useState('');
@@ -10,7 +11,7 @@ function HomePage() {
     const telegramData = getTelegramData();
 
     return (
-        
+          <>
           <Section>
             <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
               Организация
@@ -20,7 +21,10 @@ function HomePage() {
                 <option>Компания Б</option>
               </Select>
           </Section>  
-     
+
+          <TaskCard />
+
+          </>
     );
 }
 

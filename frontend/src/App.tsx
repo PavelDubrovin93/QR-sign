@@ -6,6 +6,8 @@ import Header from "./components/Header.tsx"
 import MainPage from "./pages/mainPage.tsx"
 import ScanPage from "./pages/scanPage.tsx"
 import ProfilePage from "./pages/profilePage.tsx"
+import ImageWithTaskPoints from './components/ZoomableImage.tsx';
+
 
 import {
   BrowserRouter,
@@ -23,6 +25,7 @@ function App() {
   // }
 
 
+
   const webapp = window.Telegram?.WebApp;
   if (webapp && telegramData?.themeParams.secondary_bg_color) {
     webapp.setBackgroundColor(telegramData.themeParams.secondary_bg_color);
@@ -32,18 +35,21 @@ function App() {
       <BrowserRouter>
         <div className='p-4'>
           <Header />
-        </div>
-        
-        
+        </div>        
+      
         <Routes>
           <Route index path="/" element={<MainPage />} />
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/profile" element={<ProfilePage/>} />
         </Routes>
 
+        {/* <div className="p-6">
+            <h1 className="text-xl font-semibold mb-4">Интерактивная диаграмма</h1>
+            <ImageWithTaskPoints />
+        </div> */}
+
         <Placeholder
-          header="Упс, что-то пошло не так"
-          description="Проверь себя"
+          header="Занимаю место"
         >
           <img
             alt="Telegram sticker"
