@@ -4,6 +4,8 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
+from app.models.dtoModels.UserCompanyDTO import UserCompanyDTO
+
 
 
 class RoleType(str, Enum):
@@ -29,11 +31,11 @@ class UserCompanyEntity(EntityDB):
         super().__init__(**kwargs)
         self.role = role.value
 
-    def to_dict(self):
-        return {
-            "id": str(self.id),
-            "user_id": self.user_id,
-            "company_id": self.company_id,
-            "workgroup_id": self.workgroup_id,
-            "role": self.role,
-        }
+    def to_dto(self):
+        return UserCompanyDTO(
+            id=self.id,
+            user_id=self.user_id,
+            company_id=self.company_id,
+            workgroup_id=self.workgroup_id,
+            role=self.role
+        )

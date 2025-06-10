@@ -53,19 +53,19 @@ class TaskPointRepository(ITaskPointRepository):
     async def add_task_point(self, new_task_point: TaskPointDTO) -> TaskPointDTO:
         
         new_task_point = TaskPoint(
-            id=self.id,
-            title=self.title,
-            taskboard_id=self.taskboard_id,
-            thumbnails=self.thumbnails,
-            mark_icon=self.mark_icon,
-            coordinates=self.coordinates,
-            points=self.points,
-            qrcode=self.qrcode,
-            description=self.description,
-            voice_message=self.voice_message,
-            done_at=self.done_at,
-            issued_at=self.issued_at,
-            warning_at=self.warning_at
+            id=new_task_point.id,
+            title=new_task_point.title,
+            taskboard_id=new_task_point.taskboard_id,
+            thumbnails=new_task_point.thumbnails,
+            mark_icon=new_task_point.mark_icon,
+            coordinates=new_task_point.coordinates,
+            points=new_task_point.points,
+            qrcode=new_task_point.qrcode,
+            description=new_task_point.description,
+            voice_message=new_task_point.voice_message,
+            done_at=new_task_point.done_at,
+            issued_at=new_task_point.issued_at,
+            warning_at=new_task_point.warning_at
         )
         self.session.add(new_task_point)
         await self.session.commit()

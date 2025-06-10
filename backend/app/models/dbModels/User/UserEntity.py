@@ -19,4 +19,5 @@ class UserEntity(EntityDB):
             id=self.id,
             name=self.name,
             tg_id=self.tg_id,
+            ui_settings=self.ui_settings
         )
