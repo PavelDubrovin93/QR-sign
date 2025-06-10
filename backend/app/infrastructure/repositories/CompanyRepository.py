@@ -46,3 +46,14 @@ class CompanyRepository(ICompanyRepository):
             raise ValueError(f"Компания с id {company_id} не существует.")
         await self.session.delete(company_to_delete)
         await self.session.commit()
+
+    async def __to_dto(self, company: Company) -> CompanyDTO:
+        return CompanyDTO(
+            id=company.id,
+            title=company.title,
+            description=company.description,
+            subscription_type=company.subscription_type,
+            expire_at=company.expire_at,
+            invite_qr=company.invite_qr,
+            image_url=company.image_url
+        )
