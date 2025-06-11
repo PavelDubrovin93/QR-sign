@@ -102,3 +102,9 @@ class TaskPointRepository(ITaskPointRepository):
         task_points = result.scalars().all()
 
         return [task_point.to_dto() for task_point in task_points]
+
+    async def get_task_point_by_qr(self, qr_code_binary: bytes) -> Optional[TaskPointDTO]:
+        query = select(TaskPoint).where(TaskPoint.qrcode == qr_code_binary)
+        result = await self.session.execute(query)
+        task_point = result.scalars().first()
+        return task_point.to_dto() if task_point else None

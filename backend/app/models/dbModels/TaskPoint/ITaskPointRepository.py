@@ -79,7 +79,16 @@ class ITaskPointRepository(ABC):
         """
         Возвращает задачу по указанному ID.
         :param id: Идентификатор задачи
-        :return: словарь с информацией о задаче или None, если не найден
+        :return: TaskPointDTO с информацией о задаче или None, если не найден
+        """
+        pass
+
+    @abstractmethod
+    async def get_task_point_by_qr(self, qr_code_binary: bytes) -> Optional[TaskPointDTO]:
+        """
+        Возвращает точку задачи по QR-коду.
+        :param qr_code_binary: Байтовый массив QR-кода
+        :return: Объект TaskPointDTO с информацией о задаче или None, если не найдена
         """
         pass
 
