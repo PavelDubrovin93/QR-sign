@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import Optional, HttpUrl
-
+from typing import Optional
+from pydantic.networks import HttpUrl
 from app.models.dtoModels.Entity import Entity
 
 
