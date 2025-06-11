@@ -29,3 +29,12 @@ class IUISettingsRepository(ABC):
         :return: созданный объект UISetting
         """
         pass
+
+    @abstractmethod
+    async def update_ui_settings(self, settings_data: UISettingsDTO) -> UISettingsDTO:
+        """
+        Обновляет настройки пользователя.
+        :param settings_data: Новые данные настроек
+        :return: Обновленные настройки в виде UISettingsDTO
+        """
+        pass

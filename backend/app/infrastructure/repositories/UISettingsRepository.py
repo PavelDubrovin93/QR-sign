@@ -31,3 +31,17 @@ class UISettingsRepository(IUISettingsRepository):
         await self.session.commit()
         await self.session.refresh(new_settings)  # ???
         return new_settings.to_dto()
+
+    async def update_ui_settings(self, settings_data: UISettingsDTO) -> Optional[UISettingsDTO]:
+        query = select(UISettingsEntity).where(UISettingsEntity.user_id == settings_data.user_id)
+        result = await self.session.execute(query)
+        existing_settings = result.scalars().first()
+        if existing_settings is None:
+            new_settings =  self.create_ui_settings(settings_data)
+            return new_settings
+        existing_settings.default_company_choice = settings_data.default_company_choice
+        existing_settings.default_color = settings_data.default_color
+
+        await self.session.commit()
+        await self.session.refresh(existing_settings)
+        return existing_settings.to_dto()
