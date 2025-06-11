@@ -18,7 +18,7 @@ class TaskBoardEntity(EntityDB):
     done_at = Column(DateTime, nullable=True)
 
     company = relationship("CompanyEntity", back_populates="task_boards")
-    work_group = relationship("WorkGroupEntity", back_populates="task_boards")
+    work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
     tasks = relationship("TaskPointEntity", back_populates="taskboard")
 
     def to_dto(self) -> TaskBoardDTO:
