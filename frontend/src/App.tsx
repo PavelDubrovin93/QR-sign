@@ -35,8 +35,8 @@ function App() {
       <BrowserRouter>
         <div className='p-4'>
           <Header />
-        </div>        
-      
+        </div> 
+       
         <Routes>
           <Route index path="/" element={<MainPage />} />
           <Route path="/scan" element={<ScanPage />} />

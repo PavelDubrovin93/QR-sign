@@ -12,7 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@tailwindcss/vite": "^4.1.8",
-    "@telegram-apps/sdk": "^3.10.0",
+    "@telegram-apps/sdk": "^3.10.1",
     "@telegram-apps/telegram-ui": "^2.1.8",
     "clsx": "^2.1.1",
     "icons": "^1.0.0",
