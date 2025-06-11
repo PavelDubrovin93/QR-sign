@@ -23,6 +23,9 @@ function HomePage() {
           </Section>  
 
           <TaskCard />
+          <TaskCard />
+          <TaskCard />
+          <TaskCard />
 
           </>
     );

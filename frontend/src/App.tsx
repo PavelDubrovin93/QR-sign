@@ -6,6 +6,8 @@ import Header from "./components/Header.tsx"
 import MainPage from "./pages/mainPage.tsx"
 import ScanPage from "./pages/scanPage.tsx"
 import ProfilePage from "./pages/profilePage.tsx"
+import TaskboardPage from "./pages/taskboardPage.tsx"
+
 import ImageWithTaskPoints from './components/ZoomableImage.tsx';
 
 
@@ -39,6 +41,7 @@ function App() {
        
         <Routes>
           <Route index path="/" element={<MainPage />} />
+          <Route path="/taskboard/:id" element={<TaskboardPage />} />
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/profile" element={<ProfilePage/>} />
         </Routes>
@@ -48,55 +51,6 @@ function App() {
             <ImageWithTaskPoints />
         </div> */}
 
-        <Placeholder
-          header="Занимаю место"
-        >
-          <img
-            alt="Telegram sticker"
-            src="https://xelene.me/telegram.gif"
-            className='display-block w-[144px] h-[144px]'
-          />
-        </Placeholder>
-        <Placeholder
-          header="Упс, что-то пошло не так"
-          description="Проверь себя"
-        >
-          <img
-            alt="Telegram sticker"
-            src="https://xelene.me/telegram.gif"
-            className='display-block w-[144px] h-[144px]'
-          />
-        </Placeholder>
-        <Placeholder
-          header="Упс, что-то пошло не так"
-          description="Проверь себя"
-        >
-          <img
-            alt="Telegram sticker"
-            src="https://xelene.me/telegram.gif"
-            className='display-block w-[144px] h-[144px]'
-          />
-        </Placeholder>
-        <Placeholder
-          header="Упс, что-то пошло не так"
-          description="Проверь себя"
-        >
-          <img
-            alt="Telegram sticker"
-            src="https://xelene.me/telegram.gif"
-            className='display-block w-[144px] h-[144px]'
-          />
-        </Placeholder>
-        <Placeholder
-          header="Упс, что-то пошло не так"
-          description="Проверь себя"
-        >
-          <img
-            alt="Telegram sticker"
-            src="https://xelene.me/telegram.gif"
-            className='display-block w-[144px] h-[144px]'
-          />
-        </Placeholder>
       </BrowserRouter>
   );
 };
