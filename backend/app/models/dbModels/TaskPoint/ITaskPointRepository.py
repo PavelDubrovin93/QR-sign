@@ -74,6 +74,15 @@ class ITaskPointRepository(ABC):
         """
         pass
 
+    @abstractmethod
+    async def get_task_point_by_user_id(self, id: int) -> Optional[TaskPointDTO]:
+        """
+        Возвращает задачу по указанному ID.
+        :param id: Идентификатор задачи
+        :return: словарь с информацией о задаче или None, если не найден
+        """
+        pass
+
     # @abstractmethod
     # async def update_task_board(self, task_board: TaskPointEntity) -> Dict[str, any]:
     #     """

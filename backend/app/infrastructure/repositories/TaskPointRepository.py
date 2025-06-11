@@ -2,6 +2,10 @@ from typing import List, Optional
 
 from app.models.dbModels.TaskPoint.ITaskPointRepository import ITaskPointRepository
 from app.models.dbModels.TaskPoint.TaskPointEntity import TaskPointEntity as TaskPoint
+from app.models.dbModels.UserCompany.UserCompanyEntity import UserCompanyEntity as UserCompany
+from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
+from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
+
 from app.models.dtoModels.TaskPointDTO import TaskPointDTO
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -79,3 +83,22 @@ class TaskPointRepository(ITaskPointRepository):
             raise ValueError(f"Таскпоинт с id {task_point_id} не существует.")
         await self.session.delete(task_board_to_delete)
         await self.session.commit()
+
+    async def get_task_point_by_user_id(self, user_id: int) -> List[TaskPointDTO]:
+        subquery_workgroups = (
+            select(UserCompany.workgroup_id)
+            .join(WorkGroup, WorkGroup.id == UserCompany.workgroup_id)
+            .filter(UserCompany.user_id == user_id)
+        ).scalar_subquery()
+
+        subquery_taskboards = (
+            select(TaskBoard.id)
+            .join(WorkGroup, WorkGroup.id == TaskBoard.work_group_id)
+            .filter(WorkGroup.id.in_(subquery_workgroups))
+        ).scalar_subquery()
+
+        query = select(TaskPoint).where(TaskPoint.taskboard_id.in_(subquery_taskboards))
+        result = await self.session.execute(query)
+        task_points = result.scalars().all()
+
+        return [task_point.to_dto() for task_point in task_points]
