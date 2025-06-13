@@ -8,16 +8,16 @@ from app.api.dependenices.user_dependecy import get_current_user
 from app.services.UserDataService import UserDataService
 
 
-router = APIRouter(prefix="/user_data")
+router = APIRouter()
 
 @router.get("/tasks", response_model=List[TaskPointDTO])
-async def tasks_for_user(user_id=Depends(get_current_user), session: AsyncSession = Depends(fastapi_get_db)) -> List[TaskPointDTO]:
+async def tasks_for_user(current_user=Depends(get_current_user), session: AsyncSession = Depends(fastapi_get_db)) -> List[TaskPointDTO]:
     service = UserDataService(session)
-    tasks = await service.tasks_for_user(user_id)
+    tasks = await service.tasks_for_user(user=current_user)
     return tasks
 
 @router.get("/amount_of_new_tasks", response_model=NewTaskCountResponse)
-async def amount_of_new_tasks(user_id=Depends(get_current_user), session: AsyncSession = Depends(fastapi_get_db)) -> NewTaskCountResponse:
+async def amount_of_new_tasks(current_user=Depends(get_current_user), session: AsyncSession = Depends(fastapi_get_db)) -> NewTaskCountResponse:
     service = UserDataService(session)
-    count = await service.unviewed_tasks_count_for_user(user_id=user_id)
+    count = await service.unviewed_tasks_count_for_user(user=current_user)
     return NewTaskCountResponse(count=count)

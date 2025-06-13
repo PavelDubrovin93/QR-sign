@@ -4,7 +4,7 @@ from app.models.dtoModels.TaskPointDTO import TaskPointDTO
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.QRCodeService import QRCodeService
 
-router = APIRouter(prefix="/qr_code")
+router = APIRouter()
 
 @router.get("/{qr_code_binary}/", response_model=TaskPointDTO)
 async def get_task_point_by_qr_code(qr_code_binary: bytes, session: AsyncSession = Depends(fastapi_get_db)) -> TaskPointDTO:
