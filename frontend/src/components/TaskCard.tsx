@@ -3,6 +3,8 @@ import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 import { useNavigate } from "react-router-dom";
 import { SlArrowRight } from "react-icons/sl";
+import './checkbox-fix.css';
+
 
 interface TaskPoint {
     id: number;
@@ -67,11 +69,11 @@ function TaskCard() {
                                 <span className="text-sm">1 - Перекрасить подоконник</span>
                             </div>
                             <div className="flex items-start gap-2 pb-2">
-                                <Checkbox  />
+                            <Checkbox checked={false} onChange={() => {}} />
                                 <span className="text-sm">2 - Очистить площадку</span>
                             </div>
                             <div className="flex items-start gap-2 pb-2">
-                                <Checkbox  />
+                            <Checkbox checked={false} onChange={() => {}} />
                                 <span className="text-sm">3 - Заменить дерево</span>
                             </div>
                         </div>
