@@ -3,7 +3,6 @@ import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 import { useNavigate } from "react-router-dom";
 import { SlArrowRight } from "react-icons/sl";
-import './checkbox-fix.css';
 
 
 interface TaskPoint {
