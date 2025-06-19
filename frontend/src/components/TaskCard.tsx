@@ -68,11 +68,11 @@ function TaskCard() {
                                 <span className="text-sm">1 - Перекрасить подоконник</span>
                             </div>
                             <div className="flex items-start gap-2 pb-2">
-                            <Checkbox checked={false} onChange={() => {}} />
+                                <Checkbox checked={false} onChange={() => {}} />
                                 <span className="text-sm">2 - Очистить площадку</span>
                             </div>
                             <div className="flex items-start gap-2 pb-2">
-                            <Checkbox checked={false} onChange={() => {}} />
+                                <Checkbox checked={false} onChange={() => {}} />
                                 <span className="text-sm">3 - Заменить дерево</span>
                             </div>
                         </div>
