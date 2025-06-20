@@ -49,3 +49,11 @@ class UserRepository(IUserRepository):
             raise ValueError(f"Пользователь с id {user_id} не существует.")
         await self.session.delete(user_to_delete)
         await self.session.commit()
+
+    async def __to_dto(self, user: User) -> UserDTO:
+        return UserDTO(
+            id=user.id,
+            name=user.name,
+            tg_id=user.tg_id,
+            ui_settings=user.ui_settings
+        )

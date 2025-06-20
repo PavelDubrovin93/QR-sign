@@ -4,7 +4,6 @@ from sqlalchemy import Column, DateTime, LargeBinary, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
-from app.models.dtoModels.CompanyDTO import CompanyDTO
 
 
 class SubscriptionType(str, Enum):
@@ -31,13 +30,3 @@ class CompanyEntity(EntityDB):
     )
     work_groups = relationship("WorkGroupEntity", back_populates="company")
     task_boards = relationship("TaskBoardEntity", back_populates="company")
-
-    def to_dto(self) -> CompanyDTO:
-        return CompanyDTO(
-            id=self.id,
-            title=self.title,
-            description=self.description,
-            subscription_type=self.subscription_type,
-            expire_at=self.expire_at,
-            invite_qr=self.invite_qr,
-        )

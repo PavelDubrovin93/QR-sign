@@ -2,8 +2,6 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
-from app.models.dtoModels.WorkGroupDTO import WorkGroupDTO
-
 
 
 class WorkGroupEntity(EntityDB):
@@ -19,10 +17,3 @@ class WorkGroupEntity(EntityDB):
         "UserCompanyEntity", back_populates="work_groups"
     )
     task_boards = relationship("TaskBoardEntity", back_populates="work_groups")
-    def to_dto(self):
-        return WorkGroupDTO(
-            id=self.id,
-            title=self.title,
-            description=self.description,
-            company_id=self.company_id
-        )

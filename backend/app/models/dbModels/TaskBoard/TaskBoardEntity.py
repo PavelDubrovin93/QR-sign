@@ -1,7 +1,6 @@
 from app.models.dbModels.EntityDB import EntityDB
 from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, DateTime
 from sqlalchemy.orm import relationship
-from app.models.dtoModels.TaskBoardDTO import TaskBoardDTO
 
 
 
@@ -20,17 +19,3 @@ class TaskBoardEntity(EntityDB):
     company = relationship("CompanyEntity", back_populates="task_boards")
     work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
     tasks = relationship("TaskPointEntity", back_populates="taskboard")
-
-    def to_dto(self) -> TaskBoardDTO:
-        """Создает DTO (Data Transfer Object) из текущего экземпляра сущности"""
-        return TaskBoardDTO(
-            id=str(self.id),
-            title=self.title,
-            company_id=self.company_id,
-            work_group_id=self.work_group_id,
-            image=self.image,
-            location=self.location,
-            type=self.type,
-            description=self.description or "",
-            done_at=self.done_at
-        )

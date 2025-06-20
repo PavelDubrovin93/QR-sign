@@ -51,9 +51,9 @@ class CompanyRepository(ICompanyRepository):
         return CompanyDTO(
             id=company.id,
             title=company.title,
+            image=company.image,
             description=company.description,
             subscription_type=company.subscription_type,
             expire_at=company.expire_at,
-            invite_qr=company.invite_qr,
-            image_url=company.image_url
+            invite_qr=company.invite_qr
         )

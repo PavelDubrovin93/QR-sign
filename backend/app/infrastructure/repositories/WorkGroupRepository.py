@@ -44,3 +44,11 @@ class WorkGroupRepository(IWorkGroupRepository):
             raise ValueError(f"Пользователь с id {work_group_id} не существует.")
         await self.session.delete(work_group_to_delete)
         await self.session.commit()
+
+    async def __to_dto(self, workgroup: WorkGroup) -> WorkGroupDTO:
+        return WorkGroupDTO(
+            id=workgroup.id,
+            title=workgroup.title,
+            description=workgroup.description,
+            company_id=workgroup.company_id
+        )

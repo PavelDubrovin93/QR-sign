@@ -1,5 +1,4 @@
 from app.models.dbModels.EntityDB import EntityDB
-from app.models.dtoModels.TaskPointDTO import TaskPointDTO
 
 from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, DateTime, LargeBinary, JSON
 from sqlalchemy.orm import relationship
@@ -22,21 +21,3 @@ class TaskPointEntity(EntityDB):
     warning_at = Column(DateTime, nullable=True)
 
     taskboard = relationship("TaskBoardEntity", back_populates="tasks")
-
-    def to_dto(self) -> TaskPointDTO:
-        return TaskPointDTO(
-            id=self.id,
-            title=self.title,
-            taskboard_id=self.taskboard_id,
-            thumbnails=self.thumbnails,
-            mark_icon=self.mark_icon,
-            coordinates=self.coordinates,
-            points=self.points,
-            qrcode=self.qrcode,
-            description=self.description,
-            voice_message=self.voice_message,
-            done_at=self.done_at,
-            issued_at=self.issued_at,
-            warning_at=self.warning_at
-        )
-

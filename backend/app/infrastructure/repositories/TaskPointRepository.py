@@ -108,3 +108,20 @@ class TaskPointRepository(ITaskPointRepository):
         result = await self.session.execute(query)
         task_point = result.scalars().first()
         return task_point.to_dto() if task_point else None
+
+    async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
+        return TaskPointDTO(
+            id=taskpoint.id,
+            title=taskpoint.title,
+            taskboard_id=taskpoint.taskboard_id,
+            thumbnails=taskpoint.thumbnails,
+            mark_icon=taskpoint.mark_icon,
+            coordinates=taskpoint.coordinates,
+            points=taskpoint.points,
+            qrcode=taskpoint.qrcode,
+            description=taskpoint.description,
+            voice_message=taskpoint.voice_message,
+            done_at=taskpoint.done_at,
+            issued_at=taskpoint.issued_at,
+            warning_at=taskpoint.warning_at
+        )

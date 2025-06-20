@@ -64,3 +64,16 @@ class TaskBoardRepository(ITaskBoardRepository):
             raise ValueError(f"Таскборд с id {task_board_id} не существует.")
         await self.session.delete(task_board_to_delete)
         await self.session.commit()
+
+    async def __to_dto(self, taskboard: TaskBoard) -> TaskBoardDTO:
+        return TaskBoardDTO(
+            id=taskboard.id,
+            title=taskboard.title,
+            company_id=taskboard.company_id,
+            work_group_id=taskboard.work_group_id,
+            image=taskboard.image,
+            location=taskboard.location,
+            type=taskboard.type,
+            description=taskboard.description or "",
+            done_at=taskboard.done_at
+        )

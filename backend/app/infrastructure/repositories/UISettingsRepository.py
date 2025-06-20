@@ -45,3 +45,11 @@ class UISettingsRepository(IUISettingsRepository):
         await self.session.commit()
         await self.session.refresh(existing_settings)
         return existing_settings.to_dto()
+
+    async def __to_dto(self, uisetting: UISettingsEntity) -> UISettingsDTO:
+        return UISettingsDTO(
+            id=uisetting.id,
+            user_id=uisetting.user_id,
+            default_company_choice=uisetting.default_company_choice,
+            default_color=uisetting.default_color
+        )

@@ -46,3 +46,12 @@ class UserCompanyRepository(IUserCompanyRepository):
             raise ValueError(f"Запись UC с id {user_company_to_delete} не существует.")
         await self.session.delete(user_company_to_delete)
         await self.session.commit()
+
+    async def __to_dto(self, usercompany: UserCompany) -> UserCompanyDTO:
+        return UserCompanyDTO(
+            id=usercompany.id,
+            user_id=usercompany.user_id,
+            company_id=usercompany.company_id,
+            workgroup_id=usercompany.workgroup_id,
+            role=usercompany.role
+        )
