@@ -15,31 +15,31 @@ class TaskBoardRepository(ITaskBoardRepository):
         query = select(TaskBoard).where(TaskBoard.id == id)
         result = await self.session.execute(query)
         task_board = result.scalars().first()
-        return task_board.to_dto() if task_board else None
+        return self.__to_dto(task_board) if task_board else None
 
     async def get_task_board_by_company_id(self, company_id: int) -> TaskBoardDTO:
         query = select(TaskBoard).where(TaskBoard.company_id == company_id)
         result = await self.session.execute(query)
         task_board = result.scalars().first()
-        return task_board.to_dto() if task_board else None
+        return self.__to_dto(task_board) if task_board else None
 
     async def get_task_board_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:
         query = select(TaskBoard).where(TaskBoard.work_group_id == work_group_id)
         result = await self.session.execute(query)
         task_board = result.scalars().first()
-        return task_board.to_dto() if task_board else None
+        return self.__to_dto(task_board) if task_board else None
 
     async def get_task_board_by_type(self, type: str) -> TaskBoardDTO:
         query = select(TaskBoard).where(TaskBoard.type == type)
         result = await self.session.execute(query)
         task_board = result.scalars().first()
-        return task_board.to_dto() if task_board else None
+        return self.__to_dto(task_board) if task_board else None
 
     async def get_task_board_all(self) -> List[TaskBoardDTO]:
         query = select(TaskBoard)
         result = await self.session.execute(query)
         task_boards = result.scalars().all()
-        return [task_board.to_dto() for task_board in task_boards]
+        return [self.__to_dto(task_board) for task_board in task_boards]
 
     async def add_task_board(self, new_task_board: TaskBoardDTO) -> TaskBoardDTO:
         new_task_board = TaskBoard(
@@ -54,7 +54,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         )
         self.session.add(new_task_board)
         await self.session.commit()
-        return new_task_board.to_dto()
+        return self.__to_dto(new_task_board)
 
     async def delete_task_board_by_id(self, task_board_id: int) -> None:
         query = select(TaskBoard).where(TaskBoard.id == task_board_id)

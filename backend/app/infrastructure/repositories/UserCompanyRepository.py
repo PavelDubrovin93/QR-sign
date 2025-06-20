@@ -19,12 +19,14 @@ class UserCompanyRepository(IUserCompanyRepository):
     async def get_user_company_by_id(self, record_id: int) -> Optional[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.id == record_id)
         result = await self.session.execute(query)
-        return result.scalars().first()
+        usercompany = result.scalars().first()
+        return self.__to_dto(usercompany)
 
     async def get_user_companies_for_user(self, user_id: int) -> List[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.user_id == user_id)
         result = await self.session.execute(query)
-        return result.scalars().all()
+        usercompanies = result.scalars().all()
+        return [self.__to_dto(usercompany) for usercompany in usercompanies]
 
     async def create_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:
         new_uc = UserCompany(
@@ -36,7 +38,7 @@ class UserCompanyRepository(IUserCompanyRepository):
         self.session.add(new_uc)
         await self.session.commit()
         await self.session.refresh(new_uc)
-        return new_uc.to_dto()
+        return self.__to_dto(new_uc)
 
     async def delete_user_company_by_id(self, user_company_id: int) -> None:
         query = select(UserCompany).where(UserCompany.id == user_company_id)

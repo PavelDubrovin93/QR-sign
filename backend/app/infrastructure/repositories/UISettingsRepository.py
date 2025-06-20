@@ -19,7 +19,7 @@ class UISettingsRepository(IUISettingsRepository):
         query = select(UISettingsEntity).where(UISettingsEntity.user_id == user_id)
         result = await self.session.execute(query)
         ui_settings = result.scalars().first()
-        return ui_settings.to_dto()
+        return self.__to_dto(ui_settings)
 
     async def create_ui_settings(self, settings_data: UISettingsDTO) -> Optional[UISettingsDTO]:
         new_settings = UISettingsEntity(
@@ -30,7 +30,7 @@ class UISettingsRepository(IUISettingsRepository):
         self.session.add(new_settings)
         await self.session.commit()
         await self.session.refresh(new_settings)  # ???
-        return new_settings.to_dto()
+        return self.__to_dto(new_settings)
 
     async def update_ui_settings(self, settings_data: UISettingsDTO) -> Optional[UISettingsDTO]:
         query = select(UISettingsEntity).where(UISettingsEntity.user_id == settings_data.user_id)
@@ -44,7 +44,7 @@ class UISettingsRepository(IUISettingsRepository):
 
         await self.session.commit()
         await self.session.refresh(existing_settings)
-        return existing_settings.to_dto()
+        return self.__to_dto(existing_settings)
 
     async def __to_dto(self, uisetting: UISettingsEntity) -> UISettingsDTO:
         return UISettingsDTO(

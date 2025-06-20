@@ -19,13 +19,13 @@ class TaskPointRepository(ITaskPointRepository):
         query = select(TaskPoint).where(TaskPoint.id == id)
         result = await self.session.execute(query)
         task_point = result.scalars().first()
-        return task_point.to_dto() if task_point else None
+        return self.__to_dto(task_point) if task_point else None
 
     async def get_task_point_by_taskboard_id(self, taskboard_id: int) -> List[TaskPointDTO]:
         query = select(TaskPoint).where(TaskPoint.taskboard_id == taskboard_id)
         result = await self.session.execute(query)
         task_points = result.scalars().all()
-        return [task_point.to_dto() for task_point in task_points]
+        return [self.__to_dto(task_point) for task_point in task_points]
 
     async def get_task_point_by_taskboard_id_and_done_at(self, taskboard_id: int, done_at: str) -> List[TaskPointDTO]:
         query = select(TaskPoint).where(
@@ -34,7 +34,7 @@ class TaskPointRepository(ITaskPointRepository):
         )
         result = await self.session.execute(query)
         task_points = result.scalars().all()
-        return [task_point.to_dto() for task_point in task_points]
+        return [self.__to_dto(task_point) for task_point in task_points]
 
     async def get_task_point_by_taskboard_id_and_issued_at(self, taskboard_id: int, issued_at: str) -> List[TaskPointDTO]:
         query = select(TaskPoint).where(
@@ -43,7 +43,7 @@ class TaskPointRepository(ITaskPointRepository):
         )
         result = await self.session.execute(query)
         task_points = result.scalars().all()
-        return [task_point.to_dto() for task_point in task_points]
+        return [self.__to_dto(task_point) for task_point in task_points]
 
     async def get_task_point_by_taskboard_id_and_warning_at(self, taskboard_id: int, warning_at: str) -> List[TaskPointDTO]:
         query = select(TaskPoint).where(
@@ -52,7 +52,7 @@ class TaskPointRepository(ITaskPointRepository):
         )
         result = await self.session.execute(query)
         task_points = result.scalars().all()
-        return [task_point.to_dto() for task_point in task_points]
+        return [self.__to_dto(task_point) for task_point in task_points]
     
     async def add_task_point(self, new_task_point: TaskPointDTO) -> TaskPointDTO:
         
@@ -73,7 +73,7 @@ class TaskPointRepository(ITaskPointRepository):
         )
         self.session.add(new_task_point)
         await self.session.commit()
-        return new_task_point.to_dto()
+        return self.__to_dto(new_task_point)
 
     async def delete_task_point_by_id(self, task_point_id: int) -> None:
         query = select(TaskPoint).where(TaskPoint.id == task_point_id)
@@ -101,13 +101,13 @@ class TaskPointRepository(ITaskPointRepository):
         result = await self.session.execute(query)
         task_points = result.scalars().all()
 
-        return [task_point.to_dto() for task_point in task_points]
+        return [self.__to_dto(task_point) for task_point in task_points]
 
     async def get_task_point_by_qr(self, qr_code_binary: bytes) -> Optional[TaskPointDTO]:
         query = select(TaskPoint).where(TaskPoint.qrcode == qr_code_binary)
         result = await self.session.execute(query)
         task_point = result.scalars().first()
-        return task_point.to_dto() if task_point else None
+        return self.__to_dto(task_point) if task_point else None
 
     async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
         return TaskPointDTO(
