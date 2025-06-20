@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.dtoModels.TaskPointDTO import TaskPointDTO
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
+from app.infrastructure.interfaces.IQRCodeService import IQRCodeService
 
-class QRCodeService:
+
+class QRCodeService(IQRCodeService):
     def __init__(self, session: AsyncSession):
         self.session = session
 

@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.validation.TaskBoardResponse import TaskBoardResponse
+from app.infrastructure.interfaces.ITaskBoardService import ITaskBoardService
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 
-class TaskBoardService:
+class TaskBoardService(ITaskBoardService):
     def __init__(self, session: AsyncSession):
         self.session = session
 

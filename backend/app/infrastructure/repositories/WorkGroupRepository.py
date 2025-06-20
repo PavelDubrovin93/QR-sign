@@ -25,11 +25,11 @@ class WorkGroupRepository(IWorkGroupRepository):
         workgroups = result.scalars().all()
         return [workgroup.to_dto() for workgroup in workgroups]
 
-    async def create_work_group(self, wg_data: dict) -> WorkGroup:
+    async def create_work_group(self, wg_dto: WorkGroupDTO) -> WorkGroup:
         new_wg = WorkGroup(
-            title=wg_data.title,
-            description=wg_data.description,
-            company_id=wg_data.company_id
+            title=wg_dto.title,
+            description=wg_dto.description,
+            company_id=wg_dto.company_id
         )
         self.session.add(new_wg)
         await self.session.commit()

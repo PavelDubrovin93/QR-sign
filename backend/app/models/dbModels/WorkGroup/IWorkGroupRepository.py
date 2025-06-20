@@ -29,7 +29,7 @@ class IWorkGroupRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_work_group(self, wg_data: dict) -> WorkGroupDTO:
+    async def create_work_group(self, wg_dto: WorkGroupDTO) -> WorkGroupDTO:
         """
         Создать новую рабочую группу.
         :param wg_data: данные группы
@@ -44,3 +44,4 @@ class IWorkGroupRepository(ABC):
         :param work_group_id: ID рабочей группы
         """
         pass
+dict

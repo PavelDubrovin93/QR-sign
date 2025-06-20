@@ -1,12 +1,13 @@
 from typing import List
 from app.models.dtoModels.UserDTO import UserDTO
-
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.infrastructure.interfaces.IUserDataService import IUserDataService
 from app.api.validation.TaskBoardResponse import TaskBoardResponse
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 
-class UserDataService:
+class UserDataService(IUserDataService):
     def __init__(self, session: AsyncSession):
         self.session = session
 

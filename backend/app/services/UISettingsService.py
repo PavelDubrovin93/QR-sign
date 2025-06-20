@@ -1,10 +1,11 @@
 from app.models.dtoModels.UISettingsDTO import UISettingsDTO
 from app.models.dtoModels.UserDTO import UserDTO
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.infrastructure.interfaces.IUISettingsService import IUISettingsService
 from app.infrastructure.repositories.UISettingsRepository import UISettingsRepository
 
 
-class UISettingsService:
+class UISettingsService(IUISettingsService):
     def __init__(self, session: AsyncSession):
         self.session = session
 
