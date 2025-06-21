@@ -12,9 +12,3 @@ class UserEntity(EntityDB):
 
     ui_settings = relationship("UISettingsEntity", back_populates="user", uselist=False)
     user_company_entities = relationship("UserCompanyEntity", back_populates="user")
-
-    def to_dict(self) -> dict:
-        return {
-            "id": str(self.id),
-            "name": self.name,
-        }

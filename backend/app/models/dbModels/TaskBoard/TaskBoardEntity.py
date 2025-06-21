@@ -3,6 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, 
 from sqlalchemy.orm import relationship
 
 
+
 class TaskBoardEntity(EntityDB):
     __tablename__ = "task_boards"
 
@@ -15,9 +16,6 @@ class TaskBoardEntity(EntityDB):
     description = Column(Text, nullable=True)
     done_at = Column(DateTime, nullable=True)
 
-    def to_dict(self) -> dict:
-        return {
-            "id": str(self.id), "title": self.title, "work_group_id": self.work_group_id,
-            "image": self.image, "location": self.location, "type": self.type,
-            "description": self.description, "done_at": self.done_at
-            }
+    company = relationship("CompanyEntity", back_populates="task_boards")
+    work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
+    tasks = relationship("TaskPointEntity", back_populates="taskboard")

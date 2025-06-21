@@ -26,16 +26,7 @@ class CompanyEntity(EntityDB):
     ui_settings = relationship(
         "UISettingsEntity",
         back_populates="default_company",
-        cascade="all, delete-orphan",
+        cascade="all, delete-orphan",  # кажется это надо убрать
     )
     work_groups = relationship("WorkGroupEntity", back_populates="company")
-
-    def to_dict(self) -> dict:
-        return {
-            "id": str(self.id),
-            "title": self.title,
-            "description": self.description,
-            "subscription_type": self.subscription_type,
-            "expire_at": self.expire_at,
-            "invite_qr": self.invite_qr,
-        }
+    task_boards = relationship("TaskBoardEntity", back_populates="company")

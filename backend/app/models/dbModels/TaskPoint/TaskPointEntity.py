@@ -1,4 +1,5 @@
 from app.models.dbModels.EntityDB import EntityDB
+
 from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, DateTime, LargeBinary, JSON
 from sqlalchemy.orm import relationship
 
@@ -19,9 +20,4 @@ class TaskPointEntity(EntityDB):
     issued_at = Column(DateTime, nullable=True)
     warning_at = Column(DateTime, nullable=True)
 
-    def to_dict(self) -> dict:
-        return {
-            "id": str(self.id), "title": self.title, "taskboard_id": self.taskboard_id, "thumbnails": self.thumbnails,
-            "mark_icon": self.mark_icon, "coordinates": self.coordinates, "points": self.points, "qrcode": self.qrcode,
-            "description": self.description, "voice_massage": self.voice_massage, "done_at": self.done_at
-        }
+    taskboard = relationship("TaskBoardEntity", back_populates="tasks")
