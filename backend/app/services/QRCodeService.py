@@ -11,6 +11,4 @@ class QRCodeService(IQRCodeService):
     async def get_task_point_by_qr_code(self, qr_code_binary: bytes) -> TaskPointDTO:
         repo = TaskPointRepository(self.session)
         taskpoint = await repo.get_task_point_by_qr(qr_code_binary)
-        if taskpoint is None:
-            return None
-        return taskpoint
+        return taskpoint if taskpoint else None

@@ -44,4 +44,3 @@ class IWorkGroupRepository(ABC):
         :param work_group_id: ID рабочей группы
         """
         pass
-dict
