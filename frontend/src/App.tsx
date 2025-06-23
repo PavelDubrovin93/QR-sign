@@ -1,14 +1,13 @@
 import '@telegram-apps/telegram-ui/dist/styles.css';
-import { AppRoot, Placeholder} from '@telegram-apps/telegram-ui';
+
 
 import Header from "./components/Header.tsx"
+import RegistrationSteps from './components/RegistrationSteps';
 
 import MainPage from "./pages/mainPage.tsx"
 import ScanPage from "./pages/scanPage.tsx"
 import ProfilePage from "./pages/profilePage.tsx"
 import TaskboardPage from "./pages/taskboardPage.tsx"
-
-import ImageWithTaskPoints from './components/ZoomableImage.tsx';
 
 
 import {
@@ -17,24 +16,18 @@ import {
   Routes,
 } from "react-router-dom"
 
-import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 
 
 function App() {
-  const telegramData = getTelegramData();
-  // if (!telegramData) {
-  //   return;
-  // }
-
-
-
   const webapp = window.Telegram?.WebApp;
-  if (webapp && telegramData?.themeParams.secondary_bg_color) {
-    webapp.setBackgroundColor(telegramData.themeParams.secondary_bg_color);
+
+  if (webapp) {
+    webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
   return (
       <BrowserRouter>
+        <RegistrationSteps />
         <div className='p-4'>
           <Header />
         </div> 

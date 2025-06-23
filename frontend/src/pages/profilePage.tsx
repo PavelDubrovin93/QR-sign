@@ -1,13 +1,9 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Select, Section, ColorInput, Cell, Radio } from '@telegram-apps/telegram-ui';
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 
 
 function ProfilePage() {
-    const [company, setCompany] = useState('');
     const telegramData = getTelegramData();
-
 
     return (
         <>

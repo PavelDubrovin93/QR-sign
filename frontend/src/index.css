@@ -18,6 +18,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale; */
 }
+
+.ring-custom {
+  --tw-ring-color: var(--custom-ring-color);
+}
+/* выше фикс для цвета ринга в цвет кнопки */
+
 /* 
 a {
   font-weight: 500;
