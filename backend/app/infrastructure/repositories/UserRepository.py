@@ -34,12 +34,12 @@ class UserRepository(IUserRepository):
     async def add_user(self, new_user: UserDTO) -> Optional[UserDTO]:
         new_user = User(
             name=new_user.name,
-            tg_id=new_user.tg_id,
-            ui_settings=new_user.ui_settings
+            tg_id=new_user.tg_id
         )
         self.session.add(new_user)
         await self.session.commit()
-        return self.__to_dto(new_user)
+        user_dto = await self.__to_dto(new_user)
+        return user_dto
 
     async def delete_user_by_id(self, user_id: int) -> None:
         query = select(User).where(User.id == user_id)
@@ -54,6 +54,5 @@ class UserRepository(IUserRepository):
         return UserDTO(
             id=user.id,
             name=user.name,
-            tg_id=user.tg_id,
-            ui_settings=user.ui_settings
+            tg_id=user.tg_id
         )
