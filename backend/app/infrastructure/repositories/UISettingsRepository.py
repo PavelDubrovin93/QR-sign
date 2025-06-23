@@ -29,7 +29,7 @@ class UISettingsRepository(IUISettingsRepository):
         )
         self.session.add(new_settings)
         await self.session.commit()
-        await self.session.refresh(new_settings)  # ???
+        await self.session.refresh(new_settings)
         return self.__to_dto(new_settings)
 
     async def update_ui_settings(self, settings_data: UISettingsDTO) -> Optional[UISettingsDTO]:

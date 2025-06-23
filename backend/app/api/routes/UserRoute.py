@@ -1,8 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.infrastructure.db.session import fastapi_get_db
+from app.models.dtoModels.UserDTO import UserDTO
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.UserService import UserService
 
 router = APIRouter()
 
-# @router.post("/user", status_code=201)
-# async def register(user: UserDTO, session: AsyncSession = Depends(fastapi_get_db)):
-#     user = await add_user(username=user.name, email=user.email, password=user.password, session=session)
-#     return user
+@router.post("", response_model=UserDTO ,status_code=201)
+async def cold_register(new_user_data: UserDTO, session: AsyncSession = Depends(fastapi_get_db)
+) -> UserDTO:
+    service = UserService(session)
+    user = await service.register_user_cold(new_user_data)
+    return user
+
+@router.post("/{company_id}", response_model=UserDTO ,status_code=201)
+async def hot_register(company_id: int ,new_user_data: UserDTO, session: AsyncSession = Depends(fastapi_get_db)
+) -> UserDTO:
+    service = UserService(session)
+    user = await service.register_user_hot(company_id, new_user_data)
+    return user
