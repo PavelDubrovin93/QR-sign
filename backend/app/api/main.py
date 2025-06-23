@@ -4,7 +4,7 @@ from app.api.routes import UserRoute, UserDataRoute, UISettingRoute, QRCodeRoute
 
 api_router = APIRouter()
 
-api_router.include_router(UserRoute.router, prefix="/user", tags=["user"])
+api_router.include_router(UserRoute.router, prefix="/users", tags=["users"])
 api_router.include_router(UserDataRoute.router, prefix="/user_data", tags=["user_data"])
 api_router.include_router(UISettingRoute.router, prefix="/settings", tags=["settings"])
 api_router.include_router(QRCodeRoute.router, prefix="/qr_code", tags=["qr_code"])
