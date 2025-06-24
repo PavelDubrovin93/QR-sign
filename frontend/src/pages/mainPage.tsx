@@ -43,11 +43,11 @@ function HomePage() {
                 <option>Компания Б</option>
               </Select>
           </Section>  
-
-          <TaskCard />
-          <TaskCard />
-          <TaskCard />
-          <TaskCard />
+          {/* hard code */}
+          <TaskCard path={"/taskboard/${task.id}"}/>
+          <TaskCard path={"/taskboard/${task.id}"}/>
+          <TaskCard path={"/taskboard/${task.id}"}/>
+          <TaskCard path={"/taskboard/${task.id}"}/>
 
           </>
     );

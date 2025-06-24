@@ -1,5 +1,5 @@
 import { post } from "..";
-import { config } from "../../config";
+import { config } from "../../configs/app.config";
 import { type TaskRequest } from "../types";
 
 export const createTask = (data: TaskRequest) =>

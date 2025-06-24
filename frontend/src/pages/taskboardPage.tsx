@@ -12,7 +12,7 @@ function TaskboardPage() {
 
     return (
           <>
-          <TaskCardOpened />
+          <TaskCardOpened editMode={false}/>
           </>
     );
 }

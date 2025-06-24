@@ -1,5 +1,5 @@
 import { patch } from "..";
-import { config } from "../../config";
+import { config } from "../../configs/app.config";
 import { type TaskRequest } from "../types";
 
 export const updateTask = (data: TaskRequest, id: number | string) =>

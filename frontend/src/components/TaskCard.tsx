@@ -13,7 +13,12 @@ interface TaskPoint {
     completed: boolean;
 }
 
-function TaskCard() {
+interface TaskCardProps {
+    path: string;
+  }
+
+function TaskCard({ path }: TaskCardProps) {
+    console.log(path, 'path')
     const [task, setTask] = useState({});
     const telegramData = getTelegramData();
     const navigate = useNavigate();
@@ -80,7 +85,7 @@ function TaskCard() {
 
                     <div className="flex justify-end mt-2">
                         <button
-                            onClick={() => navigate("/taskboard/${task.id}")}
+                            onClick={() => navigate(path)}
                             className="p-2 text-gray-500 hover:text-black dark:hover:text-white rounded-full hover:bg-gray-200 transition-colors"
                             aria-label="Назад"
                         >

@@ -1,5 +1,5 @@
 import { get } from "..";
-import { config } from "../../config";
+import { config } from "../../configs/app.config";
 import { type TaskResponse } from "../types";
 
 export const getTasks = () =>

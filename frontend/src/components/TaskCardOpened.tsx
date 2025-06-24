@@ -3,8 +3,10 @@ import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 import { useNavigate } from "react-router-dom";
 import { SlArrowLeft, SlClose } from "react-icons/sl";
+import { FaMicrophone } from "react-icons/fa";
 
 import TestImage from '../assets/test_image.jpeg';
+import AudioRecorder from "./AudioRecorder";
 
 interface TaskPoint {
     id: number;
@@ -14,7 +16,11 @@ interface TaskPoint {
     completed: boolean;
 }
 
-function TaskCard() {
+interface TaskCardProps {
+    editMode: boolean;
+}
+
+function TaskCard({ editMode }: TaskCardProps) {
     const [task, setTask] = useState({});
     const telegramData = getTelegramData();
     const navigate = useNavigate();
@@ -208,6 +214,12 @@ function TaskCard() {
                             </div>
                             <div className="pb-4">
                                 {/* Голосовое сообщение */}
+                                {editMode ? 
+                                <div className="flex">
+                                    <AudioRecorder />      
+   
+                                </div>          
+                                :
                                 <div className="flex pb-4 px-1 items-center">
                                     <div className="flex-1 flex flex-col pt-[3px]">
                                         <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
@@ -227,6 +239,7 @@ function TaskCard() {
                                         </button>
                                     </div>
                                 </div>
+                                }
                             </div>
                             <div className="flex items-start gap-2 pb-4">
                                 <Checkbox />
@@ -239,6 +252,11 @@ function TaskCard() {
                             </div>
                             <div className="pb-2">
                                 {/* Голосовое сообщение */}
+                                {editMode ? 
+                                <div className="flex">
+                                    <AudioRecorder />      
+                                </div>   
+                                :
                                 <div className="flex pb-4 px-1 items-center">
                                     <div className="flex-1 flex flex-col pt-[3px]">
                                         <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
@@ -258,6 +276,7 @@ function TaskCard() {
                                         </button>
                                     </div>
                                 </div>
+                                }  
                             </div>
                         </div>
                     </div>
