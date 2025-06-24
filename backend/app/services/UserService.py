@@ -8,6 +8,8 @@ from app.models.dtoModels.UserDTO import UserDTO
 from app.models.dtoModels.UISettingsDTO import UISettingsDTO
 from app.models.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.infrastructure.interfaces.IUserService import IUserService
+from app.api.validation.UserResponse import UserResponse
+
 
 class UserService(IUserService):
     def __init__(self, session: AsyncSession):
@@ -20,9 +22,9 @@ class UserService(IUserService):
         self.default_workgroup_id = 1
         self.default_role = "not_approved"
     
-    async def register_user_cold(self, new_user_data: UserDTO) -> UserDTO:
+    async def register_user_cold(self, new_user_data: UserDTO) -> UserResponse:
         new_user = await self.user_repo.add_user(new_user_data)
-        await self.uisettings_repo.create_ui_settings(
+        new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(
                 user_id=new_user.id
             )
@@ -35,11 +37,18 @@ class UserService(IUserService):
                 role=self.default_role
             )
         )
-        return new_user
+        new_user_response = UserResponse(
+            id=new_user.id,
+            tg_id=new_user.tg_id,
+            name=new_user.name,
+            photo_url=new_user.photo_url,
+            ui_settings=new_ui_settings.id
+        )
+        return new_user_response
 
     async def register_user_hot(self, company_id: int, new_user_data: UserDTO) -> UserDTO:
         new_user = await self.user_repo.add_user(new_user_data)
-        await self.uisettings_repo.create_ui_settings(
+        new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(
                 user_id=new_user.id
             )
@@ -53,4 +62,11 @@ class UserService(IUserService):
                 role=self.default_role
             )
         )
-        return new_user
+        new_user_response = UserResponse(
+            id=new_user.id,
+            tg_id=new_user.tg_id,
+            name=new_user.name,
+            photo_url=new_user.photo_url,
+            ui_settings=new_ui_settings.id
+        )
+        return new_user_response
