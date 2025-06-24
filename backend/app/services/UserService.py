@@ -46,7 +46,7 @@ class UserService(IUserService):
         )
         return new_user_response
 
-    async def register_user_hot(self, company_id: int, new_user_data: UserDTO) -> UserDTO:
+    async def register_user_hot(self, company_id: int, new_user_data: UserDTO) -> UserResponse:
         new_user = await self.user_repo.add_user(new_user_data)
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(
