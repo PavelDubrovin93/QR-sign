@@ -1,5 +1,5 @@
 from app.models.dtoModels.Entity import Entity
-from type import Optional
+from typing import Optional
 
 
 class UserDTO(Entity):

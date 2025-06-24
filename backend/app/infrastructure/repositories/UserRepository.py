@@ -44,6 +44,23 @@ class UserRepository(IUserRepository):
         await self.session.commit()
         user_dto = await self.__to_dto(new_user)
         return user_dto
+    
+    async def update_user(self, user_data: UserDTO) -> Optional[UserDTO]:
+        query = select(User).where(User.id == User.id)
+        result = await self.session.execute(query)
+        existing_user = result.scalars().first()
+        if existing_user is None:
+            new_user =  self.create_ui_settings(user_data)
+            return new_user
+        existing_user.tg_id = user_data.tg_id
+        existing_user.name = user_data.name
+        existing_user.photo_url = user_data.photo_url
+        existing_user.default_company_choice = user_data.default_company_choice
+
+        await self.session.commit()
+        await self.session.refresh(existing_user)
+        user_dto = await self.__to_dto(existing_user) if existing_user else None
+        return user_dto 
 
     async def delete_user_by_id(self, user_id: int) -> None:
         query = select(User).where(User.id == user_id)
