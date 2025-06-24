@@ -16,25 +16,29 @@ class UserRepository(IUserRepository):
     async def get_user_by_id(self, id: int) -> Optional[UserDTO]:
         query = select(User).where(User.id == id)
         result = await self.session.execute(query)
-        user = result.scalars().first()
-        return self.__to_dto(user) if user else None
+        user =  result.scalar_one_or_none()
+        user_dto = await self.__to_dto(user) if user else None
+        return user_dto
 
     async def get_user_by_tg_id(self, tg_id: int) -> Optional[UserDTO]:
         query = select(User).where(User.tg_id == tg_id)
         result = await self.session.execute(query)
         user = result.scalar_one_or_none()
-        return self.__to_dto(user)
+        user_dto = await self.__to_dto(user) if user else None
+        return user_dto
 
     async def get_user_all(self) -> List[UserDTO]:
         query = select(User)
         result = await self.session.execute(query)
         users = result.scalars().all()
-        return [self.__to_dto(user) for user in users]
+        users_dto = [await self.__to_dto(user) for user in users]
+        return users_dto
 
     async def add_user(self, new_user: UserDTO) -> Optional[UserDTO]:
         new_user = User(
             name=new_user.name,
-            tg_id=new_user.tg_id
+            tg_id=new_user.tg_id,
+            photo_url=new_user.photo_url
         )
         self.session.add(new_user)
         await self.session.commit()

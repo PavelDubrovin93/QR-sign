@@ -9,6 +9,8 @@ class UserEntity(EntityDB):
 
     tg_id = Column(Integer, nullable=False)
     name = Column(String(50), nullable=False)
+    photo_url = Column(String(150), nullable=True)
+
 
     ui_settings = relationship("UISettingsEntity", back_populates="user", uselist=False)
     user_company_entities = relationship("UserCompanyEntity", back_populates="user")
