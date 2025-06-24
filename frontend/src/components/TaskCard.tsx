@@ -18,7 +18,6 @@ interface TaskCardProps {
   }
 
 function TaskCard({ path }: TaskCardProps) {
-    console.log(path, 'path')
     const [task, setTask] = useState({});
     const telegramData = getTelegramData();
     const navigate = useNavigate();
