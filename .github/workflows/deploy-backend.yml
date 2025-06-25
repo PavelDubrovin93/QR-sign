@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      COMPOSE_FILE: backend/docker-compose.yaml
+      COMPOSE_FILE: backend/docker-compose.prod.yaml
 
     steps:
       - name: Checkout code
@@ -40,8 +40,8 @@ jobs:
           envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
           script: |
             cd ~/QR-sign/backend
-            docker-compose -f docker-compose.yaml down
-            docker-compose -f docker-compose.yaml up -d \
+            docker-compose -f docker-compose.prod.yaml down
+            docker-compose -f docker-compose.prod.yaml up -d \
               --build \
               --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
               --env DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
