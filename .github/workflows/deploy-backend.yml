@@ -31,15 +31,18 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-       - name: Checkout code
-         uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-       - name: Copy docker-compose.yml via ssh
-         uses: appleboy/scp-action@master
-         with:
-           host: ${{ secrets.SERVER_IP }}
-           username: ${{ secrets.USER }}
-           key: ${{ secrets.SSH_PRIVATE_KEY }}
-           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-           source: "backend/docker-compose.prod.yml"
-           target: "taskmap/backend/docker-compose.prod.yml"
+      - name: List files in the backend directory
+        run: ls -la backend
+
+      - name: Copy docker-compose.yml via ssh
+        uses: appleboy/scp-action@v1.18.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }} # Optional, remove if not needed
+          source: "backend/docker-compose.prod.yml"
+          target: "taskmap/backend/docker-compose.prod.yml"
