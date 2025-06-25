@@ -9,53 +9,68 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '/home/user/QR-sign/backend'  # Абсолютный путь!
+      COMPOSE_FILE: backend/docker-compose.prod.yaml
+      REMOTE_DIR: ~/QR-sign/backend  # Путь на сервере
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Install Docker Compose (locally)
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      - name: Install rsync
-        run: sudo apt-get install -y rsync
-
-      - name: Sync files
+          curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o docker-compose
+          chmod +x docker-compose
+          sudo mv docker-compose /usr/local/bin/
+      - name: Build with environment variables
+        env:
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            --delete \
-            --exclude='.git' \
-            ./backend/ \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.REMOTE_DIR }}/
-
-      - name: Deploy on server
+          docker-compose -f ${{ env.COMPOSE_FILE }} build
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
+          script: |
+            # Установка Docker
+            sudo apt-get update
+            sudo apt-get install -y docker.io
+            sudo systemctl enable --now docker
+            
+            # Установка Docker Compose
+            sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            
+            # Создание директории
+            mkdir -p ${{ env.REMOTE_DIR }}
+            
+            # Копирование файлов из репозитория
+            echo "Копирование docker-compose.prod.yaml..."
+            sudo cp -r $GITHUB_WORKSPACE/backend/* ${{ env.REMOTE_DIR }}/
+            cd ${{ env.REMOTE_DIR }} || exit 1
+            
+            # Запуск контейнеров
+            echo "Запуск docker-compose..."
+            docker-compose -f docker-compose.prod.yaml down
+            docker-compose -f docker-compose.prod.yaml up -d \
+              --build \
+              --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
+              --env DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
+              --env DATABASE_NAME="${{ secrets.DATABASE_NAME }}" \
+              --env DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
+              --env DATABASE_PORT="${{ secrets.DATABASE_PORT }}"
+            
+            # Очистка
+            docker system prune -af --filter "until=24h"
+      - name: Verify files
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} <<EOF
-          set -e
-          echo "Installing Docker..."
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-          sudo systemctl enable --now docker
-
-          echo "Installing Docker Compose..."
-          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
-            -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
-          echo "Deploying application..."
-          cd ${{ env.REMOTE_DIR }}
-          docker-compose -f docker-compose.prod.yaml down
-          docker-compose -f docker-compose.prod.yaml up -d --build
-
-          echo "Cleaning up..."
-          docker system prune -af --filter "until=24h"
-          EOF
+          echo "Содержимое backend/:"
+          ls -la backend/
+          echo "Проверка docker-compose.prod.yaml:"
+          cat backend/docker-compose.prod.yaml
