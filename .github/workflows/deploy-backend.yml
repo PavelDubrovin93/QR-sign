@@ -1,29 +1,66 @@
-name: Secure Deploy Backend
+name: Docker Hub CI/CD
 
 on:
   push:
-    branches: ["backend"]
+    branches: [ "backend" ]
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_KEY }}
+  IMAGE_NAME: qr-sign-backend
+  TAG: latest
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '/root/QR-sign/backend'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Login to Docker Hub
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-      - name: Build Image
+      - name: Build and push
         run: |
-          docker-compose -f ./backend/docker-compose.yml build
-          docker tag russuran/taskmap_repo:latest
+          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG ./backend
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG
 
-      - name: Push Image
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup SSH
         run: |
-          echo "${{ secrets.DOCKERHUB_KEY }}" | docker login -u russuran --password-stdin
-          docker push russuran/taskmap_repo:latest
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to production
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            deployer@${{ secrets.SERVER_IP }} <<'EOF'
+          set -ex
+          
+          # Pull the latest image
+          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG
+          
+          # Stop and remove old container
+          docker stop $IMAGE_NAME || true
+          docker rm $IMAGE_NAME || true
+          
+          # Run new container
+          docker run -d \
+            --name $IMAGE_NAME \
+            --restart always \
+            -p 8000:8000 \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG
+            
+          # Cleanup
+          docker system prune -af --filter "until=24h"
+          EOF
