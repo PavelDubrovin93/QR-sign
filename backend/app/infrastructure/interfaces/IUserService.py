@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from app.models.dtoModels.UserDTO import UserDTO
+from app.api.validation.UserResponse import UserResponse
+
 
 
 class IUserService(ABC):
@@ -8,7 +10,7 @@ class IUserService(ABC):
     """
 
     @abstractmethod
-    async def register_user_cold(self, tg_id: int, name: str) -> UserDTO:
+    async def register_user_cold(self, company_id: int, new_user_data: UserDTO) -> UserResponse:
         """
         Холодная регистрация пользователя (регистрация без ассоциации с конкретной компанией).
         :param tg_id: Телеграм ID пользователя
@@ -18,7 +20,7 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    async def register_user_hot(self, company_id: int, tg_id: int, name: str) -> UserDTO:
+    async def register_user_hot(self, company_id: int, new_user_data: UserDTO) -> UserResponse:
         """
         Горячая регистрация пользователя (регистрация с ассоциацией с конкретной компанией).
         :param company_id: ID компании

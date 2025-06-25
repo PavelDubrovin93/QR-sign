@@ -3,9 +3,14 @@ from app.models.dtoModels.UserDTO import UserDTO
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.interfaces.IUserDataService import IUserDataService
+from app.api.validation.UserCompanyResponse import UserCompanyResponse
 from app.api.validation.TaskBoardResponse import TaskBoardResponse
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
+from app.infrastructure.repositories.CompanyRepository import CompanyRepository
+from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
+
+
 
 class UserDataService(IUserDataService):
     def __init__(self, session: AsyncSession):
@@ -36,11 +41,25 @@ class UserDataService(IUserDataService):
         responses = list(boards_map.values())
         return responses
 
-
-
     async def unviewed_tasks_count_for_user(self, user: UserDTO) -> int:
         user_id = user.id
         tp_repo = TaskPointRepository(self.session)
         tasks = await tp_repo.get_task_point_by_user_id(user_id)
         unviewed_task_count = [tp for tp in tasks if tp.issued_at is None]
         return len(unviewed_task_count)
+
+    async def companies_for_user(self, user: UserDTO) -> List[UserCompanyResponse]:
+        user_id = user.id
+        company_repo = CompanyRepository(self.session)
+        uc_repo = UserCompanyRepository(self.session)
+        uc_list = await uc_repo.get_user_companies_for_user(user_id)
+        responses = []
+        for uc in uc_list:
+            company_id = uc.company_id
+            company = await company_repo.get_company_by_id(company_id)
+            responses.append(UserCompanyResponse(
+                company_id=company.id,
+                company_name=company.title,
+                role=uc.role
+            ))
+        return responses

@@ -16,14 +16,16 @@ class WorkGroupRepository(IWorkGroupRepository):
     async def get_work_group_by_id(self, group_id: int) -> Optional[WorkGroupDTO]:
         query = select(WorkGroup).where(WorkGroup.id == group_id)
         result = await self.session.execute(query)
-        workgroup = result.scalars().first()
-        return self.__to_dto(workgroup)
+        workgroup = result.scalar_one_or_none()
+        workgroup_dto = await self.__to_dto(workgroup) if workgroup else None
+        return workgroup_dto
 
     async def get_work_groups_by_company(self, company_id: int) -> List[WorkGroupDTO]:
         query = select(WorkGroup).where(WorkGroup.company_id == company_id)
         result = await self.session.execute(query)
         workgroups = result.scalars().all()
-        return [self.__to_dto(workgroup) for workgroup in workgroups]
+        workgroups_dto = [await self.__to_dto(workgroup) for workgroup in workgroups]
+        return workgroups_dto
 
     async def create_work_group(self, wg_dto: WorkGroupDTO) -> WorkGroup:
         new_wg = WorkGroup(
@@ -34,7 +36,8 @@ class WorkGroupRepository(IWorkGroupRepository):
         self.session.add(new_wg)
         await self.session.commit()
         await self.session.refresh(new_wg)
-        return self.__to_dto(new_wg)
+        workgroup_dto = await self.__to_dto(new_wg) if new_wg else None
+        return workgroup_dto
 
     async def delete_work_group_by_id(self, work_group_id: int) -> None:
         query = select(WorkGroup).where(WorkGroup.id == work_group_id)

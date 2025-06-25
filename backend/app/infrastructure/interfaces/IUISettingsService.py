@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.models.dtoModels.UISettingsDTO import UISettingsDTO
+from app.api.validation.UISettingResponse import UISettingResponse
 from app.models.dtoModels.UserDTO import UserDTO
 
 class IUISettingsService(ABC):
@@ -8,7 +8,7 @@ class IUISettingsService(ABC):
     """
 
     @abstractmethod
-    async def get_user_settings(self, user: UserDTO) -> UISettingsDTO:
+    async def get_user_settings(self, user: UserDTO) -> UISettingResponse:
         """
         Получить настройки интерфейса пользователя.
         :param user: Пользователь
@@ -17,7 +17,7 @@ class IUISettingsService(ABC):
         pass
 
     @abstractmethod
-    async def update_user_settings(self, updated_settings: UISettingsDTO) -> UISettingsDTO:
+    async def update_user_settings(self, updated_settings: UISettingResponse) -> UISettingResponse:
         """
         Обновить настройки интерфейса пользователя.
         :param updated_settings: Новое состояние настроек

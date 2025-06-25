@@ -15,14 +15,16 @@ class CompanyRepository(ICompanyRepository):
     async def get_company_by_id(self, company_id: int) -> Optional[CompanyDTO]:
         query = select(Company).where(Company.id == company_id)
         result = await self.session.execute(query)
-        company = result.scalars().first()
-        return self.__to_dto(company) if company else None
+        company = result.scalar_one_or_none()
+        company_dto = await self.__to_dto(company) if company else None
+        return company_dto
 
     async def get_companies(self) -> List[CompanyDTO]:
         query = select(Company)
         result = await self.session.execute(query)
         companies = result.scalars().all()
-        return [self.__to_dto(company) for company in companies]
+        companies_dto = [await self.__to_dto(company) for company in companies]
+        return companies_dto
 
     async def create_company(self, company_data: CompanyDTO) -> CompanyDTO:
         new_company = Company(
@@ -36,7 +38,8 @@ class CompanyRepository(ICompanyRepository):
         self.session.add(new_company)
         await self.session.commit()
         await self.session.refresh(new_company)
-        return self.__to_dto(new_company)
+        company_dto = await self.__to_dto(new_company) if new_company else None
+        return company_dto
 
     async def delete_company_by_id(self, company_id: int) -> None:
         query = select(Company).where(Company.id == company_id)
