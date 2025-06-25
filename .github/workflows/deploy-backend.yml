@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '/backend_holder/QR-sign/backend'
+      REMOTE_DIR: '/root/QR-sign/backend'
 
     steps:
       - name: Checkout code
