@@ -26,8 +26,6 @@ services:
     restart: always
     depends_on:
       - db
-    env_file:
-      - .env
     ports:
       - "8000:8000"
     volumes:
