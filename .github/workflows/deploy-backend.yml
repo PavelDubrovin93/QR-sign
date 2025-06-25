@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '/home/user/QR-sign/backend'  # Абсолютный путь!
+      REMOTE_DIR: '/home/root/QR-sign/backend'
 
     steps:
       - name: Checkout code
@@ -18,10 +18,21 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          # Правильно форматируем ключ
+          echo "-----BEGIN RSA PRIVATE KEY-----" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' >> ~/.ssh/deploy_key
+          echo "-----END RSA PRIVATE KEY-----" >> ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          
           # Добавляем хост в known_hosts
-          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+            "echo 'SSH connection successful!'"
 
       - name: Install rsync
         run: sudo apt-get install -y rsync
@@ -30,6 +41,7 @@ jobs:
         run: |
           rsync -avz \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            --progress \
             --delete \
             --exclude='.git' \
             ./backend/ \
@@ -40,7 +52,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} <<'EOF'
-          set -e
+          set -ex
           
           # Установка Docker
           sudo apt-get update
