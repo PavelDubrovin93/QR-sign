@@ -9,65 +9,56 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      COMPOSE_FILE: backend/docker-compose.prod.yaml
-      REMOTE_DIR: ~/QR-sign/backend  # Путь на сервере
+      REMOTE_DIR: '~/QR-sign/backend'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose (locally)
+      - name: Prepare SSH Key
         run: |
-          curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o docker-compose
-          chmod +x docker-compose
-          sudo mv docker-compose /usr/local/bin/
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >>~/.ssh/config <<END
+          Host deploy-server
+            HostName ${{ secrets.SERVER_IP }}
+            User ${{ secrets.SERVER_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          END
 
-      - name: Build with environment variables
-        env:
-          DATABASE_USER: ${{ secrets.DATABASE_USER }}
-          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
-          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+      - name: Install Docker Compose
         run: |
-          docker-compose -f ${{ env.COMPOSE_FILE }} build
+          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64" \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # 1. Установка Docker
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo systemctl enable --now docker
-
-            # 2. Установка Docker Compose
-            sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
-              -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-
-            # 3. Подготовка директории (с правильными правами)
-            REMOTE_DIR="${{ env.REMOTE_DIR }}"
-            sudo mkdir -p "$REMOTE_DIR"
-            sudo chown -R $USER:$USER "$REMOTE_DIR"
-            sudo chmod -R 775 "$REMOTE_DIR"
-
-            # 4. Копирование файлов через tar+ssh (самый надежный способ)
-            echo "Копирование файлов проекта..."
-            tar -czf - -C $GITHUB_WORKSPACE/backend . | \
-            ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "tar -xzf - -C $REMOTE_DIR"
-
-            # 5. Запуск контейнеров
-            cd "$REMOTE_DIR"
-            docker-compose -f docker-compose.prod.yaml down
-            docker-compose -f docker-compose.prod.yaml up -d --build
-      - name: Verify files
+      - name: Sync files via rsync
         run: |
-          echo "Содержимое backend/:"
-          ls -la backend/
-          echo "Проверка docker-compose.prod.yaml:"
-          cat backend/docker-compose.prod.yaml
+          rsync -avz -e "ssh -F ~/.ssh/config" \
+            --delete \
+            --exclude='.git' \
+            ./backend/ \
+            deploy-server:${{ env.REMOTE_DIR }}/
+
+      - name: Deploy on server
+        run: |
+          ssh -F ~/.ssh/config deploy-server <<EOF
+          set -e
+          
+          # Install Docker
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl enable --now docker
+          
+          # Prepare environment
+          cd ${{ env.REMOTE_DIR }}
+          
+          # Run containers
+          docker-compose -f docker-compose.prod.yaml down
+          docker-compose -f docker-compose.prod.yaml up -d --build
+          
+          # Cleanup
+          docker system prune -af --filter "until=24h"
+          EOF
