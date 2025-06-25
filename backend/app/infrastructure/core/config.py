@@ -32,7 +32,7 @@ class Settings(BaseSettings):
                 scheme="postgresql+asyncpg",
                 username=info.data["DATABASE_USER"],
                 password=info.data["DATABASE_PASSWORD"],
-                host="localhost",  # info.data["DATABASE_HOST"],
+                host=info.data["DATABASE_HOST"],
                 port=info.data["DATABASE_PORT"],
                 path=f'{info.data["DATABASE_NAME"]}',
             )
