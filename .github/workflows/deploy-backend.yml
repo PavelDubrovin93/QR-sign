@@ -44,5 +44,5 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }} # Optional, remove if not needed
-          source: "backend/docker-compose.prod.yml"
-          target: "~/taskmap"
+          source: "backend/docker-compose.prod.yaml"
+          target: "taskmap"
