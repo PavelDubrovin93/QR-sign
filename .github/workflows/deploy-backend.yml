@@ -40,22 +40,26 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
           script: |
-            # Установка Docker и Docker Compose на сервере
+            # Установка Docker
             sudo apt-get update
             sudo apt-get install -y docker.io
             sudo systemctl enable --now docker
             
+            # Установка Docker Compose
             sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-            docker-compose --version
             
-            # Создаем директорию если не существует
+            # Создание директории
             mkdir -p ${{ env.REMOTE_DIR }}
+            
+            # Копирование файлов из репозитория
+            echo "Копирование docker-compose.prod.yaml..."
+            sudo cp -r $GITHUB_WORKSPACE/backend/* ${{ env.REMOTE_DIR }}/
             cd ${{ env.REMOTE_DIR }} || exit 1
             
-            # Остановка и обновление контейнеров
+            # Запуск контейнеров
+            echo "Запуск docker-compose..."
             docker-compose -f docker-compose.prod.yaml down
-            docker-compose -f docker-compose.prod.yaml pull
             docker-compose -f docker-compose.prod.yaml up -d \
               --build \
               --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
