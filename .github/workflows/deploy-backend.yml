@@ -9,56 +9,53 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '~/QR-sign/backend'
+      REMOTE_DIR: '/home/user/QR-sign/backend'  # Абсолютный путь!
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Prepare SSH Key
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          cat >>~/.ssh/config <<END
-          Host deploy-server
-            HostName ${{ secrets.SERVER_IP }}
-            User ${{ secrets.SERVER_USER }}
-            IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking no
-          END
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64" \
-            -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+      - name: Install rsync
+        run: sudo apt-get install -y rsync
 
-      - name: Sync files via rsync
+      - name: Sync files
         run: |
-          rsync -avz -e "ssh -F ~/.ssh/config" \
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             --delete \
             --exclude='.git' \
             ./backend/ \
-            deploy-server:${{ env.REMOTE_DIR }}/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.REMOTE_DIR }}/
 
       - name: Deploy on server
         run: |
-          ssh -F ~/.ssh/config deploy-server <<EOF
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} <<EOF
           set -e
-          
-          # Install Docker
+          echo "Installing Docker..."
           sudo apt-get update
           sudo apt-get install -y docker.io
           sudo systemctl enable --now docker
-          
-          # Prepare environment
+
+          echo "Installing Docker Compose..."
+          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+          echo "Deploying application..."
           cd ${{ env.REMOTE_DIR }}
-          
-          # Run containers
           docker-compose -f docker-compose.prod.yaml down
           docker-compose -f docker-compose.prod.yaml up -d --build
-          
-          # Cleanup
+
+          echo "Cleaning up..."
           docker system prune -af --filter "until=24h"
           EOF
