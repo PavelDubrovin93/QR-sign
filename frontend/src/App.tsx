@@ -26,7 +26,7 @@ function App() {
   }
 
   //hard code, надо будет потом заменить и сделать enum
-  const role: string = "user";
+  const role: string = "admin";
 
   const renderLayout = () => {
     switch (role) {

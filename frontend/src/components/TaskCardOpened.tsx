@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 import { useNavigate } from "react-router-dom";
 import { SlArrowLeft, SlClose } from "react-icons/sl";
-import { FaMicrophone } from "react-icons/fa";
 
 import TestImage from '../assets/test_image.jpeg';
 import AudioRecorder from "./AudioRecorder";
+import useDnDpoints from "../utils/hooks/useDnDpoints";
 
-interface TaskPoint {
+export interface TaskPoint {
     id: number;
     x: number; // percent
     y: number; // percent
@@ -25,11 +25,11 @@ function TaskCard({ editMode }: TaskCardProps) {
     const telegramData = getTelegramData();
     const navigate = useNavigate();
 
-    const taskPoints: TaskPoint[] = [
+    const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([
         { id: 1, x: 30, y: 40, title: 'Убрать цветок', completed: true },
         { id: 2, x: 70, y: 60, title: 'Замена фасала', completed: false },
         { id: 3, x: 50, y: 80, title: 'Перекрасить в синий', completed: false },
-    ];
+    ]);
 
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
@@ -37,57 +37,106 @@ function TaskCard({ editMode }: TaskCardProps) {
     const thumbnailRef = useRef<HTMLImageElement>(null);
     const fullSizeRef = useRef<HTMLImageElement>(null);
 
-    const [thumbnailSize, setThumbnailSize] = useState({ width: 0, height: 0 });
-    const [fullSize, setFullSize] = useState({ width: 0, height: 0 });
+    const [renderedImageRect, setRenderedImageRect] = useState({
+        width: 0, height: 0, left: 0, top: 0
+    });
 
-    // Получаем размеры изображений после загрузки
-    useEffect(() => {
-        const img = new Image();
-        img.src = TestImage;
-        img.onload = () => {
-            const updateSizes = () => {
-                if (thumbnailRef.current) {
-                    setThumbnailSize({
-                        width: thumbnailRef.current.clientWidth,
-                        height: thumbnailRef.current.clientHeight,
-                    });
-                }
-                if (fullSizeRef.current) {
-                    setFullSize({
-                        width: fullSizeRef.current.clientWidth,
-                        height: fullSizeRef.current.clientHeight,
-                    });
-                }
-            };
+    const { isDragging, draggedPointId, handleDragStart, handleDragEnd } = useDnDpoints({
+        editMode,
+        taskPoints,
+        setTaskPoints,
+        activePoint,
+        setActivePoint,
+        renderedImageRect,
+    });
 
-            setTimeout(updateSizes, 50); // небольшая задержка для корректного измерения
-        };
+    const updateRenderedImageRect = useCallback(() => {
+        if (!fullSizeRef.current) return;
+
+        const img = fullSizeRef.current;
+        const imgRect = img.getBoundingClientRect();
+
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
+
+        let actualWidth = imgRect.width;
+        let actualHeight = imgRect.height;
+        let actualLeft = imgRect.left;
+        let actualTop = imgRect.top;
+
+        if (naturalWidth && naturalHeight) {
+            const aspectRatio = naturalWidth / naturalHeight;
+            const containerAspectRatio = imgRect.width / imgRect.height;
+
+            if (aspectRatio > containerAspectRatio) {
+                actualHeight = imgRect.width / aspectRatio;
+                actualTop = imgRect.top + (imgRect.height - actualHeight) / 2;
+            } else {
+                actualWidth = imgRect.height * aspectRatio;
+                actualLeft = imgRect.left + (imgRect.width - actualWidth) / 2;
+            }
+        }
+        setRenderedImageRect({
+            width: actualWidth,
+            height: actualHeight,
+            left: actualLeft,
+            top: actualTop
+        });
     }, []);
 
-    // Пересчёт координат точек под полноэкранное изображение
-    const getPointPosition = (xPercent: number, yPercent: number) => {
-        if (!thumbnailSize.width || !fullSize.width || !isFullScreen) return { x: xPercent, y: yPercent };
+    useEffect(() => {
+        if (fullSizeRef.current) {
+            fullSizeRef.current.onload = updateRenderedImageRect;
+        }
 
-        const scaleX = thumbnailSize.width / fullSize.width;
-        const scaleY = thumbnailSize.height / fullSize.height;
+        window.addEventListener('resize', updateRenderedImageRect);
 
-        const adjustedX = xPercent * scaleX;
-        const adjustedY = yPercent * scaleY;
+        updateRenderedImageRect();
+        setTimeout(updateRenderedImageRect, 100);
 
-        return { x: adjustedX, y: adjustedY };
+        return () => {
+            window.removeEventListener('resize', updateRenderedImageRect);
+            if (fullSizeRef.current) {
+                fullSizeRef.current.onload = null;
+            }
+        };
+    }, [updateRenderedImageRect]);
+
+    const handleImageClick = (e: React.MouseEvent) => {
+        if (!editMode || isDragging || !renderedImageRect.width || !renderedImageRect.height) return;
+
+        const clickXRelativeToImagePx = e.clientX - renderedImageRect.left;
+        const clickYRelativeToImagePx = e.clientY - renderedImageRect.top;
+
+        const newXPercent = (clickXRelativeToImagePx / renderedImageRect.width) * 100;
+        const newYPercent = (clickYRelativeToImagePx / renderedImageRect.height) * 100;
+
+        if (newXPercent >= 0 && newXPercent <= 100 && newYPercent >= 0 && newYPercent <= 100) {
+            const newPoint: TaskPoint = {
+                id: taskPoints.length > 0 ? Math.max(...taskPoints.map(p => p.id)) + 1 : 1,
+                x: newXPercent,
+                y: newYPercent,
+                title: 'Новая задача',
+                completed: false,
+            };
+            setTaskPoints(prevPoints => [...prevPoints, newPoint]);
+            setActivePoint(newPoint);
+        }
     };
 
     return (
         <div className="p-4 pt-0">
             {/* Модалка с изображением */}
             {isFullScreen && (
-                <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-                    {/* Кнопка закрытия */}
+                <div
+                    className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+                >
                     <button
                         className="absolute top-4 right-4 text-white z-50"
                         onClick={() => {
                             setIsFullScreen(false);
                             setActivePoint(null);
+                            if (isDragging) handleDragEnd();
                         }}
                     >
                         <SlClose size={24} />
@@ -99,28 +148,37 @@ function TaskCard({ editMode }: TaskCardProps) {
                         src={TestImage}
                         alt="Full size"
                         className="max-w-full max-h-full object-contain"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={editMode ? handleImageClick : undefined}
+                        onLoad={updateRenderedImageRect}
+                        style={{ cursor: editMode && !isDragging ? 'crosshair' : 'default' }}
                     />
 
                     {/* Точки поверх изображения */}
                     {taskPoints.map((point) => {
-                        const { x, y } = getPointPosition(point.x, point.y);
+                        const pixelX = (point.x / 100) * renderedImageRect.width;
+                        const pixelY = (point.y / 100) * renderedImageRect.height;
                         return (
                             <div
                                 key={point.id}
-                                className="absolute cursor-pointer"
+                                className={`absolute cursor-pointer ${isDragging && draggedPointId === point.id ? 'z-50' : 'z-40'}`}
                                 style={{
-                                    left: `${x}%`,
-                                    top: `${y}%`,
+                                    left: `${pixelX + renderedImageRect.left}px`,
+                                    top: `${pixelY + renderedImageRect.top}px`,
                                     transform: 'translate(-50%, -50%)',
                                 }}
+                                onMouseDown={(e) => handleDragStart(e, point)}
+                                onTouchStart={(e) => handleDragStart(e, point)}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    setActivePoint(point);
+                                    if (!isDragging) {
+                                        setActivePoint(taskPoints.find(p => p.id === point.id) || null);
+                                    }
                                 }}
                             >
                                 <div
-                                    className="flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full"
+                                    className={`flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full transition-all duration-100 ${
+                                        activePoint?.id === point.id && editMode ? 'pulse' : ''
+                                    }`}
                                     style={{
                                         backgroundColor: point.completed
                                             ? '#10B981'
@@ -138,14 +196,71 @@ function TaskCard({ editMode }: TaskCardProps) {
                         <div
                             className="fixed bottom-4 left-4 right-4 p-3 bg-white bg-opacity-90 rounded-lg shadow-md"
                             onClick={(e) => e.stopPropagation()}
+                            style={{ backgroundColor: telegramData?.themeParams.section_bg_color }}
                         >
-                            <h3 className="font-semibold">{activePoint.title}</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="font-semibold text-lg text-gray-600">{activePoint.title}</h3>
+                            <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-600" style={{ color: telegramData?.themeParams.text_color }}>
                                 ID: {activePoint.id}, {activePoint.completed ? 'Выполнено' : 'Не выполнено'}
                             </p>
                             <button
+                                className="text-sm text-red-500"
+                                onClick={() => {
+                                    setTaskPoints(prev => prev.filter(p => p.id !== activePoint.id));
+                                    setActivePoint(null);
+                                }}
+                            >
+                                Удалить точку
+                            </button>
+                            </div>
+                            {editMode && (
+                                <div className="mt-2">
+                                    <input
+                                        value={activePoint.title}
+                                        onChange={(e) => {
+                                            const newTitle = e.target.value;
+                                            setTaskPoints(prevPoints => {
+                                                const updatedPoints = prevPoints.map(p =>
+                                                    p.id === activePoint.id
+                                                        ? { ...p, title: newTitle }
+                                                        : p
+                                                );
+                                                setActivePoint(updatedPoints.find(p => p.id === activePoint.id) || null);
+                                                return updatedPoints;
+                                            });
+                                        }}
+                                        className="w-full border rounded p-1 mb-1"
+                                        placeholder="Изменить название задачи"
+                                        style={{
+                                            backgroundColor: telegramData?.colorScheme === 'dark' ? '#444' : '#eee',
+                                            color: telegramData?.themeParams.text_color || '#000000'
+                                        }}
+                                    />
+                                    <label className="flex items-center text-sm" style={{ color: telegramData?.themeParams.text_color }}>
+                                        <Checkbox
+                                            checked={activePoint.completed}
+                                            onChange={(e) => {
+                                                const newCompleted = e.target.checked;
+                                                setTaskPoints(prevPoints => {
+                                                    const updatedPoints = prevPoints.map(p =>
+                                                        p.id === activePoint.id
+                                                            ? { ...p, completed: newCompleted }
+                                                            : p
+                                                    );
+                                                    setActivePoint(updatedPoints.find(p => p.id === activePoint.id) || null);
+                                                    return updatedPoints;
+                                                });
+                                            }}
+                                            className="mr-2"
+                                        />
+                                        Выполнено
+                                    </label>
+                                </div>
+                            )}
+                            <button
                                 className="mt-2 text-sm text-blue-500"
                                 onClick={() => setActivePoint(null)}
+                                style={{ color: telegramData?.themeParams.button_color }}
                             >
                                 Закрыть
                             </button>
