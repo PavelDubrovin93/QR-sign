@@ -70,3 +70,9 @@ jobs:
             
             # Очистка
             docker system prune -af --filter "until=24h"
+      - name: Verify files
+        run: |
+          echo "Содержимое backend/:"
+          ls -la backend/
+          echo "Проверка docker-compose.prod.yaml:"
+          cat backend/docker-compose.prod.yaml
