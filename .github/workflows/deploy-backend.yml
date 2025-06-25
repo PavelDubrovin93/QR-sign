@@ -38,38 +38,33 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
           script: |
-            # Установка Docker
+            # 1. Установка Docker
             sudo apt-get update
             sudo apt-get install -y docker.io
             sudo systemctl enable --now docker
-            
-            # Установка Docker Compose
-            sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+            # 2. Установка Docker Compose
+            sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
+              -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-            
-            # Создание директории
-            mkdir -p ${{ env.REMOTE_DIR }}
-            
-            # Копирование файлов из репозитория
-            echo "Копирование docker-compose.prod.yaml..."
-            sudo cp -r $GITHUB_WORKSPACE/backend/* ${{ env.REMOTE_DIR }}/
-            cd ${{ env.REMOTE_DIR }} || exit 1
-            
-            # Запуск контейнеров
-            echo "Запуск docker-compose..."
+
+            # 3. Подготовка директории (с правильными правами)
+            REMOTE_DIR="${{ env.REMOTE_DIR }}"
+            sudo mkdir -p "$REMOTE_DIR"
+            sudo chown -R $USER:$USER "$REMOTE_DIR"
+            sudo chmod -R 775 "$REMOTE_DIR"
+
+            # 4. Копирование файлов через tar+ssh (самый надежный способ)
+            echo "Копирование файлов проекта..."
+            tar -czf - -C $GITHUB_WORKSPACE/backend . | \
+            ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "tar -xzf - -C $REMOTE_DIR"
+
+            # 5. Запуск контейнеров
+            cd "$REMOTE_DIR"
             docker-compose -f docker-compose.prod.yaml down
-            docker-compose -f docker-compose.prod.yaml up -d \
-              --build \
-              --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
-              --env DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
-              --env DATABASE_NAME="${{ secrets.DATABASE_NAME }}" \
-              --env DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
-              --env DATABASE_PORT="${{ secrets.DATABASE_PORT }}"
-            
-            # Очистка
-            docker system prune -af --filter "until=24h"
+            docker-compose -f docker-compose.prod.yaml up -d --build
       - name: Verify files
         run: |
           echo "Содержимое backend/:"
