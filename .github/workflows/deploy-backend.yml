@@ -10,12 +10,13 @@ jobs:
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
       COMPOSE_FILE: backend/docker-compose.prod.yaml
+      REMOTE_DIR: ~/QR-sign/backend  # Путь на сервере
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose
+      - name: Install Docker Compose (locally)
         run: |
           curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o docker-compose
           chmod +x docker-compose
@@ -39,8 +40,22 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
           script: |
-            cd ~/QR-sign/backend
+            # Установка Docker и Docker Compose на сервере
+            sudo apt-get update
+            sudo apt-get install -y docker.io
+            sudo systemctl enable --now docker
+            
+            sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            docker-compose --version
+            
+            # Создаем директорию если не существует
+            mkdir -p ${{ env.REMOTE_DIR }}
+            cd ${{ env.REMOTE_DIR }} || exit 1
+            
+            # Остановка и обновление контейнеров
             docker-compose -f docker-compose.prod.yaml down
+            docker-compose -f docker-compose.prod.yaml pull
             docker-compose -f docker-compose.prod.yaml up -d \
               --build \
               --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
@@ -48,3 +63,6 @@ jobs:
               --env DATABASE_NAME="${{ secrets.DATABASE_NAME }}" \
               --env DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
               --env DATABASE_PORT="${{ secrets.DATABASE_PORT }}"
+            
+            # Очистка
+            docker system prune -af --filter "until=24h"
