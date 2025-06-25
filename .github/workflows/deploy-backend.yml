@@ -31,36 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to production
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=no \
-            deployer@${{ secrets.SERVER_IP }} <<'EOF'
-          set -ex
-          
-          # Pull the latest image
-          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-          docker pull $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG
-          
-          # Stop and remove old container
-          docker stop $IMAGE_NAME || true
-          docker rm $IMAGE_NAME || true
-          
-          # Run new container
-          docker run -d \
-            --name $IMAGE_NAME \
-            --restart always \
-            -p 8000:8000 \
-            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            $DOCKERHUB_USERNAME/$IMAGE_NAME:$TAG
-            
-          # Cleanup
-          docker system prune -af --filter "until=24h"
-          EOF
+       - name: Copy docker-compose.yml via ssh
+         uses: appleboy/scp-action@master
+         with:
+           host: ${{ secrets.SERVER_IP }}
+           username: ${{ secrets.USER }}
+           key: ${{ secrets.SSH_KEY }}
+           passphrase: ${{ secrets.SSH_PASSPHRASE }}
+           source: "backend/docker-compose.production.yml"
+           target: "taskmap/backend/docker-compose.prod.yml"
