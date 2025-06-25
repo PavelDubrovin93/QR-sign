@@ -18,15 +18,15 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/github_actions
           # Убедитесь, что ключ в правильном формате
-          sed -i 's/\\n/\n/g' ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+          sed -i 's/\\n/\n/g' ~/.ssh/github_actions
+          chmod 600 ~/.ssh/github_actions
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Test SSH as Root
         run: |
-          ssh -i ~/.ssh/deploy_key \
+          ssh -i ~/.ssh/github_actions \
             -o StrictHostKeyChecking=no \
             root@${{ secrets.SERVER_IP }} \
             "echo 'Successfully connected as root!'"
@@ -34,7 +34,7 @@ jobs:
       - name: Sync files as Root
         run: |
           rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            -e "ssh -i ~/.ssh/github_actions -o StrictHostKeyChecking=no" \
             --rsync-path="sudo rsync" \
             --delete \
             ./backend/ \
@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy on Server
         run: |
-          ssh -i ~/.ssh/deploy_key \
+          ssh -i ~/.ssh/github_actions \
             -o StrictHostKeyChecking=no \
             root@${{ secrets.SERVER_IP }} <<'EOF'
           set -ex
