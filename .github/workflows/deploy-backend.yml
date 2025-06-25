@@ -1,20 +1,16 @@
-name: Deploy Backend
+name: Secure Deploy Backend
 
 on:
   push:
     branches: [ "backend" ]
-  pull_request:
-    branches: [ "backend" ]
-
-env:
-  DOCKER_COMPOSE_VERSION: 'v2.23.3'
-  SSH_PORT: 22
-  REMOTE_DIR: ~/QR-sign/backend
-  COMPOSE_FILE: backend/docker-compose.yaml
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_COMPOSE_VERSION: 'v2.23.3'
+      COMPOSE_FILE: backend/docker-compose.yaml
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +21,7 @@ jobs:
           chmod +x docker-compose
           sudo mv docker-compose /usr/local/bin/
 
-      - name: Build Docker images
+      - name: Build with environment variables
         env:
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
@@ -41,17 +37,14 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ env.SSH_PORT }}
+          envs: 'DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME,DATABASE_HOST,DATABASE_PORT'
           script: |
-            cd ${{ env.REMOTE_DIR }}
-            # Создаем .env файл на сервере из secrets
-            cat <<EOF > .env
-            DATABASE_USER=${{ secrets.DATABASE_USER }}
-            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
-            DATABASE_HOST=${{ secrets.DATABASE_HOST }}
-            DATABASE_PORT=${{ secrets.DATABASE_PORT }}
-            EOF
-            # Запускаем контейнеры
-            docker-compose -f ${{ env.COMPOSE_FILE }} pull
-            docker-compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
+            cd ~/QR-sign/backend
+            docker-compose -f docker-compose.yaml down
+            docker-compose -f docker-compose.yaml up -d \
+              --build \
+              --env DATABASE_USER="${{ secrets.DATABASE_USER }}" \
+              --env DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
+              --env DATABASE_NAME="${{ secrets.DATABASE_NAME }}" \
+              --env DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
+              --env DATABASE_PORT="${{ secrets.DATABASE_PORT }}"
