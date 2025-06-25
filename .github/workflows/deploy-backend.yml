@@ -31,12 +31,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+       - name: Checkout code
+         run: |
+          echo "Server IP: ${{ secrets.SERVER_IP }}"
+          echo "User: ${{ secrets.USER }}"
+
        - name: Copy docker-compose.yml via ssh
          uses: appleboy/scp-action@master
          with:
            host: ${{ secrets.SERVER_IP }}
            username: ${{ secrets.USER }}
-           key: ${{ secrets.SSH_KEY }}
+           key: ${{ secrets.SSH_PRIVATE_KEY }}
            passphrase: ${{ secrets.SSH_PASSPHRASE }}
-           source: "backend/docker-compose.production.yml"
+           source: "./backend/docker-compose.prod.yml"
            target: "taskmap/backend/docker-compose.prod.yml"
