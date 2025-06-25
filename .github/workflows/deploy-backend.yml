@@ -2,14 +2,14 @@ name: Secure Deploy Backend
 
 on:
   push:
-    branches: [ "backend" ]
+    branches: ["backend"]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       DOCKER_COMPOSE_VERSION: 'v2.23.3'
-      REMOTE_DIR: '/home/root/QR-sign/backend'
+      REMOTE_DIR: '/root/QR-sign/backend'  # Путь для root
 
     steps:
       - name: Checkout code
@@ -18,57 +18,50 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          # Правильно форматируем ключ
-          echo "-----BEGIN RSA PRIVATE KEY-----" > ~/.ssh/deploy_key
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' >> ~/.ssh/deploy_key
-          echo "-----END RSA PRIVATE KEY-----" >> ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          # Убедитесь, что ключ в правильном формате
+          sed -i 's/\\n/\n/g' ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          
-          # Добавляем хост в known_hosts
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Test SSH connection
+      - name: Test SSH as Root
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "echo 'SSH connection successful!'"
+            root@${{ secrets.SERVER_IP }} \
+            "echo 'Successfully connected as root!'"
 
-      - name: Install rsync
-        run: sudo apt-get install -y rsync
-
-      - name: Sync files
+      - name: Sync files as Root
         run: |
           rsync -avz \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            --progress \
+            --rsync-path="sudo rsync" \
             --delete \
-            --exclude='.git' \
             ./backend/ \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.REMOTE_DIR }}/
+            root@${{ secrets.SERVER_IP }}:${{ env.REMOTE_DIR }}/
 
-      - name: Deploy on server
+      - name: Deploy on Server
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} <<'EOF'
+            root@${{ secrets.SERVER_IP }} <<'EOF'
           set -ex
-          
+
           # Установка Docker
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-          sudo systemctl enable --now docker
-          
+          apt-get update
+          apt-get install -y docker.io
+          systemctl enable --now docker
+
           # Установка Docker Compose
-          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
+          curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" \
             -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          
+          chmod +x /usr/local/bin/docker-compose
+
           # Запуск контейнеров
           cd ${{ env.REMOTE_DIR }}
           docker-compose -f docker-compose.prod.yaml down
           docker-compose -f docker-compose.prod.yaml up -d --build
-          
+
           # Очистка
           docker system prune -af --filter "until=24h"
           EOF
