@@ -79,10 +79,6 @@ button:focus-visible {
   }
 } */
 
-.telegram-ui-checkbox { /* Возможно, у чекбокса есть такой класс, проверьте в инспекторе */
-  border-color: var(--my-custom-border-color, #FF0000) !important; /* Пример, если переменные не сработают напрямую */
-}
-
 .pulse {
   position: relative;
   text-align: center;
