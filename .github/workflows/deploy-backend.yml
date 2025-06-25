@@ -19,32 +19,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up environment variables
-        run: |
-          echo "DATABASE_USER=postgres" >> $GITHUB_ENV
-          echo "DATABASE_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "DATABASE_NAME=datadb" >> $GITHUB_ENV
-          echo "DATABASE_HOST=db" >> $GITHUB_ENV
-          echo "DATABASE_PORT=5432" >> $GITHUB_ENV
-
       - name: Install Docker Compose
         run: |
           curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o docker-compose
           chmod +x docker-compose
           sudo mv docker-compose /usr/local/bin/
 
-      - name: Build and deploy
+      - name: Build Docker images
         env:
-          DATABASE_USER: ${{ env.DATABASE_USER }}
-          DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
-          DATABASE_NAME: ${{ env.DATABASE_NAME }}
-          DATABASE_HOST: ${{ env.DATABASE_HOST }}
-          DATABASE_PORT: ${{ env.DATABASE_PORT }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
           docker-compose -f ${{ env.COMPOSE_FILE }} build
-          docker-compose -f ${{ env.COMPOSE_FILE }} up -d
 
-      - name: SSH Deploy
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -53,10 +44,14 @@ jobs:
           port: ${{ env.SSH_PORT }}
           script: |
             cd ${{ env.REMOTE_DIR }}
-            echo "DATABASE_USER=${{ env.DATABASE_USER }}" > .env
-            echo "DATABASE_PASSWORD=${{ env.DATABASE_PASSWORD }}" >> .env
-            echo "DATABASE_NAME=${{ env.DATABASE_NAME }}" >> .env
-            echo "DATABASE_HOST=${{ env.DATABASE_HOST }}" >> .env
-            echo "DATABASE_PORT=${{ env.DATABASE_PORT }}" >> .env
-            docker-compose -f docker-compose.yaml pull
-            docker-compose -f docker-compose.yaml up -d --remove-orphans
+            # Создаем .env файл на сервере из secrets
+            cat <<EOF > .env
+            DATABASE_USER=${{ secrets.DATABASE_USER }}
+            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+            DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+            DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+            EOF
+            # Запускаем контейнеры
+            docker-compose -f ${{ env.COMPOSE_FILE }} pull
+            docker-compose -f ${{ env.COMPOSE_FILE }} up -d --remove-orphans
