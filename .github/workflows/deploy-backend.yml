@@ -50,10 +50,10 @@ jobs:
           script: |
             cd taskmap/backend
             
-            sudo docker compose -f docker-compose.production.yaml pull
+            sudo docker compose --env-file .env.prod -f docker-compose.production.yaml pull
           
-            sudo docker compose -f docker-compose.production.yaml down
-            sudo docker compose -f docker-compose.production.yaml up -d
+            sudo docker compose --env-file .env.prod -f docker-compose.production.yaml down
+            sudo docker compose --env-file .env.prod -f docker-compose.production.yaml up -d
 
             sudo systemctl restart nginx
 
