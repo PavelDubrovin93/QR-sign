@@ -48,6 +48,7 @@ jobs:
           target: "taskmap"
         
           script: |
+            set -x
             cd taskmap/backend
             
             echo "Pulling images..."
