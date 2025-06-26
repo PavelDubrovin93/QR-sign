@@ -46,20 +46,28 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "backend/docker-compose.prod.yaml"
           target: "taskmap"
-        
+      
+      - name: Execute commands on remote server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            set -x
             cd taskmap/backend
             
             echo "Pulling images..."
             sudo docker compose --env-file .env -f docker-compose.production.yaml pull
-          
+            
             echo "Stopping and starting containers..."
             sudo docker compose --env-file .env -f docker-compose.production.yaml down
             sudo docker compose --env-file .env -f docker-compose.production.yaml up -d
 
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
+            
+            echo "Done!"
 
 
 #123
