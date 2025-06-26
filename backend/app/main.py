@@ -8,6 +8,8 @@ from app.api.main import api_router
 from app.infrastructure.exception_handler import global_exception_handler
 from app.infrastructure.init_db import init_db
 from app.infrastructure.logger import logger
+from fastapi.middleware.cors import CORSMiddleware
+
 
 env = Env()
 env.read_env()
@@ -20,6 +22,14 @@ main_router.include_router(api_router)
 app = FastAPI()
 app.include_router(main_router, prefix="/api")
 app.add_exception_handler(Exception, global_exception_handler)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")
