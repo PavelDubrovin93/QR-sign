@@ -13,4 +13,8 @@ async def get_current_user(
     if authorization is None:
         return None
     user = await UserRepository.get_user_by_tg_id(authorization)
+    
+    if user is None:
+        raise ValueError("User not found")
+
     return user
