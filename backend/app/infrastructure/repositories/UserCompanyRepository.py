@@ -29,7 +29,7 @@ class UserCompanyRepository(IUserCompanyRepository):
     async def get_user_company_by_company_id(self, company_id: int) -> Optional[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.company_id == company_id)
         result = await self.session.execute(query)
-        usercompany = result.scalar_one_or_none()
+        usercompany = result.scalars().first()
         usercompany_dto = await self.__to_dto(usercompany) if usercompany else None
         return usercompany_dto
 
@@ -41,7 +41,6 @@ class UserCompanyRepository(IUserCompanyRepository):
         return usercompanies_dto
 
     async def create_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:
-        print(888, uc_data)
         new_uc = UserCompany(
             user_id=uc_data.user_id,
             company_id=uc_data.company_id,

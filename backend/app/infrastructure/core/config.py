@@ -40,5 +40,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-print(333, settings.ASYNC_DATABASE_URI)
