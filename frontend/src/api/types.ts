@@ -10,3 +10,11 @@ export type TaskRequest = {
 
   }
 }
+
+export interface User {
+  id: number | null;
+  tg_id: number | null;
+  photo_url: string;
+  name: string;
+  ui_settings: number | null;
+}
