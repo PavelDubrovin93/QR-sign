@@ -37,7 +37,7 @@ class UserCompanyRepository(IUserCompanyRepository):
         query = select(UserCompany).where(UserCompany.user_id == user_id)
         result = await self.session.execute(query)
         usercompanies = result.scalars().all()
-        usercompanies_dto = [await self.__to_dto(usercompany) for usercompany in usercompanies]
+        usercompanies_dto = [await self.__to_dto(usercompany) if usercompany else None for usercompany in usercompanies]
         return usercompanies_dto
 
     async def create_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:

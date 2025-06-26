@@ -46,10 +46,9 @@ class UISettingsService(IUISettingsService):
         uc = await uc_repo.get_user_company_by_company_id(settings.default_company_choice)
 
         updated_settings_dto = UISettingsDTO(
-            id=settings.id,
-            user_id=settings.user_id,
-            default_company_choice=settings.default_company_choice,
-            default_color=settings.default_color,
+            user_id=updated_settings.user_id,
+            default_company_choice=updated_settings.default_company_choice,
+            default_color=updated_settings.default_color,
         )
 
         await ui_repo.update_ui_settings(updated_settings_dto)
@@ -70,14 +69,6 @@ class UISettingsService(IUISettingsService):
         )
 
         await uc_repo.update_user_company(updated_uc_dto)
-        response = UISettingResponse(
-            id=settings.id,
-            user_id=settings.user_id,
-            default_company_choice=settings.default_company_choice,
-            default_color=settings.default_color,
-            current_role=updated_settings.current_role,
-            name_for_admin=updated_settings.name_for_admin
-        )
         
-        return response
+        return updated_settings
 

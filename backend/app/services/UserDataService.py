@@ -49,17 +49,17 @@ class UserDataService(IUserDataService):
         return len(unviewed_task_count)
 
     async def companies_for_user(self, user: UserDTO) -> List[UserCompanyResponse]:
-        user_id = user.id
         company_repo = CompanyRepository(self.session)
         uc_repo = UserCompanyRepository(self.session)
-        uc_list = await uc_repo.get_user_companies_for_user(user_id)
+        uc_list = await uc_repo.get_user_companies_for_user(user_id=user.id)
         responses = []
         for uc in uc_list:
             company_id = uc.company_id
             company = await company_repo.get_company_by_id(company_id)
-            responses.append(UserCompanyResponse(
-                company_id=company.id,
-                company_name=company.title,
-                role=uc.role
-            ))
+            if company is not None:    
+                responses.append(UserCompanyResponse(
+                    company_id=company.id,
+                    company_name=company.title,
+                    role=uc.role
+                ))
         return responses

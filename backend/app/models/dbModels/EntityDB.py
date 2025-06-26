@@ -6,7 +6,7 @@ metadata = MetaData()
 
 @as_declarative(metadata=metadata)
 class EntityDB:
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), default=None)
     metadata = None

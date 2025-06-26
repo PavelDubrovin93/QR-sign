@@ -30,7 +30,7 @@ class CompanyRepository(ICompanyRepository):
         new_company = Company(
             title=company_data.title,
             description=company_data.description,
-            image_url=company_data.image_url,
+            image=company_data.image_url,
             invite_qr=company_data.invite_qr,
             subscription_type=company_data.subscription_type,
             expire_at=company_data.expire_at,

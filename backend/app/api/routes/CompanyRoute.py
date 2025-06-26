@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.db.session import fastapi_get_db
 from app.api.dependenices.user_dependecy import get_current_user
@@ -20,7 +20,7 @@ async def create_company(
     company = await service.create_new_company(current_user, new_company)
     return company
 
-@router.get("{uc_id}", response_model=InviteConformResponse)
+@router.get("/{uc_id}", response_model=InviteConformResponse)
 async def get_confirmation_info(
     uc_id: int,
     session: AsyncSession = Depends(fastapi_get_db)
@@ -28,10 +28,10 @@ async def get_confirmation_info(
     service = CompanyService(session)
     info = await service.get_confirmation_info(uc_id)
     if info is None:
-        return {"error": "запись UserCompany не найдена"}
+        raise HTTPException(status_code=404, detail="UserCompany not found")
     return info
 
-@router.post("{uc_id}", response_model=UserCompanyDTO)
+@router.put("/{uc_id}", response_model=UserCompanyDTO)
 async def update_user_company_role(
     uc_id: int,
     new_role: str,
@@ -41,7 +41,7 @@ async def update_user_company_role(
     updated_uc = await service.update_user_company_role(uc_id, new_role)
     return updated_uc
 
-@router.delete("{uc_id}")
+@router.delete("/{uc_id}")
 async def delete_user_company(
     uc_id: int,
     session: AsyncSession = Depends(fastapi_get_db)

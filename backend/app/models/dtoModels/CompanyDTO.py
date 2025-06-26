@@ -5,10 +5,10 @@ from app.models.dtoModels.Entity import Entity
 
 
 class CompanyDTO(Entity):
-    id: int
+    id: Optional[int] = None
     title: str
     description: str | None = None
-    subscription_type: str
+    subscription_type: Optional[str] = None
     expire_at: Optional[datetime] = None
     invite_qr: Optional[bytes] = None
     image_url: Optional[HttpUrl] = None
