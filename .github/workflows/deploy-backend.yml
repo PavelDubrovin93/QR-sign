@@ -58,11 +58,11 @@ jobs:
             cd taskmap/backend
             
             echo "Pulling images..."
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml pull
+            sudo docker-compose --env-file .env -f docker-compose.prod.yaml pull
             
             echo "Stopping and starting containers..."
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml down
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml up -d
+            sudo docker-compose --env-file .env -f docker-compose.prod.yaml down
+            sudo docker-compose --env-file .env -f docker-compose.prod.yaml up -d
 
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
