@@ -1,4 +1,4 @@
-from app.models.dtoModels.Entity import Entity
+from app.validation.dtoModels.Entity import Entity
 
 
 class WorkGroupDTO(Entity):

@@ -1,10 +1,9 @@
-from enum import Enum
 
 from sqlalchemy import Column, DateTime, LargeBinary, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
-from app.models.dbEnums.SubscriptionType import SubscriptionType
+
 
 class CompanyEntity(EntityDB):
     __tablename__ = "companies"

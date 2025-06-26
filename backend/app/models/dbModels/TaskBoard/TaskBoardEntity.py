@@ -1,7 +1,7 @@
-from app.models.dbModels.EntityDB import EntityDB
-from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, DateTime
+from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
+from app.models.dbModels.EntityDB import EntityDB
 
 
 class TaskBoardEntity(EntityDB):

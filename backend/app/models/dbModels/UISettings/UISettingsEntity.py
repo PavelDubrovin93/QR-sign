@@ -4,7 +4,6 @@ from sqlalchemy.orm import relationship
 from app.models.dbModels.EntityDB import EntityDB
 
 
-
 class UISettingsEntity(EntityDB):
     __tablename__ = "ui_settings"
 
@@ -12,5 +11,11 @@ class UISettingsEntity(EntityDB):
     default_company_choice = Column(Integer, ForeignKey("companies.id"), nullable=True)
     default_color = Column(String(50))
 
-    user = relationship("UserEntity", cascade="all, delete-orphan", back_populates="ui_settings", uselist=False,  single_parent=True)
+    user = relationship(
+        "UserEntity",
+        cascade="all, delete-orphan",
+        back_populates="ui_settings",
+        uselist=False,
+        single_parent=True,
+    )
     default_company = relationship("CompanyEntity", back_populates="ui_settings")

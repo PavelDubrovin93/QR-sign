@@ -12,7 +12,12 @@ class WorkGroupEntity(EntityDB):
     description = Column(String(255), nullable=True)
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
 
-    company = relationship("CompanyEntity", cascade="all, delete-orphan", back_populates="work_groups", single_parent=True)
+    company = relationship(
+        "CompanyEntity",
+        cascade="all, delete-orphan",
+        back_populates="work_groups",
+        single_parent=True,
+    )
     user_company_entities = relationship(
         "UserCompanyEntity", back_populates="work_groups"
     )

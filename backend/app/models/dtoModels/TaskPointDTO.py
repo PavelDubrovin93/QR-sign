@@ -1,5 +1,6 @@
 from typing import Optional
-from app.models.dtoModels.Entity import Entity
+
+from app.validation.dtoModels.Entity import Entity
 
 
 class TaskPointDTO(Entity):

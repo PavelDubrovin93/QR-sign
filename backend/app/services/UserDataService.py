@@ -1,15 +1,15 @@
 from typing import List
-from app.models.dtoModels.UserDTO import UserDTO
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.interfaces.IUserDataService import IUserDataService
-from app.api.validation.UserCompanyResponse import UserCompanyResponse
-from app.api.validation.TaskBoardResponse import TaskBoardResponse
-from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
-from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.validation.responses.UserCompanyResponse import UserCompanyResponse
+from app.infrastructure.interfaces.services.IUserDataService import IUserDataService
 from app.infrastructure.repositories.CompanyRepository import CompanyRepository
+from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
+from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
-
+from app.validation.dtoModels.UserDTO import UserDTO
 
 
 class UserDataService(IUserDataService):
@@ -35,7 +35,7 @@ class UserDataService(IUserDataService):
                     location=taskboard.location,
                     type=taskboard.type,
                     description=taskboard.description or "",
-                    done_at=taskboard.done_at
+                    done_at=taskboard.done_at,
                 )
             boards_map[board_id].task_points.append(point)
         responses = list(boards_map.values())
@@ -56,10 +56,10 @@ class UserDataService(IUserDataService):
         for uc in uc_list:
             company_id = uc.company_id
             company = await company_repo.get_company_by_id(company_id)
-            if company is not None:    
-                responses.append(UserCompanyResponse(
-                    company_id=company.id,
-                    company_name=company.title,
-                    role=uc.role
-                ))
+            if company is not None:
+                responses.append(
+                    UserCompanyResponse(
+                        company_id=company.id, company_name=company.title, role=uc.role
+                    )
+                )
         return responses

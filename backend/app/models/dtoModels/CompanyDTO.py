@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic.networks import HttpUrl
-from app.models.dtoModels.Entity import Entity
+
+from app.validation.dtoModels.Entity import Entity
 
 
 class CompanyDTO(Entity):

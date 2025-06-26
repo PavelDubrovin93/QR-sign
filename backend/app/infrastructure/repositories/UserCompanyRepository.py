@@ -3,16 +3,13 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.models.dbModels.UserCompany.IUserCompanyRepository import (
+from app.infrastructure.interfaces.repositories.IUserCompanyRepository import (
     IUserCompanyRepository,
 )
 from app.models.dbModels.UserCompany.UserCompanyEntity import (
     UserCompanyEntity as UserCompany,
 )
-
-from app.models.dbEnums.RoleType import RoleType
-
-from app.models.dtoModels.UserCompanyDTO import UserCompanyDTO
+from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 
 
 class UserCompanyRepository(IUserCompanyRepository):
@@ -26,7 +23,9 @@ class UserCompanyRepository(IUserCompanyRepository):
         usercompany_dto = await self.__to_dto(usercompany) if usercompany else None
         return usercompany_dto
 
-    async def get_user_company_by_company_id(self, company_id: int) -> Optional[UserCompanyDTO]:
+    async def get_user_company_by_company_id(
+        self, company_id: int
+    ) -> Optional[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.company_id == company_id)
         result = await self.session.execute(query)
         usercompany = result.scalars().first()
@@ -37,15 +36,20 @@ class UserCompanyRepository(IUserCompanyRepository):
         query = select(UserCompany).where(UserCompany.user_id == user_id)
         result = await self.session.execute(query)
         usercompanies = result.scalars().all()
-        usercompanies_dto = [await self.__to_dto(usercompany) if usercompany else None for usercompany in usercompanies]
+        usercompanies_dto = [
+            await self.__to_dto(usercompany) if usercompany else None
+            for usercompany in usercompanies
+        ]
         return usercompanies_dto
 
-    async def create_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:
+    async def create_user_company(
+        self, uc_data: UserCompanyDTO
+    ) -> Optional[UserCompanyDTO]:
         new_uc = UserCompany(
             user_id=uc_data.user_id,
             company_id=uc_data.company_id,
             workgroup_id=uc_data.workgroup_id,
-            role=uc_data.role
+            role=uc_data.role,
         )
 
         self.session.add(new_uc)
@@ -54,22 +58,24 @@ class UserCompanyRepository(IUserCompanyRepository):
         usercompany_dto = await self.__to_dto(new_uc) if new_uc else None
         return usercompany_dto
 
-    async def update_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:
+    async def update_user_company(
+        self, uc_data: UserCompanyDTO
+    ) -> Optional[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.id == UserCompany.id)
         result = await self.session.execute(query)
         existing_uc = result.scalars().first()
         if existing_uc is None:
-            new_uc =  self.create_user_company(uc_data)
+            new_uc = self.create_user_company(uc_data)
             return new_uc
-        existing_uc.id=uc_data.id
-        existing_uc.user_id=uc_data.user_id
-        existing_uc.company_id=uc_data.company_id
-        existing_uc.workgroup_id=uc_data.workgroup_id
-        existing_uc.role=uc_data.role
+        existing_uc.id = uc_data.id
+        existing_uc.user_id = uc_data.user_id
+        existing_uc.company_id = uc_data.company_id
+        existing_uc.workgroup_id = uc_data.workgroup_id
+        existing_uc.role = uc_data.role
         await self.session.commit()
         await self.session.refresh(existing_uc)
         uc_dto = await self.__to_dto(existing_uc) if existing_uc else None
-        return uc_dto 
+        return uc_dto
 
     async def delete_user_company_by_id(self, user_company_id: int) -> None:
         query = select(UserCompany).where(UserCompany.id == user_company_id)
@@ -86,5 +92,5 @@ class UserCompanyRepository(IUserCompanyRepository):
             user_id=usercompany.user_id,
             company_id=usercompany.company_id,
             workgroup_id=usercompany.workgroup_id,
-            role=usercompany.role
+            role=usercompany.role,
         )

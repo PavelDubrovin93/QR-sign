@@ -1,6 +1,6 @@
-from app.models.dtoModels.Entity import Entity
-
 from typing import Optional
+
+from app.validation.dtoModels.Entity import Entity
 
 
 class TaskBoardDTO(Entity):

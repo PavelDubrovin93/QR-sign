@@ -1,10 +1,13 @@
 from typing import List, Optional
 
-from app.models.dbModels.TaskBoard.ITaskBoardRepository import ITaskBoardRepository
-from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
-from app.models.dtoModels.TaskBoardDTO import TaskBoardDTO
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from app.infrastructure.interfaces.repositories.ITaskBoardRepository import (
+    ITaskBoardRepository,
+)
+from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
+from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 
 
 class TaskBoardRepository(ITaskBoardRepository):
@@ -43,7 +46,9 @@ class TaskBoardRepository(ITaskBoardRepository):
         query = select(TaskBoard)
         result = await self.session.execute(query)
         task_boards = result.scalars().all()
-        task_boards_dto = [await self.__to_dto(task_board) for task_board in task_boards]
+        task_boards_dto = [
+            await self.__to_dto(task_board) for task_board in task_boards
+        ]
         return task_boards_dto
 
     async def add_task_board(self, new_task_board: TaskBoardDTO) -> TaskBoardDTO:
@@ -55,7 +60,7 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=new_task_board.location,
             type=new_task_board.type,
             description=new_task_board.description or "",
-            done_at=new_task_board.done_at
+            done_at=new_task_board.done_at,
         )
         self.session.add(new_task_board)
         await self.session.commit()
@@ -80,5 +85,5 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=taskboard.location,
             type=taskboard.type,
             description=taskboard.description or "",
-            done_at=taskboard.done_at
+            done_at=taskboard.done_at,
         )

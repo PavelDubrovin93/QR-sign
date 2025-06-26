@@ -1,7 +1,18 @@
-from app.models.dbModels.EntityDB import EntityDB
-
-from sqlalchemy import Column, ForeignKey, Integer, String, ARRAY, Float, Text, DateTime, LargeBinary, JSON
+from sqlalchemy import (
+    ARRAY,
+    JSON,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
+
+from app.models.dbModels.EntityDB import EntityDB
 
 
 class TaskPointEntity(EntityDB):

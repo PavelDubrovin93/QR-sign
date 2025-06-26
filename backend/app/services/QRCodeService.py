@@ -1,7 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-# from app.models.dtoModels.TaskPointDTO import TaskPointDTO
+
+from app.infrastructure.interfaces.services.IQRCodeService import IQRCodeService
+
+# from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
-from app.infrastructure.interfaces.IQRCodeService import IQRCodeService
 
 
 class QRCodeService(IQRCodeService):

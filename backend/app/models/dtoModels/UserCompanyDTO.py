@@ -1,6 +1,8 @@
-from app.models.dtoModels.Entity import Entity
-from app.models.dbEnums.RoleType import RoleType
 from typing import Optional
+
+from app.models.dbEnums.RoleType import RoleType
+from app.validation.dtoModels.Entity import Entity
+
 
 class UserCompanyDTO(Entity):
     id: Optional[int] = None

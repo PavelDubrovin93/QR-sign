@@ -3,9 +3,11 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from app.infrastructure.interfaces.repositories.ICompanyRepository import (
+    ICompanyRepository,
+)
 from app.models.dbModels.Company.CompanyEntity import CompanyEntity as Company
-from app.models.dbModels.Company.ICompanyRepository import ICompanyRepository
-from app.models.dtoModels.CompanyDTO import CompanyDTO
+from app.validation.dtoModels.CompanyDTO import CompanyDTO
 
 
 class CompanyRepository(ICompanyRepository):
@@ -34,7 +36,7 @@ class CompanyRepository(ICompanyRepository):
             invite_qr=company_data.invite_qr,
             subscription_type=company_data.subscription_type,
             expire_at=company_data.expire_at,
-            )
+        )
         self.session.add(new_company)
         await self.session.commit()
         await self.session.refresh(new_company)
@@ -58,5 +60,5 @@ class CompanyRepository(ICompanyRepository):
             description=company.description,
             subscription_type=company.subscription_type,
             expire_at=company.expire_at,
-            invite_qr=company.invite_qr
+            invite_qr=company.invite_qr,
         )

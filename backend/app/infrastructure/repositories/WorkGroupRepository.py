@@ -3,10 +3,11 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.models.dbModels.WorkGroup.IWorkGroupRepository import IWorkGroupRepository
+from app.infrastructure.interfaces.repositories.IWorkGroupRepository import (
+    IWorkGroupRepository,
+)
 from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
-from app.models.dtoModels.WorkGroupDTO import WorkGroupDTO
-
+from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
 
 
 class WorkGroupRepository(IWorkGroupRepository):
@@ -31,7 +32,7 @@ class WorkGroupRepository(IWorkGroupRepository):
         new_wg = WorkGroup(
             title=wg_dto.title,
             description=wg_dto.description,
-            company_id=wg_dto.company_id
+            company_id=wg_dto.company_id,
         )
         self.session.add(new_wg)
         await self.session.commit()
@@ -53,5 +54,5 @@ class WorkGroupRepository(IWorkGroupRepository):
             id=workgroup.id,
             title=workgroup.title,
             description=workgroup.description,
-            company_id=workgroup.company_id
+            company_id=workgroup.company_id,
         )
