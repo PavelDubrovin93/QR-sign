@@ -21,7 +21,7 @@ class UserService(IUserService):
     
     async def register_user_cold(self, new_user_data: UserDTO) -> UserResponse:
         new_user = await self.user_repo.add_user(new_user_data)
-        print(123123123, new_user.id)
+
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(
                 user_id=new_user.id
@@ -48,7 +48,8 @@ class UserService(IUserService):
                 user_id=new_user.id
             )
         )
-        default_company_workgroup_id = await self.workgroup_repo.get_work_groups_by_company(company_id)[0].id  # Нужен репч
+
+        default_company_workgroup_id = None
         await self.usercompany_repo.create_user_company(
             UserCompanyDTO(
                 user_id=new_user.id,
@@ -56,6 +57,7 @@ class UserService(IUserService):
                 workgroup_id=default_company_workgroup_id,
             )
         )
+
         new_user_response = UserResponse(
             id=new_user.id,
             tg_id=new_user.tg_id,
@@ -63,4 +65,5 @@ class UserService(IUserService):
             photo_url=new_user.photo_url,
             ui_settings=new_ui_settings.id
         )
+
         return new_user_response
