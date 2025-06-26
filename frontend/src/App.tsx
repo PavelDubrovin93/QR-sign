@@ -17,13 +17,34 @@ import ProfilePage from "./pages/profilePage.tsx";
 import TaskboardPage from "./pages/taskboardPage.tsx";
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { getUserProfile } from "./api/user/get-userProfile.ts";
+import { setUserProfile } from "./store/slices/entities/user/userSlice.ts";
+import { useDispatch } from "react-redux";
 
 function App() {
+  const dispatch = useDispatch()
   const webapp = window.Telegram?.WebApp;
 
   if (webapp) {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getUserProfile();
+        console.log(res, 'res')
+        if(res.data) {
+          dispatch(setUserProfile(res.data));
+        }
+      } catch (e: any) {
+        console.error(e);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   //hard code, надо будет потом заменить и сделать enum
   const role: string = "admin";
