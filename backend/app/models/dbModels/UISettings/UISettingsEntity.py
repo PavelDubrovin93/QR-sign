@@ -9,7 +9,7 @@ class UISettingsEntity(EntityDB):
     __tablename__ = "ui_settings"
 
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    default_company_choice = Column(Integer, ForeignKey("companies.id"))
+    default_company_choice = Column(Integer, ForeignKey("companies.id"), nullable=True)
     default_color = Column(String(50))
 
     user = relationship("UserEntity", cascade="all, delete-orphan", back_populates="ui_settings", uselist=False,  single_parent=True)

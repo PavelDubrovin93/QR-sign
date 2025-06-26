@@ -4,20 +4,13 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
-
-
-class RoleType(str, Enum):
-    EMPLOYER = "employer"
-    ADMIN = "admin"
-    MEMBER = "member"
-
+from app.models.dbEnums.RoleType import RoleType
 
 class UserCompanyEntity(EntityDB):
     __tablename__ = "user_company"
 
-    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
     workgroup_id = Column(Integer, ForeignKey("work_group.id"), nullable=True)
     role = Column(String(50), nullable=False)
 

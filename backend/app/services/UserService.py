@@ -9,7 +9,7 @@ from app.models.dtoModels.UISettingsDTO import UISettingsDTO
 from app.models.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.infrastructure.interfaces.IUserService import IUserService
 from app.api.validation.UserResponse import UserResponse
-
+from app.models.dbEnums.RoleType import RoleType
 
 class UserService(IUserService):
     def __init__(self, session: AsyncSession):
@@ -18,12 +18,10 @@ class UserService(IUserService):
         self.uisettings_repo = UISettingsRepository(session)
         self.usercompany_repo = UserCompanyRepository(session)
         self.workgroup_repo = WorkGroupRepository(session)
-        self.default_company_id = 1
-        self.default_workgroup_id = 1
-        self.default_role = "not_approved"
     
     async def register_user_cold(self, new_user_data: UserDTO) -> UserResponse:
         new_user = await self.user_repo.add_user(new_user_data)
+        print(123123123, new_user.id)
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(
                 user_id=new_user.id
@@ -32,9 +30,6 @@ class UserService(IUserService):
         await self.usercompany_repo.create_user_company(
             UserCompanyDTO(
                 user_id=new_user.id,
-                company_id=self.default_company_id,
-                workgroup_id=self.default_workgroup_id,
-                role=self.default_role
             )
         )
         new_user_response = UserResponse(
@@ -59,7 +54,6 @@ class UserService(IUserService):
                 user_id=new_user.id,
                 company_id=company_id,
                 workgroup_id=default_company_workgroup_id,
-                role=self.default_role
             )
         )
         new_user_response = UserResponse(

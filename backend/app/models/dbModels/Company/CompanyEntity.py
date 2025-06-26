@@ -4,13 +4,7 @@ from sqlalchemy import Column, DateTime, LargeBinary, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
-
-
-class SubscriptionType(str, Enum):
-    PERSONNEL = "personnel"
-    ENTERPRISE = "enterprise"
-    OTHER = "other"
-
+from app.models.dbEnums.SubscriptionType import SubscriptionType
 
 class CompanyEntity(EntityDB):
     __tablename__ = "companies"

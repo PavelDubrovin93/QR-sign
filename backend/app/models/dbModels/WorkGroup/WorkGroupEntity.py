@@ -10,7 +10,7 @@ class WorkGroupEntity(EntityDB):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     description = Column(String(255), nullable=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
 
     company = relationship("CompanyEntity", cascade="all, delete-orphan", back_populates="work_groups", single_parent=True)
     user_company_entities = relationship(

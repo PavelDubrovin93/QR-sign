@@ -9,6 +9,9 @@ from app.models.dbModels.UserCompany.IUserCompanyRepository import (
 from app.models.dbModels.UserCompany.UserCompanyEntity import (
     UserCompanyEntity as UserCompany,
 )
+
+from app.models.dbEnums.RoleType import RoleType
+
 from app.models.dtoModels.UserCompanyDTO import UserCompanyDTO
 
 
@@ -38,12 +41,14 @@ class UserCompanyRepository(IUserCompanyRepository):
         return usercompanies_dto
 
     async def create_user_company(self, uc_data: UserCompanyDTO) -> Optional[UserCompanyDTO]:
+        print(888, uc_data)
         new_uc = UserCompany(
             user_id=uc_data.user_id,
             company_id=uc_data.company_id,
             workgroup_id=uc_data.workgroup_id,
             role=uc_data.role
         )
+
         self.session.add(new_uc)
         await self.session.commit()
         await self.session.refresh(new_uc)

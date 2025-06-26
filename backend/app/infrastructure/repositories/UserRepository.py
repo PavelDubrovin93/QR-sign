@@ -75,5 +75,6 @@ class UserRepository(IUserRepository):
         return UserDTO(
             id=user.id,
             name=user.name,
-            tg_id=user.tg_id
+            tg_id=user.tg_id,
+            photo_url=user.photo_url
         )

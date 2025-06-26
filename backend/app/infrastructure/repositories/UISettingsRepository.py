@@ -23,6 +23,7 @@ class UISettingsRepository(IUISettingsRepository):
         return ui_settings_dto        
 
     async def create_ui_settings(self, settings_data: UISettingsDTO) -> Optional[UISettingsDTO]:
+        print(777, settings_data)
         new_settings = UISettingsEntity(
             user_id=settings_data.user_id,
             default_company_choice=settings_data.default_company_choice,
