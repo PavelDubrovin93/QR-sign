@@ -21,6 +21,7 @@ import { useEffect } from "react";
 import { getUserProfile } from "./api/user/get-userProfile.ts";
 import { setUserProfile } from "./store/slices/entities/user/userSlice.ts";
 import { useDispatch } from "react-redux";
+import { sessionToken } from "./utils/cookie.ts";
 
 function App() {
   const dispatch = useDispatch()
@@ -30,11 +31,19 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
+  const token_mock = 868007436
+
   useEffect(() => {
+
+    sessionToken.set(token_mock.toString())
+    // if(webapp?.initDataUnsafe?.user?.id) {
+      // sessionToken.set(webapp?.initDataUnsafe?.user?.id.toString());
+    // }
+
     const fetchData = async () => {
       try {
         const res = await getUserProfile();
-        console.log(res, 'res')
+        console.log(res, 'res1')
         if(res.data) {
           dispatch(setUserProfile(res.data));
         }
@@ -44,7 +53,7 @@ function App() {
     };
 
     fetchData();
-  }, []);
+  }, [webapp?.initDataUnsafe]);
 
   //hard code, надо будет потом заменить и сделать enum
   const role: string = "admin";

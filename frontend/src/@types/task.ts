@@ -1,7 +1,15 @@
-export type Task = {
-  id: string;
-  // other fields...
-};
+export interface Task {
+  id: number;
+  title: string;
+  company_id: number;
+  work_group_id: number;
+  image: string;
+  location: GeoCoordinates;
+  type: string;
+  description: string;
+  done_at: string;
+  task_points: TaskPoint[];
+}
 
 type GeoCoordinates = [number, number];
 
@@ -21,9 +29,9 @@ interface TaskPoint {
   done_at: string;
   issued_at: string;
   warning_at: string;
+  completed: boolean;
 }
 
-// у таски нет поля isCompleted
 export interface TaskBoard {
   id: number;
   title: string;
