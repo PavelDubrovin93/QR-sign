@@ -1,56 +1,74 @@
-import { useEffect, useState } from 'react';
-import { Select, Section, Cell } from '@telegram-apps/telegram-ui';
-import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
+import { useEffect, useState } from "react";
+import { Select, Section } from "@telegram-apps/telegram-ui";
+import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 
-import TaskCard from '../components/TaskCard'
-import { getTasks } from '../api/task/get-tasks';
+import TaskCard from "../components/TaskCard";
+import { getTasks } from "../api/task/get-tasks";
+import { setTasksBoard } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
+import { useDispatch, useSelector } from "react-redux";
+// import type { Task } from "../@types/task";
 
 function HomePage() {
-    const [company, setCompany] = useState('');
-    const [selectComponentColor, setSelectComponentColor] = useState('');
+  const dispatch = useDispatch();
+  const [company, setCompany] = useState("");
+  const [selectComponentColor, setSelectComponentColor] = useState("");
 
-    const telegramData = getTelegramData();
+  const tasksRedux = useSelector(
+    (state: any) => state.entities.tasksBoard.data
+  );
 
-    const getTasksData = () => {
-     return getTasks()
-          .then((res) => {
-              // setTasksData(res.data) - либо через локальное состояние,
-              // dispatch(action(res.data)) - либо через Redux
-            })
+  const telegramData = getTelegramData();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getTasks();
+        if (res.data) {
+          dispatch(setTasksBoard(res.data));
+        }
+      } catch (e: any) {
+        console.log(e);
       }
+    };
 
-    useEffect(() => {
-      const fetchData = async () => {
-          try {
-             await getTasksData();
-          } catch (e: any) {
-              console.log(e);
+    fetchData();
+  }, []);
+
+  return (
+    <>
+      <Section>
+        <Section.Header
+          style={
+            telegramData?.colorScheme === "dark"
+              ? { backgroundColor: "var(--tgui--bg_color)" }
+              : {}
           }
-      };
+        >
+          Организация
+        </Section.Header>
+        <Select
+          status="focused"
+          style={{ border: "none", color: "var(--tgui--text_color)" }}
+        >
+          <option>Компания А</option>
+          <option>Компания Б</option>
+        </Select>
+      </Section>
 
-      fetchData();
-    }, [])
+      {/* {tasksRedux.lenght > 0 ? (
+        tasksRedux?.map((elm: Task) => {
+          return <TaskCard key={elm.id} path={`/taskboard/${elm.id}`} />;
+        })
+      ) : (
+        <p className="text-sm" color={telegramData?.themeParams.text_color}>
+          "Нет задач"
+        </p>
+      )} */}
 
-    return (
-          <>
-          <Section>
-            <Section.Header style={telegramData?.colorScheme === "dark" ? { backgroundColor: 'var(--tgui--bg_color)' } : {}}>
-              Организация
-            </Section.Header>
-              <Select status='focused' style={{ border: 'none', color: 'var(--tgui--text_color)' }}>
-                <option>Компания А</option>
-                <option>Компания Б</option>
-              </Select>
-          </Section>  
-          {/* hard code */}
-          <TaskCard path={"/taskboard/${task.id}"}/>
-          <TaskCard path={"/taskboard/${task.id}"}/>
-          <TaskCard path={"/taskboard/${task.id}"}/>
-          <TaskCard path={"/taskboard/${task.id}"}/>
-
-          </>
-    );
+      <TaskCard path={`/taskboard/${1}`} />
+      <TaskCard path={"/taskboard/${task.id}"} />
+    </>
+  );
 }
 
 export default HomePage;

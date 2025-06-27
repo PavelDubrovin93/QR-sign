@@ -12,7 +12,7 @@ axios.interceptors.request.use((config) => {
   const token = sessionToken.get();
   token &&
     config.headers &&
-    (config.headers["Authorization"] = `Bearer ${token}`);
+    (config.headers["Authorization"] = `${token}`);
   return config;
 });
 

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft, SlClose } from "react-icons/sl";
 
 import TestImage from '../assets/test_image.jpeg';
 import AudioRecorder from "./AudioRecorder";
 import useDnDpoints from "../utils/hooks/useDnDpoints";
+import { getTaskById } from "../api/task/get-taskbyId";
+import type { Task } from "../@types/task";
 
 export interface TaskPoint {
     id: number;
@@ -21,25 +23,40 @@ interface TaskCardProps {
 }
 
 function TaskCard({ editMode }: TaskCardProps) {
-    const [task, setTask] = useState({});
     const telegramData = getTelegramData();
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
 
+    const [task, setTask] = useState<Task | null>(null);
     const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([
         { id: 1, x: 30, y: 40, title: 'Убрать цветок', completed: true },
         { id: 2, x: 70, y: 60, title: 'Замена фасала', completed: false },
         { id: 3, x: 50, y: 80, title: 'Перекрасить в синий', completed: false },
     ]);
-
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
-
     const thumbnailRef = useRef<HTMLImageElement>(null);
     const fullSizeRef = useRef<HTMLImageElement>(null);
-
     const [renderedImageRect, setRenderedImageRect] = useState({
         width: 0, height: 0, left: 0, top: 0
     });
+
+    useEffect(() => {
+        const fetchData = async () => {
+          if (id) {
+            try {
+              const res = await getTaskById(id);
+              if (res.data) {
+                setTask(res.data);
+              }
+            } catch (e: any) {
+              console.error(e);
+            }
+          }
+        };
+    
+        fetchData();
+      }, [id]);
 
     const { isDragging, draggedPointId, handleDragStart, handleDragEnd } = useDnDpoints({
         editMode,
@@ -49,7 +66,7 @@ function TaskCard({ editMode }: TaskCardProps) {
         setActivePoint,
         renderedImageRect,
     });
-
+     
     const updateRenderedImageRect = useCallback(() => {
         if (!fullSizeRef.current) return;
 
@@ -284,6 +301,28 @@ function TaskCard({ editMode }: TaskCardProps) {
                                 src={TestImage}
                                 className="w-full h-auto object-cover rounded-xl p-2 pb-0"
                             />
+                            {/* {task?.task_points?.map((point) => (
+                                <div
+                                    key={point.id}
+                                    className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                                    style={{
+                                        left: `${point.coordinates[0]}%`,
+                                        top: `${point.coordinates[1]}%`,
+                                        pointerEvents: 'none',
+                                    }}
+                                >
+                                    <div
+                                        className="flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full"
+                                        style={{
+                                            backgroundColor: point.completed
+                                                ? '#10B981'
+                                                : telegramData?.themeParams.button_color || '#3B82F6',
+                                        }}
+                                    >
+                                        {point.id}
+                                    </div>
+                                </div>
+                            ))} */}
 
                             {/* Точки поверх мини-изображения */}
                             {taskPoints.map((point) => (
@@ -313,6 +352,50 @@ function TaskCard({ editMode }: TaskCardProps) {
                         {/* Описание задач */}
                         <div className="flex flex-col justify-left pl-2 pr-2">
                             <p className="text-base font-semibold pb-4">Уборка территории</p>
+                            {/* <p className="text-base font-semibold pb-4">{task?.description}</p> */}
+                            {/* {task?.task_points?.map((task_point: any, index: number)=> {
+                                const { title, description, voice_massage } = task_point;
+                                return (
+                                    <div key={task_point.id}>
+                                        <div className="flex items-start gap-2 pb-2">
+                                            <Checkbox checked />
+                                            <span className="text-sm">
+                                                {index + 1} - {title}
+                                            </span>
+                                            <div className="pb-4">
+                                                {description}
+                                            </div>
+                                            <div className="pb-4">
+                                            {editMode && voice_massage ? 
+                                                <div className="flex">
+                                                    <AudioRecorder />      
+                                                </div>          
+                                                :
+                                                <div className="flex pb-4 px-1 items-center">
+                                                    <div className="flex-1 flex flex-col pt-[3px]">
+                                                        <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
+                                                            <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
+                                                        </div>
+                                                        <span className="text-xs text-gray-500 text-left">00:35</span>
+                                                    </div>
+                                                    <div className="ml-4 flex items-center">
+                                                        <button
+                                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-md"
+                                                            onClick={() => console.log("Проигрывание голосового")}
+                                                            aria-label="Проиграть голосовое сообщение"
+                                                        >
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M5 3v18l15-9z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })} */}
                             <div className="flex items-start gap-2 pb-2">
                                 <Checkbox checked />
                                 <span className="text-sm">1 - Перекрасить подоконник</span>
@@ -332,7 +415,6 @@ function TaskCard({ editMode }: TaskCardProps) {
                                 {editMode ? 
                                 <div className="flex">
                                     <AudioRecorder />      
-   
                                 </div>          
                                 :
                                 <div className="flex pb-4 px-1 items-center">
