@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.validation.responses.UserResponse import UserResponse
+from app.validation.responses.UserResponse import CreateUserResponse, UserResponse
 from app.infrastructure.interfaces.services.IUserService import IUserService
 from app.infrastructure.repositories.UISettingsRepository import UISettingsRepository
 from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
@@ -19,9 +19,12 @@ class UserService(IUserService):
         self.usercompany_repo = UserCompanyRepository(session)
         self.workgroup_repo = WorkGroupRepository(session)
 
-    async def register_user_cold(self, new_user_data: UserDTO) -> UserResponse:
-        new_user = await self.user_repo.add_user(new_user_data)
-
+    async def register_user_cold(self, new_user_data: CreateUserResponse) -> UserResponse:
+        new_user = await self.user_repo.add_user(UserDTO(
+            tg_id=new_user_data.tg_id,
+            name=new_user_data.name,
+            photo_url=new_user_data.photo_url,
+        ))
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
@@ -40,9 +43,13 @@ class UserService(IUserService):
         return new_user_response
 
     async def register_user_hot(
-        self, company_id: int, new_user_data: UserDTO
+        self, company_id: int, new_user_data: CreateUserResponse
     ) -> UserResponse:
-        new_user = await self.user_repo.add_user(new_user_data)
+        new_user = await self.user_repo.add_user(UserDTO(
+            tg_id=new_user_data.tg_id,
+            name=new_user_data.name,
+            photo_url=new_user_data.photo_url,
+        ))
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
