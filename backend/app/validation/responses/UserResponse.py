@@ -1,5 +1,10 @@
-from app.validation.dtoModels.UserDTO import UserDTO
+from app.validation.Entity import Entity
 
+class CreateUserResponse(Entity):
+    tg_id: int
+    name: str
+    photo_url: str
 
-class UserResponse(UserDTO):
+class UserResponse(CreateUserResponse):
+    id: int
     ui_settings: int

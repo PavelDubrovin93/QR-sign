@@ -1,0 +1,10 @@
+**/__pycache__
+.env
+*.log
+frontend/
+node_modules/
+.ruff_cache
+.vscode
+package-lock.json
+package.json
+.flake8

@@ -1,8 +1,37 @@
 from typing import List, Optional
+from app.validation.Entity import Entity
 
-from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
-from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
+class CreateTaskPointResponse(Entity):
+
+    title: str
+    taskboard_id: int
+    thumbnails: str
+    mark_icon: str
+    coordinates: list
+    points: Optional[dict]
+    qrcode: bytes
+    description: Optional[str]
+    voice_massage: Optional[bytes]
 
 
-class TaskBoardResponse(TaskBoardDTO):
-    task_points: Optional[List[TaskPointDTO]] = None
+class TaskPointResponse(CreateTaskPointResponse):
+    id: int
+    done_at: Optional[str]
+    issued_at: Optional[str]
+    warning_at: Optional[str]
+
+
+class CreateTaskBoardResponse(Entity):
+    title: str
+    company_id: int
+    work_group_id: int
+    image: str
+    location: list
+    type: str
+    description: Optional[str]
+    done_at: Optional[str]
+    task_points: Optional[List[TaskPointResponse]] = None
+
+
+class TaskBoardResponse(CreateTaskBoardResponse):
+    id: int

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.validation.responses.UserResponse import UserResponse
-from app.validation.dtoModels.UserDTO import UserDTO
+from app.validation.responses.UserResponse import CreateUserResponse, UserResponse
 
 
 class IUserService(ABC):
@@ -11,7 +10,7 @@ class IUserService(ABC):
 
     @abstractmethod
     async def register_user_cold(
-        self, company_id: int, new_user_data: UserDTO
+        self, new_user_data: CreateUserResponse
     ) -> UserResponse:
         """
         Холодная регистрация пользователя (регистрация без ассоциации с конкретной компанией).
@@ -23,7 +22,7 @@ class IUserService(ABC):
 
     @abstractmethod
     async def register_user_hot(
-        self, company_id: int, new_user_data: UserDTO
+        self, company_id: int, new_user_data: CreateUserResponse
     ) -> UserResponse:
         """
         Горячая регистрация пользователя (регистрация с ассоциацией с конкретной компанией).
