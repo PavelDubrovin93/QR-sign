@@ -93,6 +93,7 @@ class TaskBoardRepository(ITaskBoardRepository):
             type=task_board_to_delete.type,
             description=task_board_to_delete.description or "",
             done_at=task_board_to_delete.done_at,
+            task_points=[],
         )
 
     async def edit_task_board(self, taskboard: TaskBoardDTO):

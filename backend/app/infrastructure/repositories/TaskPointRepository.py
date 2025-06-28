@@ -13,6 +13,7 @@ from app.models.dbModels.UserCompany.UserCompanyEntity import (
 )
 from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
+from fastapi import HTTPException
 
 
 class TaskPointRepository(ITaskPointRepository):

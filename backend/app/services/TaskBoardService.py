@@ -6,6 +6,7 @@ from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardService
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
+from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 
 
 class TaskBoardService(ITaskBoardService):
@@ -45,7 +46,7 @@ class TaskBoardService(ITaskBoardService):
         return taskboard
     
     async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse):
-        await self.tb_repo.edit_task_board(
+        new_task_board = await self.tb_repo.edit_task_board(
             taskboard=TaskBoardDTO(
                 id=taskboard.id,
                 title=taskboard.title,
@@ -58,8 +59,19 @@ class TaskBoardService(ITaskBoardService):
                 done_at=taskboard.done_at
         ))
 
-        await self.tp_repo.edit_task_points_by_dto_list(
+        new_task_points = await self.tp_repo.edit_task_points_by_dto_list(
             task_points=taskboard.task_points
         )
 
-        return TaskBoardResponse
+        return TaskBoardResponse(
+            id=new_task_board.id,
+            title=new_task_board.title,
+            company_id=new_task_board.company_id,
+            work_group_id=new_task_board.work_group_id,
+            image=new_task_board.image,
+            location=new_task_board.location,
+            type=new_task_board.type,
+            description=new_task_board.description or "",
+            done_at=new_task_board.done_at,
+            task_points=new_task_points
+        )
