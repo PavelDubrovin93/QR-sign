@@ -20,11 +20,13 @@ class UserService(IUserService):
         self.workgroup_repo = WorkGroupRepository(session)
 
     async def register_user_cold(self, new_user_data: CreateUserResponse) -> UserResponse:
-        new_user = await self.user_repo.add_user(UserDTO(
-            tg_id=new_user_data.tg_id,
-            name=new_user_data.name,
-            photo_url=new_user_data.photo_url,
-        ))
+        new_user = await self.user_repo.add_user(
+            new_user=UserDTO(
+                tg_id=new_user_data.tg_id,
+                name=new_user_data.name,
+                photo_url=new_user_data.photo_url,
+            )
+        )
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
@@ -45,11 +47,13 @@ class UserService(IUserService):
     async def register_user_hot(
         self, company_id: int, new_user_data: CreateUserResponse
     ) -> UserResponse:
-        new_user = await self.user_repo.add_user(UserDTO(
-            tg_id=new_user_data.tg_id,
-            name=new_user_data.name,
-            photo_url=new_user_data.photo_url,
-        ))
+        new_user = await self.user_repo.add_user(
+            new_user=UserDTO(
+                tg_id=new_user_data.tg_id,
+                name=new_user_data.name,
+                photo_url=new_user_data.photo_url,
+            )
+        )
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
