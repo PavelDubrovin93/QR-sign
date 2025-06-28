@@ -83,3 +83,12 @@ class ITaskBoardRepository(ABC):
         """
         pass
 
+    @abstractmethod
+    async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> List[TaskBoardResponse]:
+        """
+        Получить список таскбордов по идентификатору компании, в которых учавствует пользователь.
+        :param company_id: ID компании
+        :param user_tg_id: TG_ID пользователя
+        :return: список объектов TaskBoardResponse
+        """
+        pass

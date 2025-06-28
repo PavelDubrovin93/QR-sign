@@ -7,6 +7,7 @@ from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardS
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
+from typing import List
 
 
 class TaskBoardService(ITaskBoardService):
@@ -75,3 +76,7 @@ class TaskBoardService(ITaskBoardService):
             done_at=new_task_board.done_at,
             task_points=new_task_points
         )
+    
+    async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> List[TaskBoardResponse]:
+        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_tg_id=user_tg_id)
+        return taskboards
