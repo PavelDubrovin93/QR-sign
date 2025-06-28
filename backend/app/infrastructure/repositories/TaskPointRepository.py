@@ -107,6 +107,25 @@ class TaskPointRepository(ITaskPointRepository):
         await self.session.delete(task_board_to_delete)
         await self.session.commit()
 
+    
+    async def delete_task_point_by_taskboard_id(self, taskboard_id: int) -> None:
+        query = select(TaskPoint).where(TaskPoint.taskboard_id == taskboard_id)
+        result = await self.session.execute(query)
+        task_points = result.scalars().all()
+
+        for task_point in task_points:
+            if task_point is None:
+                raise HTTPException(status_code=404, detail=f"Task Point {task_point} not found")
+            await self.session.delete(task_point)
+
+        await self.session.commit()
+
+        task_point_dto_list = [
+            await self.__to_dto(task_point) for task_point in task_points
+        ]
+
+        return task_point_dto_list
+
     async def get_task_point_by_user_id(self, user_id: int) -> List[TaskPointDTO]:
         subquery_workgroups = (
             select(UserCompany.workgroup_id)
@@ -136,6 +155,39 @@ class TaskPointRepository(ITaskPointRepository):
         task_point = result.scalar_one_or_none()
         task_point_dto = await self.__to_dto(task_point) if task_point else None
         return task_point_dto
+
+    async def edit_task_point_by_dto(
+        self, task_point_id: int, new_task_point: TaskPointDTO
+    ) -> TaskPointDTO:
+        query = select(TaskPoint).where(TaskPoint.id == task_point_id)
+        result = await self.session.execute(query)
+        task_point = result.scalar_one_or_none()
+        
+        if task_point is None:
+            raise ValueError(f"Таскпоинт с id {task_point_id} не существует.")
+        
+        task_point.title = new_task_point.title
+        task_point.taskboard_id = new_task_point.taskboard_id
+        task_point.thumbnails = new_task_point.thumbnails
+        task_point.mark_icon = new_task_point.mark_icon
+        task_point.coordinates = new_task_point.coordinates
+        task_point.points = new_task_point.points
+        task_point.qrcode = new_task_point.qrcode
+        task_point.description = new_task_point.description
+        task_point.voice_message = new_task_point.voice_message
+        task_point.done_at = new_task_point.done_at
+        task_point.issued_at = new_task_point.issued_at
+        task_point.warning_at = new_task_point.warning_at
+
+        await self.session.commit()
+
+        return new_task_point
+
+    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO]):
+        for task_point in task_points:
+            await self.edit_task_point_by_dto(task_point)
+
+        return task_points
 
     async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
         return TaskPointDTO(

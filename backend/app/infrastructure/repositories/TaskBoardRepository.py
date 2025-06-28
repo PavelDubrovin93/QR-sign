@@ -6,8 +6,14 @@ from sqlalchemy.future import select
 from app.infrastructure.interfaces.repositories.ITaskBoardRepository import (
     ITaskBoardRepository,
 )
+
 from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
+
+
+from fastapi import HTTPException
 
 
 class TaskBoardRepository(ITaskBoardRepository):
@@ -66,14 +72,49 @@ class TaskBoardRepository(ITaskBoardRepository):
         await self.session.commit()
         return self.__to_dto(new_task_board)
 
-    async def delete_task_board_by_id(self, task_board_id: int) -> None:
+    async def delete_task_board_by_id(self, task_board_id: int) -> TaskBoardResponse:
         query = select(TaskBoard).where(TaskBoard.id == task_board_id)
         result = await self.session.execute(query)
         task_board_to_delete = result.scalars().first()
+
         if task_board_to_delete is None:
-            raise ValueError(f"Таскборд с id {task_board_id} не существует.")
+            raise HTTPException(status_code=404, detail="Task Board not found")
+
         await self.session.delete(task_board_to_delete)
         await self.session.commit()
+
+        return TaskBoardResponse(
+            id=task_board_to_delete.id,
+            title=task_board_to_delete.title,
+            company_id=task_board_to_delete.company_id,
+            work_group_id=task_board_to_delete.work_group_id,
+            image=task_board_to_delete.image,
+            location=task_board_to_delete.location,
+            type=task_board_to_delete.type,
+            description=task_board_to_delete.description or "",
+            done_at=task_board_to_delete.done_at,
+        )
+
+    async def edit_task_board(self, taskboard: TaskBoardDTO):
+        query = select(TaskBoard).where(TaskBoard.id == taskboard.id)
+        result = await self.session.execute(query)
+        task_board_to_edit = result.scalars().first()
+
+        if task_board_to_edit is None:
+            raise HTTPException(status_code=404, detail="Task Board not found")
+
+        task_board_to_edit.title = taskboard.title
+        task_board_to_edit.company_id = taskboard.company_id
+        task_board_to_edit.work_group_id = taskboard.work_group_id
+        task_board_to_edit.image = taskboard.image
+        task_board_to_edit.location = taskboard.location
+        task_board_to_edit.type = taskboard.type
+        task_board_to_edit.description = taskboard.description or ""
+        task_board_to_edit.done_at = taskboard.done_at
+
+        await self.session.commit()
+
+        return taskboard
 
     async def __to_dto(self, taskboard: TaskBoard) -> TaskBoardDTO:
         return TaskBoardDTO(

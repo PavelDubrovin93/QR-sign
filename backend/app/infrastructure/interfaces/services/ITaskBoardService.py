@@ -19,3 +19,22 @@ class ITaskBoardService(ABC):
         :return: объект TaskBoardResponse или None
         """
         pass
+
+
+    @abstractmethod
+    async def delete_task_board_and_task_points_by_tb_id(self, taskboard_id: int) -> TaskBoardResponse:
+        """
+        Удалить таскборд и его таскпоинты по идентификатору.
+        :param taskboard_id: ID таскборда
+        :return: объект TaskBoardResponse
+        """
+        pass
+
+    @abstractmethod
+    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse) -> TaskBoardResponse:
+        """
+        Редактировать таскборд.
+        :param taskboard: объект TaskBoardResponse
+        :return: объект TaskBoardResponse
+        """
+        pass

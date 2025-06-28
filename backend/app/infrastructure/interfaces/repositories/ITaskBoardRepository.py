@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
-
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 
 class ITaskBoardRepository(ABC):
     """
@@ -68,9 +68,18 @@ class ITaskBoardRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete_task_board_by_id(self, task_board_id: int) -> None:
+    async def delete_task_board_by_id(self, task_board_id: int) -> TaskBoardResponse:
         """
-        Удалить доску задач по id.
+        Удалить task_board по id.
         :param task_board_id: ID компании
         """
         pass
+
+    @abstractmethod
+    async def edit_task_board(self, taskboard: TaskBoardDTO) -> TaskBoardDTO:
+        """
+        Редактировать task_board (id в DTO).
+        :param taskboard: экземпляр доски задач
+        """
+        pass
+
