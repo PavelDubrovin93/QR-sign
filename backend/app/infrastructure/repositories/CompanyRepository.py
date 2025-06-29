@@ -8,6 +8,7 @@ from app.infrastructure.interfaces.repositories.ICompanyRepository import (
 )
 from app.models.dbModels.Company.CompanyEntity import CompanyEntity as Company
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
+from app.validation.responses.CompanyResposnse import CreateCompanyResponse
 
 
 class CompanyRepository(ICompanyRepository):
@@ -28,7 +29,7 @@ class CompanyRepository(ICompanyRepository):
         companies_dto = [await self.__to_dto(company) for company in companies]
         return companies_dto
 
-    async def create_company(self, company_data: CompanyDTO) -> CompanyDTO:
+    async def create_company(self, company_data: CreateCompanyResponse) -> CompanyDTO:
         new_company = Company(
             title=company_data.title,
             description=company_data.description,

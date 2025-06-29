@@ -7,6 +7,7 @@ from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardS
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
+from app.validation.responses.TaskBoardResponse import CreateTaskBoardResponse, EditTaskBoardResponse
 from typing import List
 
 
@@ -15,7 +16,7 @@ class TaskBoardService(ITaskBoardService):
         self.session = session
         self.tb_repo = TaskBoardRepository(self.session)
         self.tp_repo = TaskPointRepository(self.session)
-
+    
     async def get_task_board_by_id(self, taskboard_id: int) -> TaskBoardResponse:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
         
@@ -46,7 +47,7 @@ class TaskBoardService(ITaskBoardService):
         
         return taskboard
     
-    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse):
+    async def edit_task_board_with_task_points(self, taskboard: EditTaskBoardResponse):
         new_task_board = await self.tb_repo.edit_task_board(
             taskboard=TaskBoardDTO(
                 id=taskboard.id,
@@ -80,3 +81,37 @@ class TaskBoardService(ITaskBoardService):
     async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> List[TaskBoardResponse]:
         taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_tg_id=user_tg_id)
         return taskboards
+    
+    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> CreateTaskBoardResponse:
+        new_taskboard = await self.tb_repo.add_task_board(
+            new_task_board=TaskBoardDTO(
+                title=taskboard_data.title,
+                company_id=taskboard_data.company_id,
+                work_group_id=taskboard_data.work_group_id,
+                image=taskboard_data.image,
+                location=taskboard_data.location,
+                type=taskboard_data.type,
+                description=taskboard_data.description or "",
+                done_at=taskboard_data.done_at,
+            )
+        )
+
+        for task_point in taskboard_data.task_points:
+            await self.tp_repo.add_task_point(
+                new_task_point = task_point
+            )
+
+        new_taskboard_to_return = TaskBoardResponse(
+            id=new_taskboard.id,
+            title=new_taskboard.title,
+            company_id=new_taskboard.company_id,
+            work_group_id=new_taskboard.work_group_id,
+            image=new_taskboard.image,
+            location=new_taskboard.location,
+            type=new_taskboard.type,
+            description=new_taskboard.description or "",
+            done_at=new_taskboard.done_at,
+            task_points=taskboard_data.task_points
+        )
+
+        return new_taskboard_to_return

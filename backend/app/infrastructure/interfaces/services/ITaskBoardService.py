@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, EditTaskBoardResponse
 
 
 class ITaskBoardService(ABC):
@@ -31,7 +31,7 @@ class ITaskBoardService(ABC):
         pass
 
     @abstractmethod
-    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse) -> TaskBoardResponse:
+    async def edit_task_board_with_task_points(self, taskboard: EditTaskBoardResponse) -> TaskBoardResponse:
         """
         Редактировать таскборд.
         :param taskboard: объект TaskBoardResponse
@@ -45,5 +45,15 @@ class ITaskBoardService(ABC):
         Получить список таскбордов по идентификатору компании, в которых учавствует пользователь.
         :param company_id: ID компании
         :return: список объектов TaskBoardResponse
+        """
+        pass
+
+
+    @abstractmethod
+    async def create_taskboard(self, taskboard_data: TaskBoardResponse) -> TaskBoardResponse:
+        """
+        Создать таскборд.
+        :param taskboard_data: объект TaskBoardResponse
+        :return: объект TaskBoardResponse
         """
         pass

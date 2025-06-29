@@ -5,7 +5,7 @@ from app.validation.responses.InviteConformResponse import InviteConformResponse
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
-
+from app.validation.responses.CompanyResposnse import CreateCompanyResponse
 
 class ICompanyService(ABC):
     """
@@ -14,11 +14,11 @@ class ICompanyService(ABC):
 
     @abstractmethod
     async def create_new_company(
-        self, user: UserDTO, company: CompanyDTO
+        self, user: UserDTO, company: CreateCompanyResponse
     ) -> Optional[CompanyDTO]:
         """
         Создать новую компанию и назначить текущего пользователя - админом.
-        :param user: UserDTO, company: CompanyDTO
+        :param user: UserDTO, company: CreateCompanyResponse
         :return: Объект CompanyDTO или None
         """
         pass

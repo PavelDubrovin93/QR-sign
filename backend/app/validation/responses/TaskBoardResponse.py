@@ -2,13 +2,11 @@ from typing import List, Optional
 from app.validation.Entity import Entity
 
 class CreateTaskPointResponse(Entity):
-
     title: str
-    taskboard_id: int
     thumbnails: str
     mark_icon: str
-    coordinates: list
-    points: Optional[dict]
+    coordinates: List[float]
+    points: Optional[List]
     qrcode: bytes
     description: Optional[str]
     voice_massage: Optional[bytes]
@@ -30,8 +28,12 @@ class CreateTaskBoardResponse(Entity):
     type: str
     description: Optional[str]
     done_at: Optional[str]
-    task_points: Optional[List[TaskPointResponse]] = None
+    task_points: Optional[List[CreateTaskPointResponse]] = None
 
+class EditTaskBoardResponse(CreateTaskBoardResponse):
+    id: int
+    task_points: Optional[List[TaskPointResponse]] = None
 
 class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
+    task_points: Optional[List[TaskPointResponse]]

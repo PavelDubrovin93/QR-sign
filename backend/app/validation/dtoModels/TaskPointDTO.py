@@ -17,3 +17,5 @@ class TaskPointDTO(Entity):
     done_at: Optional[str]
     issued_at: Optional[str]
     warning_at: Optional[str]
+
+

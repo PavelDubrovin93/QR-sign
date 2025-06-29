@@ -9,7 +9,7 @@ from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRep
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
-
+from app.validation.responses.CompanyResposnse import CreateCompanyResponse
 
 class CompanyService(ICompanyService):
 
@@ -18,7 +18,7 @@ class CompanyService(ICompanyService):
         self.company_repo = CompanyRepository(session)
 
     async def create_new_company(
-        self, user: UserDTO, company: CompanyDTO
+        self, user: UserDTO, company: CreateCompanyResponse
     ) -> Optional[CompanyDTO]:
         new_copmany = await self.company_repo.create_company(company)
         self.uc_repo.create_user_company(

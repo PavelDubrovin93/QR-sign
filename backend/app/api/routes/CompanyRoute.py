@@ -7,18 +7,19 @@ from app.services.CompanyService import CompanyService
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.responses.InviteConformResponse import InviteConformResponse
+from app.validation.responses.CompanyResposnse import CreateCompanyResponse
 
 router = APIRouter()
 
 
 @router.post("", response_model=CompanyDTO)
 async def create_company(
-    new_company: CompanyDTO,
+    new_company: CreateCompanyResponse,
     current_user=Depends(get_current_user),
     session: AsyncSession = Depends(fastapi_get_db),
 ) -> CompanyDTO:
     service = CompanyService(session)
-    company = await service.create_new_company(current_user, new_company)
+    company = await service.create_new_company(user=current_user, company=new_company)
     return company
 
 
