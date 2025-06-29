@@ -37,7 +37,6 @@ async def create_qr_code_by_task_point_id(
     pdf_path = "qr_codes.pdf"
     c = canvas.Canvas(pdf_path)
 
-    # Параметры для размещения QR-кодов
     cols = 2
     rows = 3
     qr_size = 150
@@ -49,7 +48,7 @@ async def create_qr_code_by_task_point_id(
         if i > 0 and i % (cols * rows) == 0:
             c.showPage()
 
-        url = f"{taskboard_id}"
+        url = f"DOMENTUT/taskboard/{taskboard_id}"  # admin - /admin-taskboard/1
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,

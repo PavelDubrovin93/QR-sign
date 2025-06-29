@@ -8,7 +8,7 @@ from app.infrastructure.interfaces.repositories.IWorkGroupRepository import (
 )
 from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
-
+from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
 
 class WorkGroupRepository(IWorkGroupRepository):
     def __init__(self, session: AsyncSession):
@@ -28,7 +28,21 @@ class WorkGroupRepository(IWorkGroupRepository):
         workgroups_dto = [await self.__to_dto(workgroup) for workgroup in workgroups]
         return workgroups_dto
 
-    async def create_work_group(self, wg_dto: WorkGroupDTO) -> WorkGroup:
+    async def edit_work_group(self, workgroup: WorkGroupDTO) -> WorkGroupDTO:
+        query = select(WorkGroup).where(WorkGroup.id == workgroup.id)
+        result = await self.session.execute(query)
+        workgroup_to_edit = result.scalar_one_or_none()
+        if workgroup_to_edit is None:
+            raise ValueError(f"Пользователь с id {workgroup.id} не существует.")
+        workgroup_to_edit.title = workgroup.title
+        workgroup_to_edit.description = workgroup.description
+        await self.session.commit()
+        await self.session.refresh(workgroup_to_edit)
+        workgroup_dto = await self.__to_dto(workgroup_to_edit)
+        
+        return workgroup_dto
+
+    async def create_work_group(self, wg_dto: CreateWorkGroupResponse) -> WorkGroupDTO:
         new_wg = WorkGroup(
             title=wg_dto.title,
             description=wg_dto.description,

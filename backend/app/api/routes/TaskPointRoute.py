@@ -11,3 +11,8 @@ from typing import List
 
 
 router = APIRouter()
+
+
+@router.get("/tasks")
+async def tasks_for_user():
+    pass

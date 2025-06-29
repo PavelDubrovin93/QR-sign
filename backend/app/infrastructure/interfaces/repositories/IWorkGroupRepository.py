@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
-
+from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
 
 class IWorkGroupRepository(ABC):
     """
@@ -28,7 +28,7 @@ class IWorkGroupRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_work_group(self, wg_dto: WorkGroupDTO) -> WorkGroupDTO:
+    async def create_work_group(self, wg_dto: CreateWorkGroupResponse) -> WorkGroupDTO:
         """
         Создать новую рабочую группу.
         :param wg_data: данные группы

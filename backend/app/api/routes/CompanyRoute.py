@@ -18,6 +18,10 @@ async def create_company(
     current_user=Depends(get_current_user),
     session: AsyncSession = Depends(fastapi_get_db),
 ) -> CompanyDTO:
+    
+    if new_company.image_url is not None:
+        new_company.image_url = str(new_company.image_url)
+
     service = CompanyService(session)
     company = await service.create_new_company(user=current_user, company=new_company)
     return company
