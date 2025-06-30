@@ -18,12 +18,12 @@ const tasksBoardSlice = createSlice({
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    setTasksBoard: (state, action: PayloadAction<Task[]>) => {
+    setTasksBoardByCompany: (state, action: PayloadAction<Task[]>) => {
       state.data = action.payload;
     },
   },
 });
 
-export const { setIsLoading, setTasksBoard } = tasksBoardSlice.actions;
+export const { setIsLoading, setTasksBoardByCompany } = tasksBoardSlice.actions;
 
 export default tasksBoardSlice.reducer;

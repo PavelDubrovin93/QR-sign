@@ -3,8 +3,8 @@ import { Select, Section } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 
 import TaskCard from "../components/TaskCard";
-import { getTasks } from "../api/task/get-tasks";
-import { setTasksBoard } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
+import { getTasksByCompany } from "../api/task/get-tasksByCompany";
+import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import { useDispatch, useSelector } from "react-redux";
 // import type { Task } from "../@types/task";
 
@@ -22,9 +22,9 @@ function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getTasks();
+        const res = await getTasksByCompany("1");
         if (res.data) {
-          dispatch(setTasksBoard(res.data));
+          dispatch(setTasksBoardByCompany(res.data));
         }
       } catch (e: any) {
         console.log(e);
