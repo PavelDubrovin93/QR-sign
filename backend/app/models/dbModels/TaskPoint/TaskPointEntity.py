@@ -23,7 +23,7 @@ class TaskPointEntity(EntityDB):
     thumbnails = Column(String, nullable=False)
     mark_icon = Column(String, nullable=False)
     coordinates = Column(ARRAY(Integer), nullable=False)
-    points = Column(JSON(Float), nullable=True)
+    points = Column(ARRAY(Integer), nullable=True)
     qrcode = Column(LargeBinary, nullable=False)
     description = Column(Text, nullable=True)
     voice_massage = Column(LargeBinary, nullable=True)

@@ -10,12 +10,12 @@ class TaskPointDTO(Entity):
     thumbnails: str
     mark_icon: str
     coordinates: list
-    points: Optional[dict]
+    points: Optional[list]
     qrcode: bytes
     description: Optional[str]
-    voice_massage: Optional[bytes]
-    done_at: Optional[str]
-    issued_at: Optional[str]
-    warning_at: Optional[str]
+    voice_message: Optional[bytes]
+    done_at: Optional[str] = None
+    issued_at: Optional[str] = None
+    warning_at: Optional[str] = None
 
 

@@ -2,11 +2,12 @@ from fastapi import HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, TaskPointResponse
 from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardService
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
+from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
 from app.validation.responses.TaskBoardResponse import (
     CreateTaskBoardResponse,
     TaskBoardResponse
@@ -98,11 +99,37 @@ class TaskBoardService(ITaskBoardService):
             )
         )
 
+        task_point_to_return = []
+
         for task_point in taskboard_data.task_points:
-            task_point.taskboard_id = new_taskboard.id
-            await self.tp_repo.add_task_point(
-                new_task_point = task_point
+            new_taskpoint = await self.tp_repo.add_task_point(new_task_point=TaskPointDTO(
+                title=task_point.title,
+                taskboard_id=new_taskboard.id,
+                thumbnails=task_point.thumbnails,
+                mark_icon=task_point.mark_icon,
+                coordinates=task_point.coordinates,
+                points=task_point.points,
+                qrcode=task_point.qrcode,
+                description=task_point.description,
+                voice_message=task_point.voice_message,
+                )
             )
+            task_point_to_return.append(TaskPointResponse(
+                id=new_taskpoint.id,
+                title=new_taskpoint.title,
+                taskboard_id=new_taskpoint.taskboard_id,
+                thumbnails=new_taskpoint.thumbnails,
+                mark_icon=new_taskpoint.mark_icon,
+                coordinates=new_taskpoint.coordinates,
+                points=new_taskpoint.points,
+                qrcode=new_taskpoint.qrcode,
+                description=new_taskpoint.description,
+                voice_message=new_taskpoint.voice_message,
+                done_at=new_taskpoint.done_at,
+                issued_at=new_taskpoint.issued_at,
+                warning_at=new_taskpoint.warning_at
+            ))
+
 
         new_taskboard_to_return = TaskBoardResponse(
             id=new_taskboard.id,
@@ -113,8 +140,7 @@ class TaskBoardService(ITaskBoardService):
             location=new_taskboard.location,
             type=new_taskboard.type,
             description=new_taskboard.description or "",
-            done_at=new_taskboard.done_at,
-            task_points=taskboard_data.task_points
+            task_points=task_point_to_return
         )
 
         return new_taskboard_to_return

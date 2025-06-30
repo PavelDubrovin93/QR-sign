@@ -4,13 +4,12 @@ from app.validation.Entity import Entity
 class CreateTaskPointResponse(Entity):
     title: str
     thumbnails: str
-    taskboard_id: int
     mark_icon: str
     coordinates: List[float]
-    points: Optional[List]
+    points: Optional[list]
     qrcode: bytes
     description: Optional[str]
-    voice_massage: Optional[bytes]
+    voice_message: Optional[bytes] = None
 
 
 class TaskPointResponse(CreateTaskPointResponse):
@@ -32,5 +31,5 @@ class CreateTaskBoardResponse(Entity):
 
 class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
-    done_at: Optional[str]
+    done_at: Optional[str] = None
     task_points: Optional[List[TaskPointResponse]] = None
