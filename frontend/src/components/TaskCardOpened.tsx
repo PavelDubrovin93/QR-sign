@@ -228,7 +228,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                     {/* Информация о задаче всегда снизу */}
                     {activePoint && (
                         <div
-                            className="fixed bottom-4 left-4 right-4 p-3 bg-white bg-opacity-90 rounded-lg shadow-md"
+                            className="z-51 fixed bottom-4 left-4 right-4 p-3 bg-white bg-opacity-90 rounded-lg shadow-md"
                             onClick={(e) => e.stopPropagation()}
                             style={{ backgroundColor: telegramData?.themeParams.section_bg_color }}
                         >
