@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   FaMicrophone,
   FaStopCircle,
@@ -7,18 +7,37 @@ import {
   FaTrashAlt,
 } from "react-icons/fa";
 
-function AudioRecorder() {
+function AudioRecorder({
+  onRecordingComplete,
+  onRecordingDelete,
+  currentAudioUrl,
+}: any) {
   const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [hasRecorded, setHasRecorded] = useState(false);
-
+  const [localAudioBlob, setLocalAudioBlob] = useState<Blob | null>(null);
+  const [localAudioUrl, setLocalAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
+  useEffect(() => {
+    if (!currentAudioUrl && localAudioUrl) {
+      URL.revokeObjectURL(localAudioUrl);
+      setLocalAudioUrl(null);
+      setLocalAudioBlob(null);
+    }
+  }, [currentAudioUrl, localAudioUrl]);
+
   const startRecording = async () => {
     try {
+      if (localAudioUrl) {
+        URL.revokeObjectURL(localAudioUrl);
+      }
+      setLocalAudioBlob(null);
+      setLocalAudioUrl(null);
+      if (onRecordingDelete) {
+        onRecordingDelete();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -34,11 +53,15 @@ function AudioRecorder() {
         const newAudioBlob = new Blob(audioChunksRef.current, {
           type: "audio/webm",
         });
-        setAudioBlob(newAudioBlob);
-
         const url = URL.createObjectURL(newAudioBlob);
-        setAudioUrl(url);
-        setHasRecorded(true);
+
+        setLocalAudioBlob(newAudioBlob);
+        setLocalAudioUrl(url);
+
+        if (onRecordingComplete) {
+          onRecordingComplete(url);
+        }
+
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
@@ -47,9 +70,6 @@ function AudioRecorder() {
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      setAudioBlob(null);
-      setAudioUrl(null);
-      setHasRecorded(false);
     } catch (err) {
       console.error("Ошибка доступа к микрофону:", err);
       alert("Не удалось получить доступ к микрофону. Проверьте разрешения.");
@@ -65,16 +85,16 @@ function AudioRecorder() {
   };
 
   const playRecording = () => {
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
+    if (localAudioUrl) {
+      const audio = new Audio(localAudioUrl);
       audio.play();
     }
   };
 
   const downloadRecording = () => {
-    if (audioUrl && audioBlob) {
+    if (localAudioUrl && localAudioBlob) {
       const a = document.createElement("a");
-      a.href = audioUrl;
+      a.href = localAudioUrl;
       a.download = `audio-recording-${Date.now()}.webm`;
       document.body.appendChild(a);
       a.click();
@@ -83,38 +103,45 @@ function AudioRecorder() {
   };
 
   const deleteRecording = () => {
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
+    if (localAudioUrl) {
+      URL.revokeObjectURL(localAudioUrl);
+      setLocalAudioUrl(null);
+      setLocalAudioBlob(null);
     }
-    setAudioBlob(null);
-    setAudioUrl(null);
-    setHasRecorded(false);
+    if (onRecordingDelete) {
+      onRecordingDelete();
+    }
   };
 
+  const hasLocalRecording = !!localAudioUrl;
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center">
+    <div className="flex flex-col items-start">
+      <div
+        className="flex items-center"
+        onClick={!isRecording ? startRecording : stopRecording}
+      >
         {!isRecording ? (
-          <div className="mr-2 cursor-pointer" onClick={startRecording}>
+          <div className="mr-2 cursor-pointer">
             <FaMicrophone size={25} color="#408ae2" />
           </div>
         ) : (
-          <div className="mr-2 cursor-pointer" onClick={stopRecording}>
-            <FaStopCircle size={25} color="#408ae2" />
+          <div className="mr-2 cursor-pointer">
+            <FaStopCircle size={25} color="#d9534f" />
           </div>
         )}
-        <p>
+        <p className="text-white">
           {isRecording
             ? "Идёт запись..."
-            : hasRecorded
+            : hasLocalRecording
             ? "Запись готова."
             : "Нажмите, чтобы начать запись"}
         </p>
       </div>
 
-      {audioUrl && !isRecording && hasRecorded && (
+      {/* {hasLocalRecording && !isRecording && (
         <div className="mt-4 flex items-center">
-          <p className="mr-2">Запись:</p>
+          <p className="mr-2 text-white">Предпросмотр:</p>
           <div className="cursor-pointer mr-2" onClick={playRecording}>
             <FaPlayCircle size={25} color="#408ae2" />
           </div>
@@ -125,7 +152,7 @@ function AudioRecorder() {
             <FaTrashAlt size={25} color="#d9534f" />
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

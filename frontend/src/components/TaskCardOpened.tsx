@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Card, Checkbox } from "@telegram-apps/telegram-ui";
+import { Button, Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft, SlClose } from "react-icons/sl";
@@ -9,6 +9,8 @@ import AudioRecorder from "./AudioRecorder";
 import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task } from "../@types/task";
+import Waveform from "./Waveform";
+import AudioMessageComposer from "./AudioMessageComposer";
 
 export interface TaskPoint {
     id: number;
@@ -23,6 +25,8 @@ interface TaskCardProps {
 }
 
 function TaskCard({ editMode }: TaskCardProps) {
+    const mockAudioUrl =
+        "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
     const telegramData = getTelegramData();
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
@@ -141,6 +145,12 @@ function TaskCard({ editMode }: TaskCardProps) {
         }
     };
 
+    const savePoints = () => {
+        if (isDragging) handleDragEnd();
+        alert("Изменения сохранены")
+        setIsFullScreen(false);
+    }
+
     return (
         <div className="p-4 pt-0">
             {/* Модалка с изображением */}
@@ -148,6 +158,13 @@ function TaskCard({ editMode }: TaskCardProps) {
                 <div
                     className="fixed inset-0 z-50 bg-black flex items-center justify-center"
                 >
+                     <Button
+                        // className="absolute top-4 left-4 text-white z-50"
+                        style={{position: "absolute", top: "10px", left: "10px"}}
+                        onClick={savePoints}
+                    >
+                        Сохранить изменения
+                    </Button>
                     <button
                         className="absolute top-4 right-4 text-white z-50"
                         onClick={() => {
@@ -220,15 +237,17 @@ function TaskCard({ editMode }: TaskCardProps) {
                             <p className="text-sm text-gray-600" style={{ color: telegramData?.themeParams.text_color }}>
                                 ID: {activePoint.id}, {activePoint.completed ? 'Выполнено' : 'Не выполнено'}
                             </p>
-                            <button
-                                className="text-sm text-red-500"
-                                onClick={() => {
-                                    setTaskPoints(prev => prev.filter(p => p.id !== activePoint.id));
-                                    setActivePoint(null);
-                                }}
-                            >
-                                Удалить точку
-                            </button>
+                            {editMode && 
+                                <button
+                                    className="text-sm text-red-500"
+                                    onClick={() => {
+                                        setTaskPoints(prev => prev.filter(p => p.id !== activePoint.id));
+                                        setActivePoint(null);
+                                    }}
+                                >
+                                    Удалить точку
+                                </button>
+                            }
                             </div>
                             {editMode && (
                                 <div className="mt-2">
@@ -413,29 +432,9 @@ function TaskCard({ editMode }: TaskCardProps) {
                             <div className="pb-4">
                                 {/* Голосовое сообщение */}
                                 {editMode ? 
-                                <div className="flex">
-                                    <AudioRecorder />      
-                                </div>          
-                                :
-                                <div className="flex pb-4 px-1 items-center">
-                                    <div className="flex-1 flex flex-col pt-[3px]">
-                                        <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
-                                            <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
-                                        </div>
-                                        <span className="text-xs text-gray-500 text-left">00:35</span>
-                                    </div>
-                                    <div className="ml-4 flex items-center">
-                                        <button
-                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-md"
-                                            onClick={() => console.log("Проигрывание голосового")}
-                                            aria-label="Проиграть голосовое сообщение"
-                                        >
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M5 3v18l15-9z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
+                                    <AudioMessageComposer /> 
+                                    : 
+                                    <Waveform audioUrl={mockAudioUrl}/>
                                 }
                             </div>
                             <div className="flex items-start gap-2 pb-4">
@@ -450,30 +449,10 @@ function TaskCard({ editMode }: TaskCardProps) {
                             <div className="pb-2">
                                 {/* Голосовое сообщение */}
                                 {editMode ? 
-                                <div className="flex">
-                                    <AudioRecorder />      
-                                </div>   
-                                :
-                                <div className="flex pb-4 px-1 items-center">
-                                    <div className="flex-1 flex flex-col pt-[3px]">
-                                        <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
-                                            <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
-                                        </div>
-                                        <span className="text-xs text-gray-500 text-left">00:35</span>
-                                    </div>
-                                    <div className="ml-4 flex items-center">
-                                        <button
-                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-md"
-                                            onClick={() => console.log("Проигрывание голосового")}
-                                            aria-label="Проиграть голосовое сообщение"
-                                        >
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M5 3v18l15-9z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                }  
+                                    <AudioMessageComposer /> 
+                                    : 
+                                    <Waveform audioUrl={mockAudioUrl}/>
+                                } 
                             </div>
                         </div>
                     </div>
@@ -497,6 +476,26 @@ function TaskCard({ editMode }: TaskCardProps) {
 export default TaskCard;
 
 
+
+                                // <div className="flex pb-4 px-1 items-center">
+                                //     <div className="flex-1 flex flex-col pt-[3px]">
+                                //         <div className="h-1.5 bg-gray-300 rounded-full overflow-hidden mb-2">
+                                //             <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
+                                //         </div>
+                                //         <span className="text-xs text-gray-500 text-left">00:35</span>
+                                //     </div>
+                                //     <div className="ml-4 flex items-center">
+                                //         <button
+                                //             className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-md"
+                                //             onClick={() => console.log("Проигрывание голосового")}
+                                //             aria-label="Проиграть голосовое сообщение"
+                                //         >
+                                //             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                //                 <path d="M5 3v18l15-9z" />
+                                //             </svg>
+                                //         </button>
+                                //     </div>
+                                // </div>
 
 //Добавление точки по нажатию
 // function TaskCard({ editMode }: TaskCardProps) {

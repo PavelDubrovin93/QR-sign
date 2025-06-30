@@ -22,6 +22,7 @@ import { getUserProfile } from "./api/user/get-userProfile.ts";
 import { setUserProfile } from "./store/slices/entities/user/userSlice.ts";
 import { useDispatch } from "react-redux";
 import { sessionToken } from "./utils/cookie.ts";
+import { getAmountTasks } from "./api/task/amount-new-tasks.ts";
 
 function App() {
   const dispatch = useDispatch()
@@ -44,7 +45,10 @@ function App() {
       try {
         const res = await getUserProfile();
         console.log(res, 'res1')
+        // const amount = await getAmountTasks();
+        // console.log(amount, 'amount')
         if(res.data) {
+          console.log("enter")
           dispatch(setUserProfile(res.data));
         }
       } catch (e: any) {
