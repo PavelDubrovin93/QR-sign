@@ -30,11 +30,11 @@ class UserService(IUserService):
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
-        await self.usercompany_repo.create_user_company(
-            UserCompanyDTO(
-                user_id=new_user.id,
-            )
-        )
+        # await self.usercompany_repo.create_user_company(
+        #     UserCompanyDTO(
+        #         user_id=new_user.id,
+        #     )
+        # )
         new_user_response = UserResponse(
             id=new_user.id,
             tg_id=new_user.tg_id,
@@ -58,12 +58,11 @@ class UserService(IUserService):
             UISettingsDTO(user_id=new_user.id)
         )
 
-        default_company_workgroup_id = None
         await self.usercompany_repo.create_user_company(
             UserCompanyDTO(
                 user_id=new_user.id,
                 company_id=company_id,
-                workgroup_id=default_company_workgroup_id,
+                workgroup_id=None,
             )
         )
 

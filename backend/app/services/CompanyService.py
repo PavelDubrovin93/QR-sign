@@ -10,6 +10,7 @@ from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.responses.CompanyResposnse import CreateCompanyResponse
+from app.models.dbEnums.RoleType import RoleType
 
 class CompanyService(ICompanyService):
 
@@ -21,12 +22,12 @@ class CompanyService(ICompanyService):
         self, user: UserDTO, company: CreateCompanyResponse
     ) -> Optional[CompanyDTO]:
         new_copmany = await self.company_repo.create_company(company)
-        self.uc_repo.create_user_company(
+        await self.uc_repo.create_user_company(
             UserCompanyDTO(
                 user_id=user.id,
                 company_id=new_copmany.id,
                 workgroup_id=None,
-                role="admin",
+                role=RoleType.ADMIN,
             )
         )
         return new_copmany
