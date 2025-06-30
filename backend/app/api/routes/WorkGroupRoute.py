@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.WorkGroupService import WorkGroupService
-from app.validation.responses.WorkGroupResponse import WorkGroupResponse
+from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
 from app.api.dependenices.user_dependecy import get_current_user
 from typing import List
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.post("/create", response_model=WorkGroupDTO)
 async def create_workgroup(
-    workgroup_data: WorkGroupResponse,
+    workgroup_data: CreateWorkGroupResponse,
     session: AsyncSession = Depends(fastapi_get_db),
     user = Depends(get_current_user)
 ) -> WorkGroupDTO:

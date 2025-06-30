@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.TaskBoardService import TaskBoardService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse, CreateTaskBoardResponse, EditTaskBoardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, CreateTaskBoardResponse
 
 
 from app.api.dependenices.user_dependecy import get_current_user
@@ -53,7 +53,7 @@ async def get_task_boards_by_company_id(
 
 @router.put("", response_model=TaskBoardResponse)
 async def edit_task_board_with_task_points(
-    taskboard_data: EditTaskBoardResponse, session: AsyncSession = Depends(fastapi_get_db), user = Depends(get_current_user)
+    taskboard_data: TaskBoardResponse, session: AsyncSession = Depends(fastapi_get_db), user = Depends(get_current_user)
 ) -> TaskBoardResponse:
     
     service = TaskBoardService(session)

@@ -4,7 +4,7 @@ from app.validation.Entity import Entity
 
 
 class TaskBoardDTO(Entity):
-    id: int
+    id: Optional[int] = None
     title: str
     company_id: int
     work_group_id: int
@@ -12,4 +12,4 @@ class TaskBoardDTO(Entity):
     location: list
     type: str
     description: Optional[str]
-    done_at: Optional[str]
+    done_at: Optional[str] = None

@@ -69,11 +69,12 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=new_task_board.location,
             type=new_task_board.type,
             description=new_task_board.description or "",
-            done_at=new_task_board.done_at,
         )
         self.session.add(new_task_board)
         await self.session.commit()
-        return self.__to_dto(new_task_board)
+        await self.session.refresh(new_task_board)
+        taskboard_dto = await self.__to_dto(new_task_board)
+        return taskboard_dto
 
     async def delete_task_board_by_id(self, task_board_id: int) -> TaskBoardResponse:
         query = select(TaskBoard).where(TaskBoard.id == task_board_id)

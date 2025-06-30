@@ -7,7 +7,10 @@ from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardS
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
-from app.validation.responses.TaskBoardResponse import CreateTaskBoardResponse, EditTaskBoardResponse
+from app.validation.responses.TaskBoardResponse import (
+    CreateTaskBoardResponse,
+    TaskBoardResponse
+)
 from typing import List
 
 
@@ -47,7 +50,7 @@ class TaskBoardService(ITaskBoardService):
         
         return taskboard
     
-    async def edit_task_board_with_task_points(self, taskboard: EditTaskBoardResponse):
+    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse):
         new_task_board = await self.tb_repo.edit_task_board(
             taskboard=TaskBoardDTO(
                 id=taskboard.id,
@@ -82,7 +85,7 @@ class TaskBoardService(ITaskBoardService):
         taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_tg_id=user_tg_id)
         return taskboards
     
-    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> CreateTaskBoardResponse:
+    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:
         new_taskboard = await self.tb_repo.add_task_board(
             new_task_board=TaskBoardDTO(
                 title=taskboard_data.title,
@@ -92,11 +95,11 @@ class TaskBoardService(ITaskBoardService):
                 location=taskboard_data.location,
                 type=taskboard_data.type,
                 description=taskboard_data.description or "",
-                done_at=taskboard_data.done_at,
             )
         )
 
         for task_point in taskboard_data.task_points:
+            task_point.taskboard_id = new_taskboard.id
             await self.tp_repo.add_task_point(
                 new_task_point = task_point
             )

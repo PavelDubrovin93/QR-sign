@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse, EditTaskBoardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, CreateTaskBoardResponse
 
 
 class ITaskBoardService(ABC):
@@ -31,7 +31,7 @@ class ITaskBoardService(ABC):
         pass
 
     @abstractmethod
-    async def edit_task_board_with_task_points(self, taskboard: EditTaskBoardResponse) -> TaskBoardResponse:
+    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse) -> TaskBoardResponse:
         """
         Редактировать таскборд.
         :param taskboard: объект TaskBoardResponse
@@ -50,7 +50,7 @@ class ITaskBoardService(ABC):
 
 
     @abstractmethod
-    async def create_taskboard(self, taskboard_data: TaskBoardResponse) -> TaskBoardResponse:
+    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:
         """
         Создать таскборд.
         :param taskboard_data: объект TaskBoardResponse

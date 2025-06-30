@@ -4,6 +4,7 @@ from app.validation.Entity import Entity
 class CreateTaskPointResponse(Entity):
     title: str
     thumbnails: str
+    taskboard_id: int
     mark_icon: str
     coordinates: List[float]
     points: Optional[List]
@@ -27,13 +28,9 @@ class CreateTaskBoardResponse(Entity):
     location: list
     type: str
     description: Optional[str]
-    done_at: Optional[str]
     task_points: Optional[List[CreateTaskPointResponse]] = None
-
-class EditTaskBoardResponse(CreateTaskBoardResponse):
-    id: int
-    task_points: Optional[List[TaskPointResponse]] = None
 
 class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
-    task_points: Optional[List[TaskPointResponse]]
+    done_at: Optional[str]
+    task_points: Optional[List[TaskPointResponse]] = None
