@@ -66,55 +66,40 @@ const AdminPage = () => {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         dismissible
-        // overlayComponent={
-        //   <div
-        //     style={{
-        //       backgroundColor: "rgba(0, 0, 0, 0.8)", // Черный цвет с 80% непрозрачностью
-        //       position: "fixed",
-        //       top: 0,
-        //       left: 0,
-        //       right: 0,
-        //       bottom: 0,
-        //       zIndex: 3
-        //     }}
-        //   />
-        // }
         modal={true}
         preventScrollRestoration={true}
       >
         <div
           style={{
-            // border: "1px solid #268dff",
+            borderTop: "1px solid rgba(42, 144, 255, 0.6)",
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
-            position: "relative",
           }}
-          className="py-4 px-4"
+          className="py-4 px-4 top-shadow-container"
         >
-          <div className="flex justify-center relative top-[-15px]">
+          <div className="flex justify-center relative top-[-10px]">
             <SlArrowDown
-              size={18}
-              color={telegramData?.themeParams.button_color}
+              size={26}
+              // color={telegramData?.themeParams.button_color}
             />
           </div>
-          {/* <Cell> */}
           <Input
             placeholder="Название группы"
+            status="focused"
             // value={groupName}
             // onChange={(e) => setGroupName(e.target.value)}
           />
-          {/* </Cell> */}
-          <Cell>
-            {/* <Input
+          {/* <Cell>
+            <Input
               placeholder="Описание группы"
               value={groupDescription}
               onChange={(e) => setGroupDescription(e.target.value)}
-            /> */}
-          </Cell>
+            />
+          </Cell> */}
           <div className="flex items-center">
             <Button
               stretched
-              mode="gray"
+              mode="bezeled"
               onClick={handleCloseModal}
               className="mx-5"
             >
