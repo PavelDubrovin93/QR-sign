@@ -43,3 +43,7 @@ class IUserCompanyRepository(ABC):
         :param user_company_id: ID записи UC
         """
         pass
+
+    @abstractmethod
+    async def get_all_users_in_company_with_company_id(self, company_id: int) -> List[UserCompanyDTO]:
+        pass

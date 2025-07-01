@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from app.validation.responses.InviteConformResponse import InviteConformResponse
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.responses.CompanyResposnse import CreateCompanyResponse
+from app.validation.responses.UserResponse import UsersInCompanyResponse
+
 
 class ICompanyService(ABC):
     """
@@ -50,5 +52,14 @@ class ICompanyService(ABC):
         обновить информацию по связи UserCompany.
         :param uc_data: UserCompanyDTO
         :return: None
+        """
+        pass
+
+    @abstractmethod
+    async def get_all_users_in_company_and_uc_id(self, company_id: int) -> List[UsersInCompanyResponse]:
+        """
+        обновить информацию по связи UserCompany.
+        :param company_id: ID компании
+        :return: List[UsersInCompanyResponse]
         """
         pass
