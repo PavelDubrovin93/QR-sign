@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.WorkGroupService import WorkGroupService
-from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
+from app.services.TaskBoardService import TaskBoardService
+from app.services.TaskPointService import TaskPointService
+from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse, WorkGroupAndTaskboardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+
 from app.api.dependenices.user_dependecy import get_current_user
 from typing import List
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
@@ -33,6 +37,45 @@ async def get_workgroups_by_company_id(
     workgroups = await service.get_workgroups_by_company_id(company_id=company_id)
     
     return workgroups
+
+
+@router.get("/workgroups_and_taskboards_by_company_id/{company_id}")
+async def get_workgroups_and_taskboards_by_company_id(
+    company_id: int,
+    session: AsyncSession = Depends(fastapi_get_db),
+    user = Depends(get_current_user)
+) -> List[WorkGroupAndTaskboardResponse]:
+    service_wg = WorkGroupService(session)
+    service_tb = TaskBoardService(session)
+    service_tp = TaskPointService(session)
+    workgroups = await service_wg.get_workgroups_by_company_id(company_id=company_id)
+    
+    ret_list = []
+    
+    for workgroup in workgroups:
+        taskboards = await service_tb.get_taskboard_by_work_group_id(work_group_id=workgroup.id)
+        for taskboard in taskboards:
+            taskpoints = await service_tp.get_taskpoints_by_taskboard_id(taskboard_id=taskboard.id)
+            ret_list.append(
+                WorkGroupAndTaskboardResponse(
+                    workgroup=workgroup,
+                    taskboards=TaskBoardResponse(
+                        id=taskboard.id,
+                        title=taskboard.title,
+                        company_id=taskboard.company_id,
+                        work_group_id=taskboard.work_group_id,
+                        image=taskboard.image,
+                        location=taskboard.location,
+                        type=taskboard.type,
+                        description=taskboard.description or "",
+                        done_at=taskboard.done_at,
+                        task_points=taskpoints,    
+                    )
+                )
+            )
+
+    
+    return ret_list
 
 @router.delete("/delete/{workgroup_id}")
 async def delete_workgroup(

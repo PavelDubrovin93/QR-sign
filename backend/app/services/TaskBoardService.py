@@ -144,3 +144,7 @@ class TaskBoardService(ITaskBoardService):
         )
 
         return new_taskboard_to_return
+
+    async def get_taskboard_by_work_group_id(self, work_group_id: int) -> List[TaskBoardDTO]:
+        taskboard = await self.tb_repo.get_task_board_by_work_group_id(work_group_id=work_group_id)
+        return taskboard
