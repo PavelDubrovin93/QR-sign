@@ -8,6 +8,9 @@ from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.responses.InviteConformResponse import InviteConformResponse
 from app.validation.responses.CompanyResposnse import CreateCompanyResponse
+from app.validation.responses.UserResponse import UsersInCompanyResponse
+
+from typing import List
 
 router = APIRouter()
 
@@ -54,3 +57,14 @@ async def delete_user_company(
     service = CompanyService(session)
     await service.delete_user_company(uc_id)
     return {"message": "запись UserCompany удалена"}
+
+
+@router.get("/get_all_users_in_company_and_uc_id/{company_id}", response_model=List[UsersInCompanyResponse])
+async def get_user_companies(
+    company_id: int,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(fastapi_get_db),
+) -> List[UsersInCompanyResponse]:
+    service = CompanyService(session)
+    companies = await service.get_all_users_in_company_and_uc_id(company_id=company_id)
+    return companies

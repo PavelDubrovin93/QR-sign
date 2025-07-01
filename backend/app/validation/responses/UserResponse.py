@@ -8,3 +8,7 @@ class CreateUserResponse(Entity):
 class UserResponse(CreateUserResponse):
     id: int
     ui_settings: int
+
+class UsersInCompanyResponse(CreateUserResponse):
+    id: int
+    uc_id: int

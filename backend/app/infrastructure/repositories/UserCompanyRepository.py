@@ -86,6 +86,19 @@ class UserCompanyRepository(IUserCompanyRepository):
         await self.session.delete(user_company_to_delete)
         await self.session.commit()
 
+
+    async def get_all_users_in_company_with_company_id(self, company_id: int) -> List[UserCompanyDTO]:
+        query = select(UserCompany).where(UserCompany.company_id == company_id)
+        result = await self.session.execute(query)
+        usercompanies = result.scalars().all()
+
+        usercompanies_dto = [
+            await self.__to_dto(usercompany) if usercompany else None
+            for usercompany in usercompanies
+        ]
+
+        return usercompanies_dto
+
     async def __to_dto(self, usercompany: UserCompany) -> UserCompanyDTO:
         return UserCompanyDTO(
             id=usercompany.id,
