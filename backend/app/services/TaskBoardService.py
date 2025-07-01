@@ -83,7 +83,7 @@ class TaskBoardService(ITaskBoardService):
         )
     
     async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> List[TaskBoardResponse]:
-        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_tg_id=user_tg_id)
+        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_id=user_tg_id)
         return taskboards
     
     async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:

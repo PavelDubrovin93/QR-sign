@@ -5,7 +5,3 @@ class CreateWorkGroupResponse(Entity):
     title: str
     description: str | None = None
     company_id: int
-
-
-class WorkGroupResponse(CreateWorkGroupResponse):
-    id: int

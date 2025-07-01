@@ -9,11 +9,12 @@ from app.infrastructure.interfaces.repositories.ITaskBoardRepository import (
 
 from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
 from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
+from app.models.dbModels.UserCompany.UserCompanyEntity import UserCompanyEntity as UserCompany #TODO: FIX LATER
+
 
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
-
 
 
 from fastapi import HTTPException
@@ -69,12 +70,11 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=new_task_board.location,
             type=new_task_board.type,
             description=new_task_board.description or "",
+            done_at=new_task_board.done_at,
         )
         self.session.add(new_task_board)
         await self.session.commit()
-        await self.session.refresh(new_task_board)
-        taskboard_dto = await self.__to_dto(new_task_board)
-        return taskboard_dto
+        return self.__to_dto(new_task_board)
 
     async def delete_task_board_by_id(self, task_board_id: int) -> TaskBoardResponse:
         query = select(TaskBoard).where(TaskBoard.id == task_board_id)
@@ -122,10 +122,10 @@ class TaskBoardRepository(ITaskBoardRepository):
         return taskboard
 
     async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
-        query = select(WorkGroup).where(WorkGroup.company_id == company_id and WorkGroup.user_id == user_id)
+        query = select(UserCompany).where(UserCompany.company_id == company_id and UserCompany.user_id == user_id) #TODO: rebase to proper repo
         result = await self.session.execute(query)
-        work_groups = result.scalars().all()
-        work_group_ids = [work_group.id for work_group in work_groups]
+        usercompanies = result.scalars().all()
+        work_group_ids = [usercompany.workgroup_id for usercompany in usercompanies]
 
         query = select(TaskBoard).where(TaskBoard.work_group_id.in_(work_group_ids))
         result = await self.session.execute(query)
@@ -135,6 +135,20 @@ class TaskBoardRepository(ITaskBoardRepository):
         ]
         
         return task_boards_dto
+
+        # query = select(WorkGroup).where(WorkGroup.company_id == company_id and WorkGroup.user_id == user_id)
+        # result = await self.session.execute(query)
+        # work_groups = result.scalars().all()
+        # work_group_ids = [work_group.id for work_group in work_groups]
+
+        # query = select(TaskBoard).where(TaskBoard.work_group_id.in_(work_group_ids))
+        # result = await self.session.execute(query)
+        # task_boards = result.scalars().all()
+        # task_boards_dto = [
+        #     await self.__to_dto(task_board) for task_board in task_boards
+        # ]
+        
+        # return task_boards_dto
 
     async def __to_dto(self, taskboard: TaskBoard) -> TaskBoardDTO:
         return TaskBoardDTO(
