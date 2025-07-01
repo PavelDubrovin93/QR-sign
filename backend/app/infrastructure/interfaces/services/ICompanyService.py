@@ -34,8 +34,8 @@ class ICompanyService(ABC):
         """
 
     @abstractmethod
-    async def update_user_company_role(
-        self, uc_id: int, new_role: str
+    async def update_user_company(
+        self, uc_id: int, new_user_company: UserCompanyDTO
     ) -> Optional[UserCompanyDTO]:
         """
         обновить информацию по связи UserCompany.
