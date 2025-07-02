@@ -1,5 +1,5 @@
-from typing import Optional
-
+from typing import Optional, Union
+from datetime import datetime
 from app.validation.Entity import Entity
 
 
@@ -14,7 +14,7 @@ class TaskPointDTO(Entity):
     qrcode: bytes
     description: Optional[str]
     voice_message: Optional[bytes]
-    done_at: Optional[str] = None
+    done_at: Optional[Union[str, datetime]] = None
     issued_at: Optional[str] = None
     warning_at: Optional[str] = None
 
