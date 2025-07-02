@@ -33,6 +33,7 @@ class TaskPointRepository(ITaskPointRepository):
         query = select(TaskPoint).where(TaskPoint.taskboard_id == taskboard_id)
         result = await self.session.execute(query)
         task_points = result.scalars().all()
+        print(123123, task_points)
         task_points_dto = [
             await self.__to_dto(task_point) for task_point in task_points
         ]
@@ -191,6 +192,7 @@ class TaskPointRepository(ITaskPointRepository):
         return task_points
 
     async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
+        print(666, taskpoint.done_at)
         return TaskPointDTO(
             id=taskpoint.id,
             title=taskpoint.title,
