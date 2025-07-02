@@ -22,7 +22,7 @@ class TaskPointService(ITaskPointService):
     async def get_taskpoints_by_taskboard_id(self, taskboard_id: int) -> List[TaskPointResponse]:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
         if not taskboard:
-            raise HTTPException(status_code=404, detail="Taskboard not found")
+            raise HTTPException(status_code=404, detail="Taskboard not found") #TODO: useless
     
         taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard_id)
 

@@ -6,7 +6,7 @@ from app.services.WorkGroupService import WorkGroupService
 from app.services.TaskBoardService import TaskBoardService
 from app.services.TaskPointService import TaskPointService
 from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse, WorkGroupAndTaskboardResponse
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, TaskPointResponse
 
 from app.api.dependenices.user_dependecy import get_current_user
 from typing import List
@@ -69,7 +69,22 @@ async def get_workgroups_and_taskboards_by_company_id(
                     type=taskboard.type,
                     description=taskboard.description or "",
                     done_at=taskboard.done_at,
-                    task_points=taskpoints
+                    task_points=[TaskPointResponse(
+                            id=taskpoint.id,
+                            title=taskpoint.title,
+                            taskboard_id=taskpoint.taskboard_id,
+                            description=taskpoint.description or "",
+                            done_at=taskpoint.done_at,
+                            issued_at=taskpoint.issued_at,
+                            warning_at=taskpoint.warning_at,
+                            thumbnails=taskpoint.thumbnails,
+                            mark_icon=taskpoint.mark_icon,
+                            coordinates=taskpoint.coordinates,
+                            points=taskpoint.points,
+                            qrcode=taskpoint.qrcode,
+                            voice_message=taskpoint.voice_message
+
+                            ) for taskpoint in taskpoints]
                 )
             )
         
