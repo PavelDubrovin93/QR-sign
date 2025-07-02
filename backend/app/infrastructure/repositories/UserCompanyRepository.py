@@ -99,6 +99,18 @@ class UserCompanyRepository(IUserCompanyRepository):
 
         return usercompanies_dto
 
+    async def get_all_uc_in_company_by_workgroup_id(self, workgroup_id: int) -> List[UserCompanyDTO]:
+        query = select(UserCompany).where(UserCompany.workgroup_id == workgroup_id)
+        result = await self.session.execute(query)
+        usercompanies = result.scalars().all()
+
+        usercompanies_dto = [
+            await self.__to_dto(usercompany) if usercompany else None
+            for usercompany in usercompanies
+        ]
+
+        return usercompanies_dto
+
     async def __to_dto(self, usercompany: UserCompany) -> UserCompanyDTO:
         return UserCompanyDTO(
             id=usercompany.id,

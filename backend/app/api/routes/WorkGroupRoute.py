@@ -43,7 +43,7 @@ async def get_workgroups_by_company_id(
 async def get_workgroups_and_taskboards_by_company_id(
     company_id: int,
     session: AsyncSession = Depends(fastapi_get_db),
-    user = Depends(get_current_user)
+    # user = Depends(get_current_user)
 ) -> List[WorkGroupAndTaskboardResponse]:
     service_wg = WorkGroupService(session)
     service_tb = TaskBoardService(session)
@@ -51,31 +51,40 @@ async def get_workgroups_and_taskboards_by_company_id(
     workgroups = await service_wg.get_workgroups_by_company_id(company_id=company_id)
     
     ret_list = []
-    
+
     for workgroup in workgroups:
+        tb_list = []
         taskboards = await service_tb.get_taskboard_by_work_group_id(work_group_id=workgroup.id)
+        
         for taskboard in taskboards:
             taskpoints = await service_tp.get_taskpoints_by_taskboard_id(taskboard_id=taskboard.id)
-            ret_list.append(
-                WorkGroupAndTaskboardResponse(
-                    workgroup=workgroup,
-                    taskboards=TaskBoardResponse(
-                        id=taskboard.id,
-                        title=taskboard.title,
-                        company_id=taskboard.company_id,
-                        work_group_id=taskboard.work_group_id,
-                        image=taskboard.image,
-                        location=taskboard.location,
-                        type=taskboard.type,
-                        description=taskboard.description or "",
-                        done_at=taskboard.done_at,
-                        task_points=taskpoints,    
-                    )
+            tb_list.append(
+                TaskBoardResponse(
+                    id=taskboard.id,
+                    title=taskboard.title,
+                    company_id=taskboard.company_id,
+                    work_group_id=taskboard.work_group_id,
+                    image=taskboard.image,
+                    location=taskboard.location,
+                    type=taskboard.type,
+                    description=taskboard.description or "",
+                    done_at=taskboard.done_at,
+                    task_points=taskpoints
                 )
             )
-
+        
+        users_in_workgroup = await service_wg.get_users_by_workgroup_id(workgroup_id=workgroup.id)
+        
+        ret_list.append(
+            WorkGroupAndTaskboardResponse(
+                taskboards=tb_list,
+                users=users_in_workgroup,
+                workgroup=workgroup
+            )
+        )
     
     return ret_list
+
 
 @router.delete("/delete/{workgroup_id}")
 async def delete_workgroup(

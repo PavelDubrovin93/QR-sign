@@ -3,8 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.interfaces.services.IWorkGroupService import IWorkGroupService
 
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
-from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
+from app.validation.dtoModels.UserDTO import UserDTO
+from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse, UserAndUC
 from app.infrastructure.repositories.WorkGroupRepository import WorkGroupRepository
+from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
+from app.infrastructure.repositories.UserRepository import UserRepository
 
 from typing import List
 
@@ -39,3 +42,24 @@ class WorkGroupService(IWorkGroupService):
         )
 
         return workgroup
+
+
+    async def get_users_by_workgroup_id(self, workgroup_id: int) -> List[UserAndUC]:
+        repo_uc = UserCompanyRepository(self.session)
+        repo_users = UserRepository(self.session)
+        user_companies= await repo_uc.get_all_uc_in_company_by_workgroup_id(workgroup_id=workgroup_id)
+
+        
+        ret_list = []
+
+        for uc in user_companies:
+            user = await repo_users.get_user_by_id(uc.user_id)
+            if user is not None:
+                ret_list.append(
+                    UserAndUC(
+                        user=user,
+                        uc=uc
+                    )
+                )
+
+        return ret_list
