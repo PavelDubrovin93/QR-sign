@@ -1,5 +1,7 @@
 from typing import List, Optional
 from app.validation.Entity import Entity
+from datetime import datetime
+
 
 class CreateTaskPointResponse(Entity):
     title: str
@@ -14,7 +16,7 @@ class CreateTaskPointResponse(Entity):
 
 class TaskPointResponse(CreateTaskPointResponse):
     id: int
-    done_at: Optional[str]
+    done_at: Optional[datetime] = None
     issued_at: Optional[str]
     warning_at: Optional[str]
 
