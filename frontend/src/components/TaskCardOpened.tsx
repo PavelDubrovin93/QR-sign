@@ -158,13 +158,15 @@ function TaskCard({ editMode }: TaskCardProps) {
                 <div
                     className="fixed inset-0 z-50 bg-black flex items-center justify-center"
                 >
-                     <Button
+                    {editMode && 
+                        <Button
                         // className="absolute top-4 left-4 text-white z-50"
                         style={{position: "absolute", top: "10px", left: "10px"}}
                         onClick={savePoints}
                     >
-                        Сохранить изменения
-                    </Button>
+                            Сохранить изменения
+                        </Button>
+                    }
                     <button
                         className="absolute top-4 right-4 text-white z-50"
                         onClick={() => {

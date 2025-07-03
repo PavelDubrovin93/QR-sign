@@ -237,7 +237,7 @@ function ProfilePage() {
         </Section.Footer>
       </Section>
 
-      <Section className="pb-6">
+      <Section>
         <Section.Header
           style={
             telegramData?.colorScheme === "dark"

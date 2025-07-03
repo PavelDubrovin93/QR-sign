@@ -6,3 +6,17 @@ export interface User {
   current_role: string;
   name_for_admin: string;
 }
+
+export interface UserCompanies {
+  company_id: number | null;
+  company_name: string;
+  role: string;
+}
+
+export interface UsersInCompany {
+  id: number | null;
+  name: string;
+  photo_url: string;
+  tg_id: number | null;
+  uc_id: number | null;
+}

@@ -15,7 +15,7 @@ const tasksBoardSlice = createSlice({
   name: "tasksBoard",
   initialState,
   reducers: {
-    setIsLoading: (state, action: PayloadAction<boolean>) => {
+    setIsLoadingTasksBoard: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
     setTasksBoardByCompany: (state, action: PayloadAction<Task[]>) => {
@@ -24,6 +24,6 @@ const tasksBoardSlice = createSlice({
   },
 });
 
-export const { setIsLoading, setTasksBoardByCompany } = tasksBoardSlice.actions;
+export const { setIsLoadingTasksBoard, setTasksBoardByCompany } = tasksBoardSlice.actions;
 
 export default tasksBoardSlice.reducer;

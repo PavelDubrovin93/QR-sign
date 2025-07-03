@@ -44,7 +44,7 @@ function App() {
     const fetchData = async () => {
       try {
         const res = await getUserProfile();
-        console.log(res, 'res1')
+        // console.log(res, 'res1')
         // const amount = await getAmountTasks();
         // console.log(amount, 'amount')
         if(res.data) {
