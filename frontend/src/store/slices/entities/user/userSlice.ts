@@ -25,6 +25,9 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    setIsLoadingUserProfile: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
     setUserProfile: (state, action: PayloadAction<User>) => {
       const {
         id,
@@ -45,6 +48,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserProfile } = userSlice.actions;
+export const { setUserProfile, setIsLoadingUserProfile } = userSlice.actions;
 
 export default userSlice.reducer;

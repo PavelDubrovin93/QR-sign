@@ -1,17 +1,24 @@
-import type { Task } from "../@types/task";
+import { useSelector } from "react-redux";
 import TaskCard from "../components/TaskCard";
+import type { RootState } from "../store/rootReducer";
 
-interface AdminTasksProps {
-  data: Task[];
-  loading: boolean;
-}
+const AdminTasks = () => {
+  const { data: dataTasks, isLoading: isLoadingTasks } = useSelector(
+    (state: RootState) => state.entities.tasksBoard
+  );
 
-const AdminTasks = ({ data, loading }: AdminTasksProps) => {
-    console.log(loading, 'loading')
+  //   if (isLoadingTasks) {
+  //     return (
+  //       <div className="flex items-center justify-center min-h-screen">
+  //         <Loading size={24} color={"#2a90ff"} />
+  //       </div>
+  //     );
+  //   }
   return (
     <>
-      <TaskCard path={"/admin-taskboard/${task.id}"} />
-      <TaskCard path={"/admin-taskboard/${task.id}"} />
+      {dataTasks?.map((task) => {
+        return <TaskCard data={task} path={`/admin-taskboard/${task.id}`} />;
+      })}
     </>
   );
 };

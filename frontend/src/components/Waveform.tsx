@@ -12,7 +12,6 @@ const Waveform = ({ audioUrl }: WaveFormProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [duration, setDuration] = useState<string>("0:00");
   const waveformRef = useRef(null);
-  console.log(isLoading, "isLoading");
   const buttonBgColor = "none";
   const iconAndBorderColor = "#418be1";
   const waveColor = "#606a74";

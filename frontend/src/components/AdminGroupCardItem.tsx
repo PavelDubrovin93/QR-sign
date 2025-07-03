@@ -39,7 +39,6 @@ const AdminGroupCardItem = ({
   users,
   taskboards,
 }: AdminGroupCardItemProps) => {
-  console.log(users, "users");
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] =
@@ -148,7 +147,6 @@ const AdminGroupCardItem = ({
           <>
             {taskboards.map((task: any) => {
               const { task_points } = task;
-              console.log(task_points, "task_points");
               return (
                 <div key={task.id}>
                   <div className="mt-3 text-sm">
@@ -160,7 +158,6 @@ const AdminGroupCardItem = ({
                     </div>
                     <div className="list-disc list-inside">
                       {task_points?.map((task: any) => {
-                        console.log(task, "task");
                         return (
                           <div
                             key={task.id}

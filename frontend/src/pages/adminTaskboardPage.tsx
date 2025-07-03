@@ -35,9 +35,6 @@ const adminTaskboardPage = () => {
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
   );
-  const { data: dataTasks, isLoading: isLoadingTasks } = useSelector(
-    (state: RootState) => state.entities.tasksBoard
-  );
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -159,7 +156,7 @@ const adminTaskboardPage = () => {
           )}
         </div>
       </Section>
-      <AdminTasks data={dataTasks} loading={isLoadingTasks} />
+      <AdminTasks /* data={dataTasks} loading={isLoadingTasks}  *//>
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
