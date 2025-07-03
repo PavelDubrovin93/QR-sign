@@ -46,7 +46,7 @@ async def get_task_boards_by_company_id(
 ) -> List[TaskBoardResponse]:
     
     service = TaskBoardService(session)
-    task_boards = await service.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_tg_id=user.id)
+    task_boards = await service.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user.id)
     
     return task_boards
 

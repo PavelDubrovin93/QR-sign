@@ -40,7 +40,7 @@ class ITaskBoardService(ABC):
         pass
 
     @abstractmethod
-    async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> list[TaskBoardResponse]:
+    async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_tg_id: int) -> list[TaskBoardResponse]:
         """
         Получить список таскбордов по идентификатору компании, в которых учавствует пользователь.
         :param company_id: ID компании

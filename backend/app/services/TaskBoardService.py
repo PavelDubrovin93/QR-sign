@@ -82,9 +82,40 @@ class TaskBoardService(ITaskBoardService):
             task_points=new_task_points
         )
     
-    async def get_task_boards_by_company_id_and_user_tg_id(self, company_id: int, user_tg_id: int) -> List[TaskBoardResponse]:
-        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_tg_id(company_id=company_id, user_id=user_tg_id)
-        return taskboards
+    async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
+        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
+        taskboards_to_response = []
+        for taskboard in taskboards:
+            taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard.id)
+            taskpoints_to_response = []
+            for taskpoint in taskpoints:
+                taskpoints_to_response.append(TaskPointResponse(
+                id=taskpoint.id,
+                title=taskpoint.title,
+                taskboard_id=taskpoint.taskboard_id,
+                thumbnails=taskpoint.thumbnails,
+                mark_icon=taskpoint.mark_icon,
+                coordinates=taskpoint.coordinates,
+                points=taskpoint.points,
+                qrcode=taskpoint.qrcode,
+                description=taskpoint.description,
+                voice_message=taskpoint.voice_message,
+                done_at=taskpoint.done_at,
+                issued_at=taskpoint.issued_at,
+                warning_at=taskpoint.warning_at
+            ))
+            taskboards_to_response.append(TaskBoardResponse(
+            id=taskboard.id,
+            title=taskboard.title,
+            company_id=taskboard.company_id,
+            work_group_id=taskboard.work_group_id,
+            image=taskboard.image,
+            location=taskboard.location,
+            type=taskboard.type,
+            description=taskboard.description or "",
+            task_points=taskpoints_to_response
+            ))
+        return taskboards_to_response
     
     async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:
         new_taskboard = await self.tb_repo.add_task_board(
