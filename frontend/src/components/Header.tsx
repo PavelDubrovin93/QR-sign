@@ -5,6 +5,10 @@ import { SegmentedControl } from "@telegram-apps/telegram-ui";
 import { Badge, IconButton } from "@telegram-apps/telegram-ui";
 
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
+import { getAmountTasks } from "../api/task/amount-new-tasks";
+import type { RootState } from "../store/rootReducer";
+import { useSelector } from "react-redux";
+import { Roles } from "../@types/role";
 
 type NavItem = {
   id: number;
@@ -15,19 +19,20 @@ type NavItem = {
 
 type HeaderProps = {
   nav: NavItem[];
-  count?: number;
 };
 
-function Header({ nav, count }: HeaderProps) {
+function Header({ nav }: HeaderProps) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [amount, setAmount] = useState<number | null>(null);
+  const { current_role } = useSelector(
+    (state: RootState) => state.entities.user
+  );
 
   const telegramData = getTelegramData();
 
   useEffect(() => {
-    const currentItem = nav.find(
-      (item) => location.pathname === item.path_tab
-    );
+    const currentItem = nav.find((item) => location.pathname === item.path_tab);
     if (currentItem) {
       setSelectedId(currentItem.id);
     } else {
@@ -50,6 +55,23 @@ function Header({ nav, count }: HeaderProps) {
     };
   };
 
+  useEffect(() => {
+    if (current_role === Roles.EMPLOYER) {
+      const fetchData = async () => {
+        try {
+          const res = await getAmountTasks();
+          if (res.data) {
+            setAmount(res.data.count);
+          }
+        } catch (e: any) {
+          console.error(e);
+        }
+      };
+
+      fetchData();
+    }
+  }, []);
+
   return (
     <>
       <SegmentedControl
@@ -67,9 +89,9 @@ function Header({ nav, count }: HeaderProps) {
             style={getItemStyle(selectedId === item.id)}
           >
             {item.text}
-            {count !== undefined && item.badge && (
+            {amount && item.badge && (
               <Badge mode="primary" type="number">
-                {count}
+                {amount}
               </Badge>
             )}
           </SegmentedControl.Item>

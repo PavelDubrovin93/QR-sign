@@ -15,7 +15,7 @@ type GeoCoordinates = [number, number];
 
 type ImagePointCoordinates = [number, number];
 
-interface TaskPoint {
+export interface TaskPoint {
   id: number;
   title: string;
   taskboard_id: number;
@@ -43,4 +43,8 @@ export interface TaskBoard {
   description: string;
   done_at: string;
   task_points: TaskPoint[];
+}
+
+export interface AmountTasks {
+  count: number;
 }

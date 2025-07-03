@@ -21,7 +21,6 @@ function HomePage() {
   const dataCompanies: UserCompanies[] = useSelector(
     (state: any) => state.entities.user_companies.data
   );
-  console.log(dataCompanies, "dataCompanies");
 
   const tasksRedux: Task[] = useSelector(
     (state: any) => state.entities.tasksBoard.data

@@ -19,26 +19,38 @@ import TaskboardPage from "./pages/taskboardPage.tsx";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useEffect } from "react";
 import { getUserProfile } from "./api/user/get-userProfile.ts";
-import { setUserProfile } from "./store/slices/entities/user/userSlice.ts";
-import { useDispatch } from "react-redux";
+import {
+  setIsLoadingUserProfile,
+  setUserProfile,
+} from "./store/slices/entities/user/userSlice.ts";
+import { useDispatch, useSelector } from "react-redux";
 import { sessionToken } from "./utils/cookie.ts";
 import { getAmountTasks } from "./api/task/amount-new-tasks.ts";
+import type { RootState } from "./store/rootReducer.ts";
+import Loading from "./components/Loading.tsx";
+import { Roles } from "./@types/role.ts";
+import NotApprovedLayout from "./components/layouts/NotApprovedLayout.tsx";
+import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 
 function App() {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const webapp = window.Telegram?.WebApp;
+  const telegramData = getTelegramData();
+
+  const isLoadingProfileUser = useSelector(
+    (state: RootState) => state.entities.user.isLoading
+  );
 
   if (webapp) {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 868007436
+  const token_mock = 868007436;
 
   useEffect(() => {
-
-    sessionToken.set(token_mock.toString())
+    sessionToken.set(token_mock.toString());
     // if(webapp?.initDataUnsafe?.user?.id) {
-      // sessionToken.set(webapp?.initDataUnsafe?.user?.id.toString());
+    // sessionToken.set(webapp?.initDataUnsafe?.user?.id.toString());
     // }
 
     const fetchData = async () => {
@@ -47,12 +59,13 @@ function App() {
         // console.log(res, 'res1')
         // const amount = await getAmountTasks();
         // console.log(amount, 'amount')
-        if(res.data) {
-          console.log("enter")
+        if (res.data) {
           dispatch(setUserProfile(res.data));
         }
       } catch (e: any) {
         console.error(e);
+      } finally {
+        setIsLoadingUserProfile(false);
       }
     };
 
@@ -62,9 +75,17 @@ function App() {
   //hard code, надо будет потом заменить и сделать enum
   const role: string = "admin";
 
+  if (isLoadingProfileUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loading size={36} color={"#2a90ff"} />
+      </div>
+    );
+  }
+
   const renderLayout = () => {
     switch (role) {
-      case "admin":
+      case Roles.ADMIN:
         return (
           <AdminLayout>
             {/* <RegistrationSteps /> */}
@@ -78,12 +99,12 @@ function App() {
             </Routes>
           </AdminLayout>
         );
-      case "user":
+      case Roles.EMPLOYER:
         return (
           <UserLayout>
             {/* <RegistrationSteps /> */}
             <div className="p-4">
-              <Header nav={headerNavigationConfig.user} count={50} />
+              <Header nav={headerNavigationConfig.user} />
             </div>
             <Routes>
               <Route index path="/" element={<MainPage />} />
@@ -92,6 +113,19 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </UserLayout>
+        );
+      case Roles.NOT_APPROVED:
+        return (
+          <NotApprovedLayout>
+            <p
+              style={{
+                color: telegramData?.themeParams.text_color,
+              }}
+              className="text-sm"
+            >
+              Здесь должна быть форма для неподтвержденного юзера
+            </p>
+          </NotApprovedLayout>
         );
       default:
         null;

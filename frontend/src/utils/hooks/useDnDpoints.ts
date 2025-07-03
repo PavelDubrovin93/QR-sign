@@ -10,7 +10,6 @@ interface RenderedImageRect {
 
 interface UseDragAndDropProps {
   editMode: boolean;
-  taskPoints: TaskPoint[];
   setTaskPoints: React.Dispatch<React.SetStateAction<TaskPoint[]>>;
   activePoint: TaskPoint | null;
   setActivePoint: React.Dispatch<React.SetStateAction<TaskPoint | null>>;
@@ -19,7 +18,6 @@ interface UseDragAndDropProps {
 
 const useDnDpoints = ({
   editMode,
-  taskPoints,
   setTaskPoints,
   activePoint,
   setActivePoint,
