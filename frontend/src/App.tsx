@@ -32,7 +32,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 567890
+  const token_mock = 868007436
 
   useEffect(() => {
 

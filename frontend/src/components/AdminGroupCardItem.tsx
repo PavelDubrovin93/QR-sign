@@ -13,18 +13,12 @@ import { IoEyeOffSharp, IoEyeOutline } from "react-icons/io5";
 import { PiExclamationMarkFill } from "react-icons/pi";
 import { MdOutlineModeEdit } from "react-icons/md";
 import doneTasks from "../utils/doneTasks";
+import type { UsersInCompany } from "../@types/user";
 
 interface WorkGroup {
   id: number;
   title: string;
   description: string;
-}
-
-interface UserDisplayData {
-  id: number;
-  name: string;
-  photo_url?: string;
-  tg_id?: number | null;
 }
 
 interface TasksGroup {
@@ -36,7 +30,7 @@ interface TasksGroup {
 
 interface AdminGroupCardItemProps {
   workgroup: WorkGroup;
-  users: UserDisplayData[];
+  users: { user: UsersInCompany; uc: any }[];
   taskboards: any[];
 }
 
@@ -45,11 +39,11 @@ const AdminGroupCardItem = ({
   users,
   taskboards,
 }: AdminGroupCardItemProps) => {
-  console.log(taskboards, "taskboards"); 
+  console.log(users, "users");
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] =
-    useState<UserDisplayData | null>(null);
+    useState<UsersInCompany | null>(null);
   const [editedUserName, setEditedUserName] = useState("");
   const [editedUserNameError, setEditedUserNameError] = useState(false);
 
@@ -84,7 +78,7 @@ const AdminGroupCardItem = ({
     );
   };
 
-  const handleEditClick = (user: UserDisplayData) => {
+  const handleEditClick = (user: UsersInCompany) => {
     setCurrentUserToEdit(user);
     setEditedUserName(user.name);
     setEditedUserNameError(false);
@@ -121,9 +115,9 @@ const AdminGroupCardItem = ({
       <div className="flex flex-col justify-between h-full p-3">
         <div className="flex flex-col items-start gap-2">
           <div className="rounded-md overflow-hidden relative">
-            <p className="text-base font-semibold pb-2">{workgroup.title}</p>
+            <p className="text-base font-semibold pb-2">{workgroup?.title}</p>
             <span className="text-sm">
-              <p>{workgroup.description}</p>
+              <p>{workgroup?.description}</p>
             </span>
             <div className="mt-4">
               <span className="text-sm flex items-center mt-1">
@@ -233,36 +227,40 @@ const AdminGroupCardItem = ({
                   </p>
 
                   <div>
-                    {users && users.length > 0 ? (
-                      users.map((user) => (
-                        <Cell
-                          key={user.id || user.tg_id}
-                          className="flex items-center justify-between mb-1"
-                          onClick={() => handleEditClick(user)}
-                        >
-                          <div className="flex items-center">
-                            <span className="w-5 h-5 rounded-full mr-2 overflow-hidden flex items-center justify-center bg-gray-300">
-                              {user.photo_url ? (
-                                <img
-                                  src={user.photo_url}
-                                  alt="avatar"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <p className="text-white text-xs">
-                                  {user.name.charAt(0).toUpperCase()}
-                                </p>
-                              )}
-                            </span>
+                    {users && users?.length > 0 ? (
+                      users?.map((userData) => {
+                        const { user } = userData;
 
-                            <p>{user.name}</p>
-                          </div>
+                        return (
+                          <div
+                            key={user.id || user.tg_id}
+                            className="flex items-center justify-between mb-1"
+                            onClick={() => handleEditClick(user)}
+                          >
+                            <div className="flex items-center">
+                              <span className="w-5 h-5 rounded-full mr-2 overflow-hidden flex items-center justify-center bg-gray-300">
+                                {user.photo_url ? (
+                                  <img
+                                    src={user.photo_url}
+                                    alt="avatar"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <p className="text-white text-xs">
+                                    {user?.name?.charAt(0).toUpperCase()}
+                                  </p>
+                                )}
+                              </span>
 
-                          <div>
-                            <MdOutlineModeEdit size={20} />
+                              <p>{user.name}</p>
+                            </div>
+
+                            <div>
+                              <MdOutlineModeEdit size={20} />
+                            </div>
                           </div>
-                        </Cell>
-                      ))
+                        );
+                      })
                     ) : (
                       <p>Нет участников</p>
                     )}

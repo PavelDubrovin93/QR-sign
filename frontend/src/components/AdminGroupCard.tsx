@@ -37,7 +37,7 @@ const AdminGroupCard = ({ data, loading }: any) => {
     <div className="p-4">
       {data.map((cardData: any) => (
         <AdminGroupCardItem
-          key={cardData.workgroup.id}
+          key={cardData.workgroup?.id}
           workgroup={cardData.workgroup}
           users={cardData.users}
           taskboards={cardData.taskboards}
