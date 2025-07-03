@@ -6,33 +6,78 @@ import TaskCard from "../components/TaskCard";
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import { useDispatch, useSelector } from "react-redux";
-// import type { Task } from "../@types/task";
+import { getCompaniesByClient } from "../api/company/get-companies-byClient";
+import { setUserCompanies } from "../store/slices/entities/user_companies/user_companiesSlice";
+import type { Task } from "../@types/task";
+import Loading from "../components/Loading";
+import type { UserCompanies } from "../@types/user";
 
 function HomePage() {
   const dispatch = useDispatch();
-  const [company, setCompany] = useState("");
-  const [selectComponentColor, setSelectComponentColor] = useState("");
+  const [selectedValue, setSelectedValue] = useState<string | number>("");
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState<boolean>(true);
+  const [isLoadingTasks, setIsLoadingTasks] = useState<boolean>(false);
 
-  const tasksRedux = useSelector(
+  const dataCompanies: UserCompanies[] = useSelector(
+    (state: any) => state.entities.user_companies.data
+  );
+  console.log(dataCompanies, "dataCompanies");
+
+  const tasksRedux: Task[] = useSelector(
     (state: any) => state.entities.tasksBoard.data
   );
 
   const telegramData = getTelegramData();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCompanies = async () => {
+      setIsLoadingCompanies(true);
       try {
-        const res = await getTasksByCompany("1");
+        const res = await getCompaniesByClient();
         if (res.data) {
-          dispatch(setTasksBoardByCompany(res.data));
+          dispatch(setUserCompanies(res.data));
+          if (res.data.length > 0) {
+            setSelectedValue(res.data[0].company_id || "");
+          }
         }
       } catch (e: any) {
-        console.log(e);
+        console.error("Ошибка загрузки компаний:", e);
+      } finally {
+        setIsLoadingCompanies(false);
       }
     };
 
-    fetchData();
+    fetchCompanies();
   }, []);
+
+  useEffect(() => {
+    if (
+      selectedValue !== "" &&
+      selectedValue !== null &&
+      selectedValue !== undefined
+    ) {
+      const fetchTasks = async () => {
+        setIsLoadingTasks(true);
+        try {
+          const res = await getTasksByCompany(String(selectedValue));
+          if (res.data) {
+            dispatch(setTasksBoardByCompany(res.data));
+          }
+        } catch (e: any) {
+          console.error("Ошибка загрузки задач:", e);
+        } finally {
+          setIsLoadingTasks(false);
+        }
+      };
+
+      fetchTasks();
+    }
+  }, [selectedValue]);
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedValue(event.target.value);
+    console.log("Selected company ID:", event.target.value);
+  };
 
   return (
     <>
@@ -46,27 +91,97 @@ function HomePage() {
         >
           Организация
         </Section.Header>
-        <Select
-          status="focused"
-          style={{ border: "none", color: "var(--tgui--text_color)" }}
-        >
-          <option>Компания А</option>
-          <option>Компания Б</option>
-        </Select>
+        <div style={{ height: "84px" }}>
+          {isLoadingCompanies ? (
+            <div
+              style={{
+                padding: "10px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              <Loading size={30} color={"#2a90ff"} />
+              <span
+                style={{ marginLeft: "10px", color: "var(--tgui--text_color)" }}
+              >
+                Загрузка компаний...
+              </span>
+            </div>
+          ) : (
+            <Select
+              status="focused"
+              value={selectedValue}
+              onChange={handleSelectChange}
+              disabled={dataCompanies?.length === 0}
+            >
+              {dataCompanies?.map((company: UserCompanies) => (
+                <option
+                  key={company.company_id}
+                  value={company.company_id || ""}
+                >
+                  {company.company_name}
+                </option>
+              ))}
+              {dataCompanies?.length === 0 && (
+                <option disabled>Нет доступных компаний</option>
+              )}
+            </Select>
+          )}
+        </div>
       </Section>
 
-      {/* {tasksRedux.lenght > 0 ? (
-        tasksRedux?.map((elm: Task) => {
-          return <TaskCard key={elm.id} path={`/taskboard/${elm.id}`} />;
-        })
-      ) : (
-        <p className="text-sm" color={telegramData?.themeParams.text_color}>
-          "Нет задач"
-        </p>
-      )} */}
+      <Section>
+        <Section.Header
+          style={
+            telegramData?.colorScheme === "dark"
+              ? { backgroundColor: "var(--tgui--bg_color)" }
+              : {}
+          }
+        >
+          Задачи
+        </Section.Header>
 
-      <TaskCard path={`/taskboard/${1}`} />
-      <TaskCard path={"/taskboard/${task.id}"} />
+        {isLoadingTasks ? (
+          <div
+            style={{
+              padding: "10px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <Loading size={30} color={"#2a90ff"} />
+            <span
+              style={{ marginLeft: "10px", color: "var(--tgui--text_color)" }}
+            >
+              Загрузка задач...
+            </span>
+          </div>
+        ) : (
+          <>
+            {tasksRedux.length > 0 ? (
+              tasksRedux?.map((elm: Task) => {
+                return <TaskCard key={elm.id} path={`/taskboard/${elm.id}`} />;
+              })
+            ) : (
+              <div className="flex justify-center items-center">
+                <p
+                  className="text-sm flex items-center justify-center"
+                  style={{
+                    color: telegramData?.themeParams?.text_color || "gray",
+                    height: "50px",
+                  }}
+                >
+                  Нет задач
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </Section>
     </>
   );
 }

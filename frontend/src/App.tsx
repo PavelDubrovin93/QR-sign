@@ -32,7 +32,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 868007436
+  const token_mock = 567890
 
   useEffect(() => {
 
@@ -44,7 +44,7 @@ function App() {
     const fetchData = async () => {
       try {
         const res = await getUserProfile();
-        console.log(res, 'res1')
+        // console.log(res, 'res1')
         // const amount = await getAmountTasks();
         // console.log(amount, 'amount')
         if(res.data) {

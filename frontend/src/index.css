@@ -167,3 +167,32 @@ button:focus-visible {
   border-top-left-radius: 15px;
   border-top-right-radius: 15px;
 }
+
+.loading-spinner {
+  display: inline-block; /* Или block, в зависимости от контекста */
+  border-radius: 50%;
+  animation: spin 1s linear infinite; /* Анимация вращения */
+}
+
+/* Анимация вращения */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для скрытого текста (только для скринридеров) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

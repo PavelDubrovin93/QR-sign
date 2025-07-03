@@ -1,15 +1,89 @@
-import { Button, Cell, Input, Modal } from "@telegram-apps/telegram-ui";
-import TaskCard from "../components/TaskCard";
+import {
+  Button,
+  Input,
+  Modal,
+  Section,
+  Select,
+} from "@telegram-apps/telegram-ui";
 import { SlArrowDown } from "react-icons/sl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
+import type { UserCompanies } from "../@types/user";
+import Loading from "../components/Loading";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../store/rootReducer";
+import { getCompaniesByClient } from "../api/company/get-companies-byClient";
+import {
+  setIsLoadingCompanies,
+  setUserCompanies,
+} from "../store/slices/entities/user_companies/user_companiesSlice";
+import { getTasksByCompany } from "../api/task/get-tasksByCompany";
+import {
+  setIsLoadingTasksBoard,
+  setTasksBoardByCompany,
+} from "../store/slices/entities/tasksBoard/tasksBoardSlice";
+import AdminTasks from "../components/AdminTasks";
 
 const adminTaskboardPage = () => {
+  const dispatch = useDispatch();
   const telegramData = getTelegramData();
 
+  const [selectedValue, setSelectedValue] = useState<string | number>("");
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
+    (state: RootState) => state.entities.user_companies
+  );
+  const { data: dataTasks, isLoading: isLoadingTasks } = useSelector(
+    (state: RootState) => state.entities.tasksBoard
+  );
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      dispatch(setIsLoadingCompanies(true));
+      try {
+        const res = await getCompaniesByClient();
+        if (res.data) {
+          dispatch(setUserCompanies(res.data));
+          if (res.data.length > 0) {
+            setSelectedValue(res.data[0].company_id || "");
+            // setModalSelectedCompanyId(res.data[0].company_id || "");
+          }
+        }
+      } catch (e: any) {
+        console.error("Ошибка загрузки компаний:", e);
+      } finally {
+        dispatch(setIsLoadingCompanies(false));
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  useEffect(() => {
+    if (
+      selectedValue !== "" &&
+      selectedValue !== null &&
+      selectedValue !== undefined
+    ) {
+      const fetchTasks = async () => {
+        dispatch(setIsLoadingTasksBoard(true));
+        try {
+          const res = await getTasksByCompany(String(selectedValue));
+          if (res.data) {
+            dispatch(setTasksBoardByCompany(res.data));
+          }
+        } catch (e: any) {
+          console.error("Ошибка загрузки задач:", e);
+        } finally {
+          dispatch(setIsLoadingTasksBoard(false));
+        }
+      };
+
+      fetchTasks();
+    }
+  }, [selectedValue]);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -28,17 +102,64 @@ const adminTaskboardPage = () => {
     handleCloseModal();
   };
 
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedValue(event.target.value);
+  };
+
   return (
     <>
       <div className="flex w-full justify-center px-5">
-        <Button className="w-full" onClick={handleOpenModal}>
+        <Button className="mb-4 w-full" onClick={handleOpenModal}>
           Добавить задачу
         </Button>
       </div>
-      {/* hard code */}
-      <TaskCard path={"/admin-taskboard/${task.id}"} />
-      <TaskCard path={"/admin-taskboard/${task.id}"} />
-
+      <Section>
+        <Section.Header
+          style={
+            telegramData?.colorScheme === "dark"
+              ? { backgroundColor: "var(--tgui--bg_color)" }
+              : {}
+          }
+        >
+          Компания
+        </Section.Header>
+        <div style={{ height: "84px" }}>
+          {isLoadingCompanies ? (
+            <div
+              className="flex justify-center items-center h-full"
+              style={{ padding: "10px" }}
+            >
+              <Loading size={30} color={"#2a90ff"} />
+              <span
+                style={{ marginLeft: "10px", color: "var(--tgui--text_color)" }}
+              >
+                Загрузка компаний...
+              </span>
+            </div>
+          ) : (
+            <Select
+              status="focused"
+              value={selectedValue}
+              onChange={handleSelectChange}
+              disabled={dataCompanies?.length === 0}
+              style={{ width: "100%" }}
+            >
+              {dataCompanies?.map((company: UserCompanies) => (
+                <option
+                  key={company.company_id}
+                  value={company.company_id || ""}
+                >
+                  {company.company_name}
+                </option>
+              ))}
+              {dataCompanies?.length === 0 && (
+                <option disabled>Нет доступных компаний</option>
+              )}
+            </Select>
+          )}
+        </div>
+      </Section>
+      <AdminTasks data={dataTasks} loading={isLoadingTasks} />
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
