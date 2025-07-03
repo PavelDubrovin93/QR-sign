@@ -27,6 +27,24 @@ class TaskBoardService(ITaskBoardService):
         if taskboard is None:
             raise HTTPException(status_code=404, detail="Task Board not found")
 
+        taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard_id)
+        taskpoints_to_response = []
+        for taskpoint in taskpoints:
+            taskpoints_to_response.append(TaskPointResponse(
+            id=taskpoint.id,
+            title=taskpoint.title,
+            taskboard_id=taskpoint.taskboard_id,
+            thumbnails=taskpoint.thumbnails,
+            mark_icon=taskpoint.mark_icon,
+            coordinates=taskpoint.coordinates,
+            points=taskpoint.points,
+            qrcode=taskpoint.qrcode,
+            description=taskpoint.description,
+            voice_message=taskpoint.voice_message,
+            done_at=taskpoint.done_at,
+            issued_at=taskpoint.issued_at,
+            warning_at=taskpoint.warning_at
+        ))
         taskboard_response = TaskBoardResponse(
             id=taskboard.id,
             title=taskboard.title,
@@ -37,11 +55,10 @@ class TaskBoardService(ITaskBoardService):
             type=taskboard.type,
             description=taskboard.description or "",
             done_at=taskboard.done_at,
+            task_points=taskpoints_to_response
         )
 
-        task_points = self.tp_repo.get_task_point_by_taskboard_id(taskboard_id)
-        taskboard_response.task_points = task_points
-        return taskboard
+        return taskboard_response
 
     async def delete_task_board_and_task_points_by_tb_id(self, taskboard_id: int) -> TaskBoardResponse:
         task_points = await self.tp_repo.delete_task_point_by_taskboard_id(taskboard_id)
