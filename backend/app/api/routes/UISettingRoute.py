@@ -10,11 +10,11 @@ from app.validation.responses.UISettingResponse import UISettingResponse
 router = APIRouter()
 
 
-@router.get("/get_settings", response_model=UISettingsDTO)
+@router.get("/get_settings", response_model=UISettingResponse)
 async def get_user_settings(
     current_user=Depends(get_current_user),
     session: AsyncSession = Depends(fastapi_get_db),
-) -> UISettingsDTO:
+) -> UISettingResponse:
     service = UISettingsService(session)
     settings = await service.get_user_settings(current_user)
     
