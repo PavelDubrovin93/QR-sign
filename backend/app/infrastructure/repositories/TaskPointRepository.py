@@ -30,10 +30,13 @@ class TaskPointRepository(ITaskPointRepository):
     async def get_task_point_by_taskboard_id(
         self, taskboard_id: int
     ) -> List[TaskPointDTO]:
-        query = select(TaskPoint).where(TaskPoint.taskboard_id == taskboard_id)
+        query = (
+            select(TaskPoint)
+            .where(TaskPoint.taskboard_id == taskboard_id)
+            .order_by(TaskPoint.created_at)
+        )
         result = await self.session.execute(query)
         task_points = result.scalars().all()
-        print(123123, task_points)
         task_points_dto = [
             await self.__to_dto(task_point) for task_point in task_points
         ]
