@@ -156,7 +156,7 @@ const adminTaskboardPage = () => {
           )}
         </div>
       </Section>
-      <AdminTasks /* data={dataTasks} loading={isLoadingTasks}  *//>
+      <AdminTasks />
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

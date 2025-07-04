@@ -27,14 +27,6 @@ const AudioMessageComposer = () => {
 
   return (
     <div className="p-2 bg-gray-900 rounded-lg shadow-lg flex flex-col items-start">
-      {/* <h2 className="text-xl font-bold text-white mb-4">Голосовое сообщение</h2> */}
-      {/* <button
-        onClick={() => setEditMode(!editMode)}
-        className="text-blue-400 hover:text-blue-300 mb-4"
-      >
-        <FaEdit size={20} /> {editMode ? 'К плееру' : 'К рекордеру'}
-      </button> */}
-
       {isEditAudio ? (
         <div className="w-full">
           <AudioRecorder

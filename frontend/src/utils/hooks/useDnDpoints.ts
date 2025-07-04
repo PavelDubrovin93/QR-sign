@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import type { TaskPoint } from "../../components/TaskCardOpened";
+import type { TaskPoint } from "../../@types/task";
 
 interface RenderedImageRect {
   width: number;
