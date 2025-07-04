@@ -31,6 +31,7 @@ import Loading from "./components/Loading.tsx";
 import { Roles } from "./@types/role.ts";
 import NotApprovedLayout from "./components/layouts/NotApprovedLayout.tsx";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
+import AdminCreateTask from "./components/AdminCreateTask.tsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -93,6 +94,7 @@ function App() {
               <Route index path="/" element={<AdminPage />} />
               <Route path="/admin-taskboard" element={<AdminTaskboardPage />} />
               <Route path="/admin-taskboard/:id" element={<TaskCard editMode={true} />} />
+              {/* <Route path="/admin-taskboard/create-task" element={<AdminCreateTask />} /> */}
             </Routes>
           </AdminLayout>
         );

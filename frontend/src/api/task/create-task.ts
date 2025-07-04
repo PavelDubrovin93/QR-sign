@@ -1,6 +1,10 @@
 import { post } from "..";
+import type { CreateTaskPayload, Task } from "../../@types/task";
 import { config } from "../../configs/app.config";
-import { type TaskRequest } from "../types";
+import { apiPrefix } from "../constants";
 
-export const createTask = (data: TaskRequest) =>
-  post<void, TaskRequest>(`${config.BACKEND_URL}/api/task/create`, data);
+export const createTask = (data: CreateTaskPayload) =>
+  post<Task, CreateTaskPayload>(
+    `${config.BACKEND_URL}/${apiPrefix.api}/taskboard`,
+    data
+  );

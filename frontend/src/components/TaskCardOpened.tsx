@@ -36,31 +36,31 @@ function TaskCard({ editMode }: TaskCardProps) {
     top: 0,
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        try {
-          const res = await getTaskById(id);
-          if (res.data) {
-            const mappedTaskPoints: TaskPoint[] = res.data.task_points.map(
-              (point: any) => ({
-                ...point,
-                completed: !!point.done_at,
-                x: point.coordinates[0],
-                y: point.coordinates[1],
-              })
-            );
-            setTask({ ...res.data, task_points: mappedTaskPoints });
-            setTaskPoints(mappedTaskPoints);
-          }
-        } catch (e: any) {
-          console.error("Ошибка при получении данных задачи:", e);
-        }
-      }
-    };
+  const fetchAndSetTaskData = useCallback(async () => {
+    if (!id) return;
 
-    fetchData();
+    try {
+      const res = await getTaskById(id);
+      if (res.data) {
+        const mappedTaskPoints: TaskPoint[] = res.data.task_points.map(
+          (point: any) => ({
+            ...point,
+            completed: !!point.done_at,
+            x: point.coordinates[0],
+            y: point.coordinates[1],
+          })
+        );
+        setTask({ ...res.data, task_points: mappedTaskPoints });
+        setTaskPoints(mappedTaskPoints);
+      }
+    } catch (e: any) {
+      console.error("Ошибка при получении данных задачи:", e);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchAndSetTaskData();
+  }, []);
 
   const { isDragging, draggedPointId, handleDragStart, handleDragEnd } =
     useDnDpoints({
@@ -158,6 +158,7 @@ function TaskCard({ editMode }: TaskCardProps) {
         coordinates: [newXPercent, newYPercent],
         qrcode: "",
         description: "",
+        points: [],
         voice_message: null,
         done_at: null,
         issued_at: null,
@@ -184,12 +185,13 @@ function TaskCard({ editMode }: TaskCardProps) {
       mark_icon: p.mark_icon,
       coordinates: [p.x, p.y],
       qrcode: p.qrcode,
+      points: [],
       description: p.description,
       voice_message: p.voice_message,
       done_at: p.completed ? p.done_at || new Date().toISOString() : null,
       issued_at: p.issued_at,
       warning_at: p.warning_at,
-    })) as TaskPoint[];
+    })) as unknown as TaskPoint[];
 
     const taskDataToSend: Task = {
       ...task,
@@ -204,7 +206,7 @@ function TaskCard({ editMode }: TaskCardProps) {
       if (res.status === 200 || res.status === 201) {
         alert("Изменения успешно сохранены!");
         setIsFullScreen(false);
-        // fetchData();
+        await fetchAndSetTaskData();
       } else {
         alert("Ошибка при сохранении изменений.");
         console.error("API response error:", res);

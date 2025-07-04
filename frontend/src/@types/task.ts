@@ -21,6 +21,7 @@ export interface TaskPoint {
   mark_icon: string;
   coordinates: GeoCoordinates;
   qrcode: string;
+  points: any[];
   description: string;
   voice_message: string | null;
   done_at: string | null;
@@ -46,4 +47,19 @@ export interface TaskBoard {
 
 export interface AmountTasks {
   count: number;
+}
+
+export interface CreateTaskPayload {
+  title: string;
+  company_id: number;
+  work_group_id: number;
+  image: string;
+  location: GeoCoordinates;
+  type: string;
+  description: string;
+  task_points: Array<{
+    qrcode: string;
+    description: string;
+    voice_message: string | null;
+  }>;
 }
