@@ -9,4 +9,4 @@ class UserCompanyDTO(Entity):
     user_id: int
     company_id: Optional[int] = None
     workgroup_id: Optional[int] = None
-    role: Optional[RoleType] = RoleType.PENDING
+    role: Optional[RoleType] = None

@@ -9,6 +9,7 @@ from app.infrastructure.repositories.WorkGroupRepository import WorkGroupReposit
 from app.validation.dtoModels.UISettingsDTO import UISettingsDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
+from app.models.dbEnums.RoleType import RoleType
 
 
 class UserService(IUserService):
@@ -63,6 +64,7 @@ class UserService(IUserService):
                 user_id=new_user.id,
                 company_id=company_id,
                 workgroup_id=None,
+                role=RoleType.PENDING
             )
         )
 

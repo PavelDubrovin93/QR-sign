@@ -56,13 +56,15 @@ class CompanyService(ICompanyService):
     async def update_user_company(
         self, uc_id: int, new_user_company: UserCompanyDTO
     ) -> Optional[UserCompanyDTO]:
-        uc = await self.uc_repo.get_user_company_by_company_id(uc_id)
+        uc = await self.uc_repo.get_user_company_by_id(uc_id)
+        role = new_user_company.role if new_user_company.role is not None else uc.role
+        workgroup_id = new_user_company.workgroup_id if new_user_company.workgroup_id is not None else uc.workgroup_id
         updated_uc_dto = UserCompanyDTO(
-            id=new_user_company.id,
-            user_id=new_user_company.user_id,
-            company_id=new_user_company.company_id,
-            workgroup_id=new_user_company.workgroup_id,
-            role=new_user_company.role,
+            id=uc.id,
+            user_id=uc.user_id,
+            company_id=uc.company_id,
+            workgroup_id=workgroup_id,
+            role=role,
         )
         await self.uc_repo.update_user_company(updated_uc_dto)
         return updated_uc_dto

@@ -61,13 +61,12 @@ class UserCompanyRepository(IUserCompanyRepository):
     async def update_user_company(
         self, uc_data: UserCompanyDTO
     ) -> Optional[UserCompanyDTO]:
-        query = select(UserCompany).where(UserCompany.id == UserCompany.id)
+        query = select(UserCompany).where(UserCompany.id == uc_data.id)
         result = await self.session.execute(query)
         existing_uc = result.scalars().first()
         if existing_uc is None:
             new_uc = self.create_user_company(uc_data)
             return new_uc
-        existing_uc.id = uc_data.id
         existing_uc.user_id = uc_data.user_id
         existing_uc.company_id = uc_data.company_id
         existing_uc.workgroup_id = uc_data.workgroup_id
