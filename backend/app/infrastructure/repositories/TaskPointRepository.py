@@ -162,14 +162,14 @@ class TaskPointRepository(ITaskPointRepository):
         return task_point_dto
 
     async def edit_task_point_by_dto(
-        self, task_point_id: int, new_task_point: TaskPointDTO
+        self, new_task_point: TaskPointDTO
     ) -> TaskPointDTO:
-        query = select(TaskPoint).where(TaskPoint.id == task_point_id)
+        query = select(TaskPoint).where(TaskPoint.id == new_task_point.id)
         result = await self.session.execute(query)
         task_point = result.scalar_one_or_none()
         
         if task_point is None:
-            raise ValueError(f"Таскпоинт с id {task_point_id} не существует.")
+            raise ValueError(f"Таскпоинт с id {new_task_point.id} не существует.")
         
         task_point.title = new_task_point.title
         task_point.taskboard_id = new_task_point.taskboard_id
@@ -190,7 +190,7 @@ class TaskPointRepository(ITaskPointRepository):
 
     async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO]):
         for task_point in task_points:
-            await self.edit_task_point_by_dto(task_point)
+            await self.edit_task_point_by_dto(new_task_point=task_point)
 
         return task_points
 

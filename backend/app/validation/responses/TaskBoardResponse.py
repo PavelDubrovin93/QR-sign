@@ -17,8 +17,9 @@ class CreateTaskPointResponse(Entity):
 class TaskPointResponse(CreateTaskPointResponse):
     id: int
     done_at: Optional[datetime] = None
-    issued_at: Optional[str]
-    warning_at: Optional[str]
+    issued_at: Optional[str] = None
+    warning_at: Optional[str] = None
+    taskboard_id: Optional[int] = None
 
 
 class CreateTaskBoardResponse(Entity):

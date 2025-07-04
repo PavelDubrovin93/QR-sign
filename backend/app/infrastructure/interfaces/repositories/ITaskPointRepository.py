@@ -112,7 +112,7 @@ class ITaskPointRepository(ABC):
         pass
 
     @abstractmethod
-    async def edit_task_point_by_dto(self, task_point_id: int, new_task_point: TaskPointDTO) -> TaskPointDTO:
+    async def edit_task_point_by_dto(self, new_task_point: TaskPointDTO) -> TaskPointDTO:
         """
         Обновляет задачу в базе данных.
         :param task_point_dto: экземпляр задачи

@@ -85,7 +85,23 @@ class TaskBoardService(ITaskBoardService):
         new_task_points = await self.tp_repo.edit_task_points_by_dto_list(
             task_points=taskboard.task_points
         )
-
+        taskpoints_to_response = []
+        for taskpoint in new_task_points:
+            taskpoints_to_response.append(TaskPointResponse(
+            id=taskpoint.id,
+            title=taskpoint.title,
+            taskboard_id=taskpoint.taskboard_id,
+            thumbnails=taskpoint.thumbnails,
+            mark_icon=taskpoint.mark_icon,
+            coordinates=taskpoint.coordinates,
+            points=taskpoint.points,
+            qrcode=taskpoint.qrcode,
+            description=taskpoint.description,
+            voice_message=taskpoint.voice_message,
+            done_at=taskpoint.done_at,
+            issued_at=taskpoint.issued_at,
+            warning_at=taskpoint.warning_at
+        ))
         return TaskBoardResponse(
             id=new_task_board.id,
             title=new_task_board.title,
@@ -96,7 +112,7 @@ class TaskBoardService(ITaskBoardService):
             type=new_task_board.type,
             description=new_task_board.description or "",
             done_at=new_task_board.done_at,
-            task_points=new_task_points
+            task_points=taskpoints_to_response
         )
     
     async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
