@@ -164,6 +164,9 @@ class TaskPointRepository(ITaskPointRepository):
     async def edit_task_point_by_dto(
         self, new_task_point: TaskPointDTO
     ) -> TaskPointDTO:
+        if new_task_point.id is None:
+            real_new_task_point = await self.add_task_point(new_task_point)
+            return real_new_task_point
         query = select(TaskPoint).where(TaskPoint.id == new_task_point.id)
         result = await self.session.execute(query)
         task_point = result.scalar_one_or_none()

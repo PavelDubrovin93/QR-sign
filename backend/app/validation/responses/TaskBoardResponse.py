@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from app.validation.Entity import Entity
 from datetime import datetime
 
@@ -35,4 +35,4 @@ class CreateTaskBoardResponse(Entity):
 class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
     done_at: Optional[str] = None
-    task_points: Optional[List[TaskPointResponse]] = None
+    task_points: Optional[Union[List[TaskPointResponse],List[CreateTaskPointResponse]]] = None
