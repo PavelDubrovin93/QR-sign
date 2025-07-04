@@ -7,13 +7,11 @@ export interface Task {
   location: GeoCoordinates;
   type: string;
   description: string;
-  done_at: string;
+  done_at: string | null;
   task_points: TaskPoint[];
 }
 
 type GeoCoordinates = [number, number];
-
-type ImagePointCoordinates = [number, number];
 
 export interface TaskPoint {
   id: number;
@@ -22,14 +20,15 @@ export interface TaskPoint {
   thumbnails: string;
   mark_icon: string;
   coordinates: GeoCoordinates;
-  points: ImagePointCoordinates;
   qrcode: string;
   description: string;
-  voice_message: string;
-  done_at: string;
-  issued_at: string;
-  warning_at: string;
+  voice_message: string | null;
+  done_at: string | null;
+  issued_at: string | null;
+  warning_at: string | null;
   completed: boolean;
+  x: number;
+  y: number;
 }
 
 export interface TaskBoard {
