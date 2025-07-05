@@ -15,7 +15,10 @@ import {
   setIsLoadingTasksBoard,
   setTasksBoardByCompany,
 } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
-import { setUserCompanies } from "../store/slices/entities/user_companies/user_companiesSlice";
+import {
+  setIsLoadingCompanies,
+  setUserCompanies,
+} from "../store/slices/entities/user_companies/user_companiesSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkGroupsByCompanyId } from "../api/work_group/get-work_groupsByCompanyId";
 import { createWorkGroup } from "../api/work_group/create-work_group";
@@ -36,8 +39,7 @@ import type { UserCompanies, UsersInCompany } from "../@types/user";
 const AdminPage = () => {
   const dispatch = useDispatch();
   const [selectedValue, setSelectedValue] = useState<string | number>("");
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState<boolean>(true);
-  const [isLoadingGroups, setIsLoadingGroups] = useState<boolean>(false);
+  const [_, setIsLoadingGroups] = useState<boolean>(false);
 
   const [formErrors, setFormErrors] = useState<CreateGroupFormErrors>({
     groupName: false,
@@ -58,6 +60,9 @@ const AdminPage = () => {
   const dataCompanies: UserCompanies[] = useSelector(
     (state: RootState) => state.entities.user_companies?.data
   );
+  const isLoadingCompanies: boolean = useSelector(
+    (state: RootState) => state.entities.user_companies.isLoading
+  );
   const dataTaskBoards: TaskBoard[] = useSelector(
     (state: RootState) => state.entities.tasksBoard.data
   );
@@ -73,7 +78,7 @@ const AdminPage = () => {
 
   useEffect(() => {
     const fetchCompanies = async () => {
-      setIsLoadingCompanies(true);
+      dispatch(setIsLoadingCompanies(true));
       try {
         const res = await getCompaniesByClient();
         if (res.data) {
@@ -86,7 +91,7 @@ const AdminPage = () => {
       } catch (e: any) {
         console.error("Ошибка загрузки компаний:", e);
       } finally {
-        setIsLoadingCompanies(false);
+        dispatch(setIsLoadingCompanies(false));
       }
     };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, Modal, Button, Input, Select } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { SlArrowDown } from "react-icons/sl";
@@ -9,13 +9,7 @@ import type { WorkGroup } from "../@types/group";
 import { useSelector } from "react-redux";
 import type { UserCompanies, UsersInCompany } from "../@types/user";
 import type { RootState } from "../store/rootReducer";
-
-interface User {
-  id: number;
-  name: string;
-  photo_url?: string;
-  tg_id?: number;
-}
+import { addUserToGroup } from "../api/company/add-user-toGroup";
 
 interface UsersInCompanyCardProps {
   data: UsersInCompany[];
@@ -23,59 +17,77 @@ interface UsersInCompanyCardProps {
 }
 
 const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
+  const telegramData = getTelegramData();
+
   const [groups, setGroups] = useState<WorkGroup[]>([]);
   const [loadingGroups, setLoadingGroups] = useState<boolean>(true);
-  const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | number>("");
 
-  const { data: dataCompanies, isLoading: IsLoadingCompanies } = useSelector(
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentUserToEdit, setCurrentUserToEdit] =
+    useState<UsersInCompany | null>(null);
+
+  const [userNameInModal, setUserNameInModal] = useState<string>("");
+  const [modalSelectedCompanyId, setModalSelectedCompanyId] = useState<
+    string | number
+  >("");
+
+  const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
   );
 
-  const telegramData = getTelegramData();
+  const fetchGroups = useCallback(async (companyId: string | number) => {
+    if (!companyId) {
+      setGroups([]);
+      setSelectedGroup("");
+      setLoadingGroups(false);
+      return;
+    }
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      setLoadingGroups(true);
-      try {
-        const res = await getWorkGroupsSelect("1");
-        if (res.data) {
-          setGroups(res.data);
-          if (res.data.length > 0) {
-            setSelectedGroup(res.data[0].id);
-          } else {
-            setSelectedGroup(null);
-          }
+    setLoadingGroups(true);
+    try {
+      const res = await getWorkGroupsSelect(String(companyId));
+      if (res.data) {
+        setGroups(res.data);
+        if (res.data.length > 0) {
+          setSelectedGroup(res.data[0].id);
         } else {
-          setGroups([]);
-          setSelectedGroup(null);
+          setSelectedGroup("");
         }
-      } catch (e: any) {
-        console.error("Ошибка загрузки групп:", e);
+      } else {
         setGroups([]);
-        setSelectedGroup(null);
-      } finally {
-        setLoadingGroups(false);
+        setSelectedGroup("");
       }
-    };
-
-    fetchGroups();
+    } catch (e: any) {
+      console.error(`Ошибка загрузки групп для компании ${companyId}:`, e);
+      setGroups([]);
+      setSelectedGroup("");
+    } finally {
+      setLoadingGroups(false);
+    }
   }, []);
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentUserToEdit, setCurrentUserToEdit] = useState<UsersInCompany | null>(null);
-  const [userNameInModal, setUserNameInModal] = useState<string>("");
-  const [userNameErrorInModal, setUserNameErrorInModal] =
-    useState<boolean>(false);
+  useEffect(() => {
+    if (isEditModalOpen && modalSelectedCompanyId) {
+      fetchGroups(modalSelectedCompanyId);
+    } else if (isEditModalOpen && !modalSelectedCompanyId) {
+      setGroups([]);
+      setSelectedGroup("");
+      setLoadingGroups(false);
+    }
+  }, [isEditModalOpen, modalSelectedCompanyId, fetchGroups]);
 
   const handleEditClick = (user: UsersInCompany) => {
     setCurrentUserToEdit(user);
     setUserNameInModal(user.name);
-    setUserNameErrorInModal(false);
     setIsEditModalOpen(true);
-    if (groups.length > 0) {
-      setSelectedGroup(groups[0].id);
+    if (dataCompanies && dataCompanies.length > 0) {
+      const firstCompanyId = dataCompanies[0].company_id ?? "";
+      setModalSelectedCompanyId(firstCompanyId);
     } else {
-      setSelectedGroup(null);
+      setModalSelectedCompanyId("");
+      setGroups([]);
+      setSelectedGroup("");
     }
   };
 
@@ -83,25 +95,45 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
     setIsEditModalOpen(false);
     setCurrentUserToEdit(null);
     setUserNameInModal("");
-    setUserNameErrorInModal(false);
-    setSelectedGroup(null);
+    setSelectedGroup("");
+    setModalSelectedCompanyId("");
+    setGroups([]);
   };
 
-  const handleSaveEdit = () => {
-    if (selectedGroup === null) {
-      alert("Пожалуйста, выберите группу!");
+  const handleAddUserToGroup = async () => {
+    if (!modalSelectedCompanyId || !selectedGroup) {
+      alert("Пожалуйста, выберите компанию и группу!");
       return;
     }
+    const sendData = {
+      id: currentUserToEdit?.id,
+      user_id: currentUserToEdit?.id,
+      company_id: modalSelectedCompanyId,
+      workgroup_id: selectedGroup,
+      // role: "not_approved",
+    };
+
+    await addUserToGroup(sendData, modalSelectedCompanyId.toString());
 
     console.log(
-      `Пользователь ${currentUserToEdit?.name} (ID: ${currentUserToEdit?.id}) будет добавлен в группу с ID: ${selectedGroup}`
+      `Пользователь ${currentUserToEdit?.name} (ID: ${currentUserToEdit?.id}) будет добавлен в группу с ID: ${selectedGroup} в компании ID: ${modalSelectedCompanyId}`
     );
     alert(
       `Пользователь "${currentUserToEdit?.name}" будет добавлен в группу "${
         groups.find((g) => g.id === selectedGroup)?.title || selectedGroup
+      }" компании "${
+        dataCompanies?.find((c) => c.company_id === modalSelectedCompanyId)
+          ?.company_name || modalSelectedCompanyId
       }"`
     );
     handleCloseEditModal();
+  };
+
+  const handleModalCompanyChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newCompanyId = event.target.value;
+    setModalSelectedCompanyId(newCompanyId);
   };
 
   const handleSelectGroupChange = (
@@ -194,56 +226,94 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
 
           {currentUserToEdit && (
             <div>
-              <Select>
-                <></>
-              </Select>
-
-              {loadingGroups ? (
-                <div
-                  className="flex justify-center items-center h-full w-full"
-                  style={{ padding: "10px" }}
-                >
-                  <Loading size={30} color={"#2a90ff"} />
-                  <span
-                    style={{
-                      marginLeft: "10px",
-                      color: "var(--tgui--text_color)",
-                    }}
+              <div className="mb-3" style={{ height: "84px" }}>
+                {isLoadingCompanies ? (
+                  <div
+                    className="flex justify-center items-center h-full"
+                    style={{ padding: "10px" }}
                   >
-                    Загрузка групп...
-                  </span>
-                </div>
-              ) : (
-                <Select
-                  value={selectedGroup || ""}
-                  onChange={handleSelectGroupChange}
-                  disabled={groups.length === 0}
-                  className="mb-4"
-                >
-                  {groups.length === 0 && (
-                    <option value="" disabled>
-                      Нет доступных групп
-                    </option>
-                  )}
-                  {groups.map((group: WorkGroup) => (
-                    <option key={group.id} value={group.id}>
-                      {group.title}
-                    </option>
-                  ))}
-                </Select>
-              )}
+                    <Loading size={30} color={"#2a90ff"} />
+                    <span
+                      style={{
+                        marginLeft: "10px",
+                        color: "var(--tgui--text_color)",
+                      }}
+                    >
+                      Загрузка компаний...
+                    </span>
+                  </div>
+                ) : (
+                  <Select
+                    status="focused"
+                    value={modalSelectedCompanyId}
+                    onChange={handleModalCompanyChange}
+                    disabled={dataCompanies?.length === 0}
+                    style={{ width: "100%" }}
+                  >
+                    {dataCompanies && dataCompanies.length > 0 ? (
+                      dataCompanies.map((company: UserCompanies) => (
+                        <option
+                          key={company.company_id}
+                          value={company.company_id || ""}
+                        >
+                          {company.company_name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        Нет доступных компаний
+                      </option>
+                    )}
+                  </Select>
+                )}
+              </div>
+
+              <div className="mb-4" style={{ height: "84px" }}>
+                {loadingGroups ? (
+                  <div
+                    className="flex justify-center items-center h-full w-full"
+                    style={{ padding: "10px" }}
+                  >
+                    <Loading size={30} color={"#2a90ff"} />
+                    <span
+                      style={{
+                        marginLeft: "10px",
+                        color: "var(--tgui--text_color)",
+                      }}
+                    >
+                      Загрузка групп...
+                    </span>
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedGroup || ""}
+                    onChange={handleSelectGroupChange}
+                    disabled={groups.length === 0 || !modalSelectedCompanyId}
+                    style={{ width: "100%" }}
+                  >
+                    {groups.length === 0 || !modalSelectedCompanyId ? (
+                      <option value="" disabled>
+                        {!modalSelectedCompanyId
+                          ? "Выберите компанию"
+                          : "Нет доступных групп"}
+                      </option>
+                    ) : (
+                      groups.map((group: WorkGroup) => (
+                        <option key={group.id} value={group.id}>
+                          {group.title}
+                        </option>
+                      ))
+                    )}
+                  </Select>
+                )}
+              </div>
+
               <Input
                 disabled={true}
                 placeholder="Имя пользователя"
                 value={userNameInModal}
-                status={userNameErrorInModal ? "error" : "default"}
                 className="mb-4"
               />
-              {/* {userNameErrorInModal && (
-                <p className="text-red-500 text-sm mb-4">
-                  Имя не может быть пустым!
-                </p>
-              )} */}
 
               <div className="flex items-center justify-between">
                 <Button
@@ -254,7 +324,12 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
                 >
                   Отмена
                 </Button>
-                <Button stretched onClick={handleSaveEdit} className="ml-2">
+                <Button
+                  stretched
+                  onClick={handleAddUserToGroup}
+                  className="ml-2"
+                  disabled={!modalSelectedCompanyId || !selectedGroup}
+                >
                   Сохранить
                 </Button>
               </div>
