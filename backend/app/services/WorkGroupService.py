@@ -47,12 +47,13 @@ class WorkGroupService(IWorkGroupService):
     async def get_users_by_workgroup_id(self, workgroup_id: int) -> List[UserAndUC]:
         repo_uc = UserCompanyRepository(self.session)
         repo_users = UserRepository(self.session)
-        user_companies= await repo_uc.get_all_uc_in_company_by_workgroup_id(workgroup_id=workgroup_id)
+        user_companies = await repo_uc.get_all_uc_in_company_by_workgroup_id(workgroup_id=workgroup_id)
 
         
         ret_list = []
 
         for uc in user_companies:
+            print('!!!!!', workgroup_id)
             user = await repo_users.get_user_by_id(uc.user_id)
             if user is not None:
                 ret_list.append(
