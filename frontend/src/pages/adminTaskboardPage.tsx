@@ -7,7 +7,7 @@ import {
   Textarea,
 } from "@telegram-apps/telegram-ui";
 import { SlArrowDown } from "react-icons/sl";
-import { useEffect, useState, useCallback } from "react"; // Добавил useCallback
+import { useEffect, useState, useCallback } from "react";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import type { UserCompanies } from "../@types/user";
 import Loading from "../components/Loading";
@@ -25,11 +25,10 @@ import {
 } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import AdminTasks from "../components/AdminTasks";
 import TestImage from "../assets/test_image.jpeg";
-import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect"; // Импортируем функцию API
+import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import { createTask } from "../api/task/create-task";
 import type { CreateTaskPayload, Task } from "../@types/task";
 
-// Определим тип для рабочей группы, если его еще нет в @types
 export interface WorkGroup {
   id: number;
   title: string;
@@ -143,29 +142,6 @@ const adminTaskboardPage = () => {
       dispatch(setTasksBoardByCompany([]));
     }
   }, [selectedValue]);
-
-  // useEffect(() => {
-  //   if (
-  //     selectedValue !== "" &&
-  //     selectedValue !== null &&
-  //     selectedValue !== undefined
-  //   ) {
-  //     const fetchTasks = async () => {
-  //       dispatch(setIsLoadingTasksBoard(true));
-  //       try {
-  //         const res = await getTasksByCompany(String(selectedValue));
-  //         if (res.data) {
-  //           dispatch(setTasksBoardByCompany(res.data));
-  //         }
-  //       } catch (e: any) {
-  //         console.error("Ошибка загрузки задач:", e);
-  //       } finally {
-  //         dispatch(setIsLoadingTasksBoard(false));
-  //       }
-  //     };
-  //     fetchTasks();
-  //   }
-  // }, [selectedValue]);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -401,7 +377,7 @@ const adminTaskboardPage = () => {
                 status="focused"
                 value={modalSelectedWorkGroupId}
                 onChange={handleWorkGroupSelectChange}
-                disabled={workGroups.length === 0 || !modalSelectedCompanyId} // Отключаем, если нет групп или не выбрана компания
+                disabled={workGroups.length === 0 || !modalSelectedCompanyId}
                 style={{ width: "100%" }}
               >
                 {workGroups.length > 0 ? (
@@ -422,20 +398,20 @@ const adminTaskboardPage = () => {
               stretched
               mode="bezeled"
               onClick={handleCloseModal}
-              className="mx-2" // Уменьшил отступы, чтобы кнопки не упирались
+              className="mx-2"
             >
               Отмена
             </Button>
             <Button
               stretched
               onClick={handleAddTask}
-              className="mx-2" // Уменьшил отступы
+              className="mx-2"
               disabled={
                 !taskName ||
                 !taskDescription ||
                 !modalSelectedCompanyId ||
                 !modalSelectedWorkGroupId
-              } // Отключаем, если не все поля заполнены
+              }
             >
               Сохранить
             </Button>

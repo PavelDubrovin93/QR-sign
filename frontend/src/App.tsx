@@ -25,13 +25,11 @@ import {
 } from "./store/slices/entities/user/userSlice.ts";
 import { useDispatch, useSelector } from "react-redux";
 import { sessionToken } from "./utils/cookie.ts";
-import { getAmountTasks } from "./api/task/amount-new-tasks.ts";
 import type { RootState } from "./store/rootReducer.ts";
 import Loading from "./components/Loading.tsx";
 import { Roles } from "./@types/role.ts";
 import NotApprovedLayout from "./components/layouts/NotApprovedLayout.tsx";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
-import AdminCreateTask from "./components/AdminCreateTask.tsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -93,8 +91,7 @@ function App() {
             <Routes>
               <Route index path="/" element={<AdminPage />} />
               <Route path="/admin-taskboard" element={<AdminTaskboardPage />} />
-              <Route path="/admin-taskboard/:id" element={<TaskCard editMode={true} />} />
-              {/* <Route path="/admin-taskboard/create-task" element={<AdminCreateTask />} /> */}
+              <Route path="/admin-taskboard/:id" element={<TaskCard editMode={true} />} />››
             </Routes>
           </AdminLayout>
         );
