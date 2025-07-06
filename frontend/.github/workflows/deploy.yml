@@ -3,12 +3,11 @@ name: Dev deploy
 on:
   push:
     branches:
-      - dev
+      - frontend
 
 env:
   IMAGE_NAME: front-image
   VITE_BACKEND_URL: ${{ secrets.SERVER_IP }}
-  TAG: latest
 
 jobs:
   build:
