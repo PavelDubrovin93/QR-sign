@@ -163,6 +163,7 @@ function HomePage() {
           <>
             {tasksRedux.length > 0 ? (
               tasksRedux?.map((elm: Task) => {
+                //@ts-ignore
                 return <TaskCard key={elm.id} path={`/taskboard/${elm.id}`} />;
               })
             ) : (

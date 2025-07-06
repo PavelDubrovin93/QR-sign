@@ -47,6 +47,7 @@ export const put = <R, Data>(
   config?: AxiosRequestConfig
 ): Promise<AxiosResponse<R>> => axios.put(url, data, config);
 
+//@ts-ignore
 export const Delete = <R, Data>(
   url: string,
   config?: AxiosRequestConfig

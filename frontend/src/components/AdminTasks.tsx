@@ -3,7 +3,7 @@ import TaskCard from "../components/TaskCard";
 import type { RootState } from "../store/rootReducer";
 
 const AdminTasks = () => {
-  const { data: dataTasks, isLoading: isLoadingTasks } = useSelector(
+  const { data: dataTasks, isLoading: _ } = useSelector(
     (state: RootState) => state.entities.tasksBoard
   );
 

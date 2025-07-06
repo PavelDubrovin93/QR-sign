@@ -27,7 +27,7 @@ import AdminTasks from "../components/AdminTasks";
 import TestImage from "../assets/test_image.jpeg";
 import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import { createTask } from "../api/task/create-task";
-import type { CreateTaskPayload, Task } from "../@types/task";
+import type { CreateTaskPayload } from "../@types/task";
 
 export interface WorkGroup {
   id: number;
