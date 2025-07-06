@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, BigInteger
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
@@ -7,7 +7,7 @@ from app.models.dbModels.EntityDB import EntityDB
 class UserEntity(EntityDB):
     __tablename__ = "users"
 
-    tg_id = Column(Integer, nullable=False)
+    tg_id = Column(BigInteger, nullable=False, unique=True)
     name = Column(String(50), nullable=False)
     photo_url = Column(String(150), nullable=True)
 
