@@ -47,4 +47,6 @@ jobs:
             (echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin)
             (docker image rm -f $IMAGE_ID:latest || true)
             docker pull $IMAGE_ID:latest
-            docker run -p 8080:8080 $IMAGE_ID:latest
+            docker run --name nginx-front -p 8080:8080 $IMAGE_ID:latest -d
+            docker cp nginx-front:/usr/share/nginx/html /var/www/html
+            (docker stop nginx-front || true)

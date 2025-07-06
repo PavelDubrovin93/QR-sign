@@ -9,6 +9,6 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
+FROM node:18.17.0-bullseye-slim AS release
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 8080
