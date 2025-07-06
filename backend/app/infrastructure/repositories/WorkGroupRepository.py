@@ -59,7 +59,7 @@ class WorkGroupRepository(IWorkGroupRepository):
         result = await self.session.execute(query)
         work_group_to_delete = result.scalars().first()
         if work_group_to_delete is None:
-            raise ValueError(f"Пользователь с id {work_group_id} не существует.")
+            raise ValueError(f"Воркгруппа с id {work_group_id} не существует.")
         await self.session.delete(work_group_to_delete)
         await self.session.commit()
 

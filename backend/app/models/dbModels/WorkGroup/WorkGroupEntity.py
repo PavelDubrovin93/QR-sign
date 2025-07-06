@@ -14,7 +14,6 @@ class WorkGroupEntity(EntityDB):
 
     company = relationship(
         "CompanyEntity",
-        cascade="all, delete-orphan",
         back_populates="work_groups",
         single_parent=True,
     )

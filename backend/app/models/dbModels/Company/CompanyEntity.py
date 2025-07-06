@@ -19,7 +19,7 @@ class CompanyEntity(EntityDB):
     ui_settings = relationship(
         "UISettingsEntity",
         back_populates="default_company",
-        cascade="all, delete-orphan",  # кажется это надо убрать
     )
+    
     work_groups = relationship("WorkGroupEntity", back_populates="company")
     task_boards = relationship("TaskBoardEntity", back_populates="company")
