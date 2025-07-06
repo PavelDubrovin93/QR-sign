@@ -40,6 +40,7 @@ const AdminPage = () => {
   const dispatch = useDispatch();
   const [selectedValue, setSelectedValue] = useState<string | number>("");
   const [_, setIsLoadingGroups] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const [formErrors, setFormErrors] = useState<CreateGroupFormErrors>({
     groupName: false,
@@ -202,6 +203,24 @@ const AdminPage = () => {
     setFormErrors((prev) => ({ ...prev, modalSelectedCompanyId: false }));
   };
 
+  const filteredTaskBoards = dataTaskBoards?.filter((workgroupData: any) => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const workgroup = workgroupData.workgroup;
+    const users = workgroupData.users || [];
+    
+    const workgroupMatch = 
+      workgroup?.title?.toLowerCase().includes(searchLower) ||
+      workgroup?.description?.toLowerCase().includes(searchLower);
+    
+    const userMatch = users.some((userData: any) => 
+      userData.user?.name?.toLowerCase().includes(searchLower)
+    );
+    
+    return workgroupMatch || userMatch;
+  }) || [];
+
   return (
     <>
       <div className="flex w-full justify-center px-5">
@@ -254,7 +273,12 @@ const AdminPage = () => {
             </Select>
           )}
         </div>
-        <Input status="focused" placeholder="Поиск" />
+        <Input 
+          status="focused" 
+          placeholder="Поиск по группам и участникам" 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </Section>
       <Modal
         open={isModalOpen}
@@ -345,7 +369,7 @@ const AdminPage = () => {
           </div>
         </div>
       </Modal>
-      <AdminGroupCard data={dataTaskBoards} loading={isLoadingTaskBoards} />
+      <AdminGroupCard data={filteredTaskBoards} loading={isLoadingTaskBoards} companyId={Number(selectedValue)} />
       <UsersInCompanyCard
         data={dataUsersInCompany}
         loading={isLoadingUsersInCompany}

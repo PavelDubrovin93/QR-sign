@@ -17,7 +17,7 @@ import Loading from "./Loading";
 //   }>;
 // }
 
-const AdminGroupCard = ({ data, loading }: any) => {
+const AdminGroupCard = ({ data, loading, companyId }: any) => {
   if (loading) {
     return (
       <div className="py-4">
@@ -41,6 +41,7 @@ const AdminGroupCard = ({ data, loading }: any) => {
           workgroup={cardData.workgroup}
           users={cardData.users}
           taskboards={cardData.taskboards}
+          companyId={companyId}
         />
       ))}
     </div>
