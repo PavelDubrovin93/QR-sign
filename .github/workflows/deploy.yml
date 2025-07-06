@@ -50,3 +50,4 @@ jobs:
             docker run --name nginx-front -p 8080:8080 $IMAGE_ID:latest -d
             docker cp nginx-front:/usr/share/nginx/html /var/www/html
             (docker stop nginx-front || true)
+            nginx -s reload
