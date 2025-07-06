@@ -6,6 +6,8 @@ on:
       - frontend
 
 env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_KEY }}
   IMAGE_NAME: front-image
   VITE_BACKEND_URL: ${{ secrets.SERVER_IP }}
 
@@ -15,15 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build image
-        run: docker build --pull --build-arg VITE_BACKEND_URL=${{ env.VITE_BACKEND_URL }} -t $IMAGE_NAME .
+        run: docker build --pull --build-arg VITE_BACKEND_URL=${{ env.VITE_BACKEND_URL }} -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
 
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+      - name: Login to Docker Hub
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - name: Push image
         run: |
-          REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_ID=docker.pkg.github.com/$REPO_LOWERCASE/${{ env.IMAGE_NAME }}
+          IMAGE_ID=$DOCKERHUB_USERNAME/$IMAGE_NAME
           echo IMAGE_ID=$IMAGE_ID
           docker tag ${{ env.IMAGE_NAME }} $IMAGE_ID:latest
           docker push $IMAGE_ID:latest
@@ -40,9 +41,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-            IMAGE_ID=docker.pkg.github.com/$REPO_LOWERCASE/${{ env.IMAGE_NAME }}
-            (echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin)
+            IMAGE_ID=$DOCKERHUB_USERNAME/$IMAGE_NAME
+            (echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin)
             (docker image rm -f $IMAGE_ID:latest || true)
             docker pull $IMAGE_ID:latest
             docker run -p 80:80 $IMAGE_ID:latest
