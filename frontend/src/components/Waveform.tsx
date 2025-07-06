@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 import WaveSurfer from "wavesurfer.js";
 import formatTime from "../utils/formatToMinSec";

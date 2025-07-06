@@ -1,0 +1,45 @@
+name: Dev deploy
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  IMAGE_NAME: front-image
+  VITE_BACKEND_URL: http://37.252.17.37
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build --pull --build-arg VITE_BACKEND_URL=${{ env.VITE_BACKEND_URL }} --build-arg COMMIT_MESSAGE="${{ github.event.head_commit.message }}" --build-arg COMMIT_INITIATOR="${{ github.actor }}" --build-arg COMMIT_DATE="$(date +'%Y-%m-%dT%H:%M:%S')" --build-arg BACKEND_URL=${{ env.BACKEND_URL }} -t $IMAGE_NAME .
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        run: |
+          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          echo IMAGE_ID=$IMAGE_ID
+          docker tag ${{ env.IMAGE_NAME }} $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: "37.252.17.37"
+          username: "root"
+          password: "g84A@-VUz@u*U9"
+          script: |
+            IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}
+            (echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin)
+            (docker image rm -f $IMAGE_ID:latest || true)
+            docker pull $IMAGE_ID:latest
+            docker run -p 80:80 $IMAGE_ID:latest

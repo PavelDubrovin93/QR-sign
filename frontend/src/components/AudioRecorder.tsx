@@ -2,9 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import {
   FaMicrophone,
   FaStopCircle,
-  FaPlayCircle,
-  FaDownload,
-  FaTrashAlt,
 } from "react-icons/fa";
 
 function AudioRecorder({
@@ -13,7 +10,7 @@ function AudioRecorder({
   currentAudioUrl,
 }: any) {
   const [isRecording, setIsRecording] = useState(false);
-  const [localAudioBlob, setLocalAudioBlob] = useState<Blob | null>(null);
+  const [_, setLocalAudioBlob] = useState<Blob | null>(null);
   const [localAudioUrl, setLocalAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -84,34 +81,34 @@ function AudioRecorder({
     }
   };
 
-  const playRecording = () => {
-    if (localAudioUrl) {
-      const audio = new Audio(localAudioUrl);
-      audio.play();
-    }
-  };
+  // const playRecording = () => {
+  //   if (localAudioUrl) {
+  //     const audio = new Audio(localAudioUrl);
+  //     audio.play();
+  //   }
+  // };
 
-  const downloadRecording = () => {
-    if (localAudioUrl && localAudioBlob) {
-      const a = document.createElement("a");
-      a.href = localAudioUrl;
-      a.download = `audio-recording-${Date.now()}.webm`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  };
+  // const downloadRecording = () => {
+  //   if (localAudioUrl && localAudioBlob) {
+  //     const a = document.createElement("a");
+  //     a.href = localAudioUrl;
+  //     a.download = `audio-recording-${Date.now()}.webm`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
+  //   }
+  // };
 
-  const deleteRecording = () => {
-    if (localAudioUrl) {
-      URL.revokeObjectURL(localAudioUrl);
-      setLocalAudioUrl(null);
-      setLocalAudioBlob(null);
-    }
-    if (onRecordingDelete) {
-      onRecordingDelete();
-    }
-  };
+  // const deleteRecording = () => {
+  //   if (localAudioUrl) {
+  //     URL.revokeObjectURL(localAudioUrl);
+  //     setLocalAudioUrl(null);
+  //     setLocalAudioBlob(null);
+  //   }
+  //   if (onRecordingDelete) {
+  //     onRecordingDelete();
+  //   }
+  // };
 
   const hasLocalRecording = !!localAudioUrl;
 

@@ -9,11 +9,11 @@ import {
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SlClose } from "react-icons/sl";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, /* useSelector */ } from "react-redux";
 import type { TaskPoint, Task } from "../@types/task";
 import { getCompaniesByClient } from "../api/company/get-companies-byClient";
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
-import type { RootState } from "../store/rootReducer";
+// import type { RootState } from "../store/rootReducer";
 import {
   setIsLoadingTasksBoard,
   setTasksBoardByCompany,
@@ -33,7 +33,7 @@ const AdminCreateTask = ({ editMode = true }) => {
 
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, _] = useState<Task | null>(null);
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
@@ -43,12 +43,12 @@ const AdminCreateTask = ({ editMode = true }) => {
     top: 0,
   });
   const [selectedValue, setSelectedValue] = useState<string | number>("");
-  const [taskName, setTaskName] = useState("");
-  const [taskDescription, setTaskDescription] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
-    (state: RootState) => state.entities.user_companies
-  );
+  // const [taskName, setTaskName] = useState("");
+  // const [taskDescription, setTaskDescription] = useState("");
+  // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
+  //   (state: RootState) => state.entities.user_companies
+  // );
 
   const { isDragging, draggedPointId, handleDragStart, handleDragEnd } =
     useDnDpoints({
@@ -188,26 +188,26 @@ const AdminCreateTask = ({ editMode = true }) => {
     }
   }, [selectedValue]);
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
+  // const handleOpenModal = () => {
+  //   setIsModalOpen(true);
+  // };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setTaskName("");
-    setTaskDescription("");
-  };
+  // const handleCloseModal = () => {
+  //   setIsModalOpen(false);
+  //   setTaskName("");
+  //   setTaskDescription("");
+  // };
 
-  const handleAddTask = () => {
-    // тут нужен апи запрос на добавление новой задачи
-    console.log("Добавляем задачу:", { taskName, taskDescription });
-    alert(`Задача "${taskName}" добавлена!`);
-    handleCloseModal();
-  };
+  // const handleAddTask = () => {
+  //   // тут нужен апи запрос на добавление новой задачи
+  //   console.log("Добавляем задачу:", { taskName, taskDescription });
+  //   alert(`Задача "${taskName}" добавлена!`);
+  //   handleCloseModal();
+  // };
 
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedValue(event.target.value);
-  };
+  // const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setSelectedValue(event.target.value);
+  // };
   return (
     <Card
       className="w-full"

@@ -1,4 +1,3 @@
-import type { AxiosResponse } from "axios";
 import { get } from "..";
 import { config } from "../../configs/app.config";
 import { apiPrefix } from "../constants";

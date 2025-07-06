@@ -1,21 +1,21 @@
 import AdminGroupCardItem from "./AdminGroupCardItem";
 import Loading from "./Loading";
 
-interface AdminGroupCardProps {
-  data: Array<{
-    workgroup: {
-      id: number;
-      title: string;
-      description: string;
-    };
-    users: Array<{
-      id: number;
-      name: string;
-      photo_url?: string;
-      tg_id?: number | null;
-    }>;
-  }>;
-}
+// interface AdminGroupCardProps {
+//   data: Array<{
+//     workgroup: {
+//       id: number;
+//       title: string;
+//       description: string;
+//     };
+//     users: Array<{
+//       id: number;
+//       name: string;
+//       photo_url?: string;
+//       tg_id?: number | null;
+//     }>;
+//   }>;
+// }
 
 const AdminGroupCard = ({ data, loading }: any) => {
   if (loading) {

@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { Task, TaskBoard } from "../../../../@types/task";
+import type { /* Task, */ TaskBoard } from "../../../../@types/task";
 
 interface TasksBoardState {
   data: TaskBoard[];
@@ -18,7 +18,7 @@ const tasksBoardSlice = createSlice({
     setIsLoadingTasksBoard: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    setTasksBoardByCompany: (state, action: PayloadAction<Task[]>) => {
+    setTasksBoardByCompany: (state, action: PayloadAction<any[]>) => {
       state.data = action.payload;
     },
   },

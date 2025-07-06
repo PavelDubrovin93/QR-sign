@@ -5,7 +5,6 @@ import {
   Checkbox,
   Input,
   Modal,
-  Cell,
 } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
@@ -48,7 +47,7 @@ const AdminGroupCardItem = ({
 
   const telegramData = getTelegramData();
 
-  const [tasks, setTasks] = useState<TasksGroup[]>([
+  const [_, setTasks] = useState<TasksGroup[]>([
     { id: 1, text: "Установка лесов", isCompleted: true, isVisible: false },
     { id: 2, text: "Вывоз мусора", isCompleted: false, isVisible: true },
     { id: 3, text: "Окраска стен", isCompleted: true, isVisible: true },
