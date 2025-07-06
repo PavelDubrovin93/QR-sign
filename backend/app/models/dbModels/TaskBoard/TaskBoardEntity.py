@@ -9,7 +9,7 @@ class TaskBoardEntity(EntityDB):
 
     title = Column(String(50), nullable=False)
     company_id = Column(Integer, ForeignKey("companies.id"))
-    work_group_id = Column(Integer, ForeignKey("work_group.id"), nullable=False)
+    work_group_id = Column(Integer, ForeignKey("work_group.id"), nullable=True)
     image = Column(String, nullable=False)
     location = Column(ARRAY(Float), nullable=False)
     type = Column(String, nullable=False)
