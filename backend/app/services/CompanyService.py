@@ -65,7 +65,7 @@ class CompanyService(ICompanyService):
             user_id=new_user_company.user_id,
             company_id=new_user_company.company_id,
             workgroup_id=new_user_company.workgroup_id,
-            role=new_user_company.role,
+            role=uc.role,
         )
         data = await self.uc_repo.update_user_company(updated_uc_dto)
         return data
