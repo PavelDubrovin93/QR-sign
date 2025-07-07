@@ -26,11 +26,7 @@ async def create_taskboard(
     if re.match(BASE64_PATTERN, taskboard_data.image):
         s3_service = S3Service()
         uploaded_url = s3_service.upload_image(taskboard_data.image)
-        if uploaded_url:
-            taskboard_data.image = uploaded_url
-        else:
-            raise HTTPException(status_code=500, detail="Ошибка при загрузке изображения.")
-
+    taskboard_data.image = uploaded_url
     service = TaskBoardService(session)
     task_board = await service.create_taskboard(taskboard_data=taskboard_data)
 
