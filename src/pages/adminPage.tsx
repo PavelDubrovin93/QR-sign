@@ -26,7 +26,7 @@ import {
   validateCreateGroupForm,
   type CreateGroupFormErrors,
 } from "../utils/validate/validateGroupForm";
-import { getUsersInCompany } from "../api/company/get-users-incompany";
+
 import { getUsersWithRoles } from "../api/company/get-users-with-roles";
 import {
   setUsersInCompany,

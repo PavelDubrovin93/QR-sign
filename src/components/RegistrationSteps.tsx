@@ -18,7 +18,7 @@ const RegistrationSteps = ({
 }: RegistrationStepsProps) => {
   const dispatch = useDispatch();
   const telegramData = getTelegramData();
-  const webapp = window.Telegram?.WebApp;
+
 
 
   const [isModalOpen, setIsModalOpen] = useState(showModal);

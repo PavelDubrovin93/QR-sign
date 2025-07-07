@@ -5,9 +5,8 @@ import {
   Section,
   Select,
   Textarea,
-  Checkbox,
 } from "@telegram-apps/telegram-ui";
-import { SlClose } from "react-icons/sl";
+import { FiTrash2 } from "react-icons/fi";
 import { MdUpload } from "react-icons/md";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
@@ -186,7 +185,7 @@ const adminTaskboardPage = () => {
     setModalSelectedWorkGroupId("");
   };
 
-  // Image upload handlers
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -199,7 +198,7 @@ const adminTaskboardPage = () => {
     }
   };
 
-  // Form handlers
+
   const handleModalCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCompanyId = event.target.value;
     setModalSelectedCompanyId(selectedCompanyId);
@@ -216,6 +215,30 @@ const adminTaskboardPage = () => {
       return;
     }
 
+    if (!modalSelectedCompanyId || !modalSelectedWorkGroupId) {
+      alert("Выберите компанию и рабочую группу.");
+      return;
+    }
+
+    if (taskPoints.length > 0) {
+      const invalidPoints = taskPoints.filter(point => !point.title.trim());
+      if (invalidPoints.length > 0) {
+        alert("Все точки задачи должны иметь название.");
+        return;
+      }
+    }
+
+    const formattedTaskPoints = taskPoints.map((point) => ({
+      title: point.title || "",
+      coordinates: [point.x, point.y] as const,
+      qrcode: point.qrcode || "",
+      description: point.description || "",
+      voice_message: point.voice_message || null,
+      thumbnails: point.thumbnails || "",
+      mark_icon: point.mark_icon || "",
+      points: point.points || [],
+    }));
+
     const payload: CreateTaskPayload = {
       title: taskName,
       description: taskDescription,
@@ -224,8 +247,18 @@ const adminTaskboardPage = () => {
       image: uploadedImage || "",
       location: [0, 0],
       type: "standard",
-      task_points: [],
+      task_points: formattedTaskPoints,
     };
+
+    console.log("Создаем задачу с данными:");
+    console.log(payload.title);
+    console.log(payload.description);
+    console.log(payload.company_id);
+    console.log(payload.work_group_id);
+    console.log(payload.image);
+    console.log(payload.location);
+    console.log(payload.type);
+    console.log(payload.task_points);
 
     try {
       const res = await createTask(payload);
@@ -318,7 +351,7 @@ const adminTaskboardPage = () => {
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
           }}
-          className="py-4 px-4 top-shadow-container"
+          className="py-4 top-shadow-container"
         >
 
           <h3 className="text-center">Добавить задачу</h3>
@@ -334,7 +367,7 @@ const adminTaskboardPage = () => {
             />
             
             {uploadedImage ? (
-              <div className="relative py-4">
+              <div className="relative flex flex-col items-center justify-center py-4">
                 <ImageUpload 
                   image={uploadedImage} 
                   editMode={true}
@@ -347,7 +380,7 @@ const adminTaskboardPage = () => {
                 <Button
                   mode="bezeled"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute top-2 right-2 text-xs px-2 py-1 bg-white shadow-md"
+                  className="absolute top-2 right-2 text-xs px-6 py-1 bg-white shadow-md"
                 >
                   Изменить изображение
                 </Button>
@@ -360,6 +393,8 @@ const adminTaskboardPage = () => {
                   minHeight: "150px",
                   backgroundColor: telegramData?.colorScheme === "dark" ? "#2a2a2a" : "#f8fafc",
                   borderColor: telegramData?.colorScheme === "dark" ? "#4a5568" : "#3b82f6",
+                  marginLeft: "1.5rem",
+                  marginRight: "1.5rem",
                 }}
               >
                 <MdUpload 
@@ -390,25 +425,21 @@ const adminTaskboardPage = () => {
           {/* Form Fields */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Название задачи
-              </label>
               <Input
                 value={taskName}
+                status="focused"
                 onChange={(e) => setTaskName(e.target.value)}
-                placeholder="Введите название задачи"
+                placeholder="Название задачи"
                 className="w-full"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Описание
-              </label>
               <Textarea
                 value={taskDescription}
+                status="focused"
                 onChange={(e) => setTaskDescription(e.target.value)}
-                placeholder="Введите описание задачи"
+                placeholder="Описание задачи"
                 className="w-full"
               />
             </div>
@@ -416,19 +447,18 @@ const adminTaskboardPage = () => {
             {/* Task Points List */}
           {taskPoints.length > 0 && (
             <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Точки задач:</h4>
               <div className="space-y-2">
-                {taskPoints.map((point, index) => (
+                {taskPoints.map((point) => (
+
                   <div key={point.id} className="space-y-2">
-                    <div className="pl-4 pt-2">
+                    <hr key={point.id} className="border-gray-200" />
+                    <div className="px-4 pt-2 flex items-center justify-left">
                       <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
                         {point.id}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      
                       <Input
                         value={point.title}
+                        status="focused"
                         onChange={(e) => {
                           const newTitle = e.target.value;
                           setTaskPoints(prev => prev.map(p => 
@@ -436,7 +466,7 @@ const adminTaskboardPage = () => {
                           ));
                         }}
                         placeholder="Название точки"
-                        className="flex-1"
+                        style={{flexGrow: 1, marginRight: "10px"}}
                       />
                       <Button
                         mode="plain"
@@ -447,13 +477,15 @@ const adminTaskboardPage = () => {
                             setActivePoint(null);
                           }
                         }}
-                        className="text-red-500"
+                        className="text-red-500 pr-2"
                       >
-                        Удалить
+                        <FiTrash2 color="red" size={20} />
                       </Button>
                     </div>
+                  
                     <Textarea
                       value={point.description || ""}
+                      status="focused"
                       onChange={(e) => {
                         const newDescription = e.target.value;
                         setTaskPoints(prev => prev.map(p => 
@@ -463,6 +495,7 @@ const adminTaskboardPage = () => {
                       placeholder="Описание точки"
                       className="w-full"
                     />
+                    
                   </div>
                 ))}
               </div>
@@ -470,17 +503,15 @@ const adminTaskboardPage = () => {
           )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Компания
-              </label>
               <Select
-                value={String(modalSelectedCompanyId)}
+                value={String(modalSelectedCompanyId || "")}
                 onChange={handleModalCompanyChange}
+                status="focused"
                 className="w-full"
               >
                 <option value="">Выберите компанию</option>
                 {dataCompanies?.map((company: UserCompanies) => (
-                  <option key={company.company_id} value={company.company_id}>
+                  <option key={company.company_id} value={company.company_id || ""}>
                     {company.company_name}
                   </option>
                 ))}
@@ -488,13 +519,11 @@ const adminTaskboardPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Рабочая группа
-              </label>
               <Select
                 value={String(modalSelectedWorkGroupId)}
                 onChange={handleModalWorkGroupChange}
                 className="w-full"
+                status="focused"
                 disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
               >
                 <option value="">Выберите рабочую группу</option>

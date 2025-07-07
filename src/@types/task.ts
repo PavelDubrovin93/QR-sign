@@ -11,7 +11,7 @@ export interface Task {
   task_points: TaskPoint[];
 }
 
-type GeoCoordinates = [number, number];
+type GeoCoordinates = readonly [number, number] | [number, number];
 
 export interface TaskPoint {
   id: number;
@@ -58,8 +58,13 @@ export interface CreateTaskPayload {
   type: string;
   description: string;
   task_points: Array<{
+    title: string;
+    coordinates: GeoCoordinates;
     qrcode: string;
     description: string;
     voice_message: string | null;
+    thumbnails: string;
+    mark_icon: string;
+    points: any[];
   }>;
 }

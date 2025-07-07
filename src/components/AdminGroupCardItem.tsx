@@ -10,7 +10,7 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
 import { IoEyeOffSharp, IoEyeOutline } from "react-icons/io5";
 import { PiExclamationMarkFill } from "react-icons/pi";
-import { MdOutlineModeEdit, MdClose } from "react-icons/md";
+
 import doneTasks from "../utils/doneTasks";
 import type { UsersInCompany } from "../@types/user";
 import { getUsersInCompany } from "../api/company/get-users-incompany";
@@ -93,12 +93,7 @@ const AdminGroupCardItem = ({
     );
   };
 
-  const handleEditClick = (user: UsersInCompany) => {
-    setCurrentUserToEdit(user);
-    setEditedUserName(user.name);
-    setEditedUserNameError(false);
-    setIsEditModalOpen(true);
-  };
+
 
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);

@@ -3,7 +3,7 @@ import { Card, Modal, Button, Input, Select } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { SlArrowDown } from "react-icons/sl";
 import Loading from "./Loading";
-import { IoIosAddCircleOutline } from "react-icons/io";
+
 import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import type { WorkGroup } from "../@types/group";
 import { useSelector } from "react-redux";

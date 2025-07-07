@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Checkbox } from "@telegram-apps/telegram-ui";
+import { Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
-import { useNavigate, useParams } from "react-router-dom";
-import { SlArrowLeft, SlClose } from "react-icons/sl";
-
-import TestImage from "../assets/test_image.jpeg";
-import AudioMessageComposer from "./AudioMessageComposer";
-import Waveform from "./Waveform";
+import { useParams } from "react-router-dom";
+import { SlClose } from "react-icons/sl";
 import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
-import { editTask } from "../api/task/edit-task";
 
 interface ImageUploadProps {
   editMode: boolean;
@@ -23,10 +18,7 @@ interface ImageUploadProps {
 }
 
 function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, setActivePoint, onFullScreenChange }: ImageUploadProps) {
-  const mockAudioUrl =
-    "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
   const telegramData = getTelegramData();
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const [task, setTask] = useState<Task | null>(null);
@@ -185,50 +177,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   };
 
-  const handleEditTask = async () => {
-    if (!task) return;
 
-    if (isDragging) handleDragEnd();
-
-    const pointsToSend = taskPoints.map((p) => ({
-      id: p.id,
-      title: p.title,
-      taskboard_id: p.taskboard_id,
-      thumbnails: p.thumbnails,
-      mark_icon: p.mark_icon,
-      coordinates: [p.x, p.y],
-      qrcode: p.qrcode,
-      points: [],
-      description: p.description,
-      voice_message: p.voice_message,
-      done_at: p.completed ? p.done_at || new Date().toISOString() : null,
-      issued_at: p.issued_at,
-      warning_at: p.warning_at,
-    })) as unknown as TaskPoint[];
-
-    const taskDataToSend: Task = {
-      ...task,
-      task_points: pointsToSend,
-      done_at: task.done_at || null,
-    };
-
-    console.log("Отправляем данные задачи на редактирование:", taskDataToSend);
-
-    try {
-      const res = await editTask(taskDataToSend);
-      if (res.status === 200 || res.status === 201) {
-        alert("Изменения успешно сохранены!");
-        setIsFullScreen(false);
-        await fetchAndSetTaskData();
-      } else {
-        alert("Ошибка при сохранении изменений.");
-        console.error("API response error:", res);
-      }
-    } catch (e: any) {
-      alert("Произошла ошибка при отправке данных.");
-      console.error("Ошибка при редактировании задачи:", e);
-    }
-  };
 
   return (
     <div className="p-4 pt-0">

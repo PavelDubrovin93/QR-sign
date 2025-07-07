@@ -1,7 +1,6 @@
 import { config } from "../../configs/app.config";
 import { apiPrefix } from "../constants";
 import type { UsersInCompany } from "../../@types/user";
-import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 
 export interface UserWithRole extends UsersInCompany {
   role: string;
@@ -9,9 +8,6 @@ export interface UserWithRole extends UsersInCompany {
 
 export const getUsersWithRoles = async (companyId: string): Promise<{ data: UserWithRole[] }> => {
   try {
-    const telegramData = getTelegramData();
-    const webapp = window.Telegram?.WebApp;
-    
     const telegramUserId = 601732567; //webapp?.initDataUnsafe?.user?.id;
     
     const usersUrl = `${config.BACKEND_URL}/${apiPrefix.api}/companies/get_all_users_in_company_and_uc_id/${companyId}`;
