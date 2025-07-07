@@ -418,6 +418,7 @@ const AdminPage = () => {
       />
       <AdminGroupCard data={filteredTaskBoards} loading={isLoadingTaskBoards} companyId={Number(selectedValue)} onDataRefresh={refreshWorkgroupData} />
       <UsersInCompanyCard
+        selectedValue={String(selectedValue)}
         data={dataUsersInCompany}
         loading={isLoadingUsersInCompany}
       />

@@ -46,7 +46,7 @@ function App() {
   const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [userRole, setUserRole] = useState<string>("");
   const hasAttemptedRoleFetch = useRef(false);
-
+console.log(userRole, 'role')
   const isLoadingProfileUser = useSelector(
     (state: RootState) => state.entities.user.isLoading
   );
@@ -61,7 +61,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 601732567; //webapp?.initDataUnsafe?.user?.id;
+  const token_mock = 12312312; //webapp?.initDataUnsafe?.user?.id;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -207,13 +207,15 @@ function App() {
     hasAttemptedRoleFetch.current = false;
   };
 
-  if (isLoadingProfileUser || isCheckingUser || (!isFirstTimeUser && !userRole)) {
+  if (isLoadingProfileUser || isCheckingUser || (!isFirstTimeUser && !userRole)) {  
     return (
       <div className="flex items-center justify-center min-h-screen">
+        <div>
         <Loading size={36} color={"#2a90ff"} />
-        <span className="ml-3 text-sm">
+        <span className="ml-3 text-sm" style={{color: telegramData?.themeParams?.text_color }}>
           {isCheckingUser ? "Проверяем пользователя..." : "Загрузка..."}
         </span>
+        </div>
       </div>
     );
   }
