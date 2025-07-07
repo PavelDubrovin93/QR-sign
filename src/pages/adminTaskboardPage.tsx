@@ -5,11 +5,14 @@ import {
   Section,
   Select,
   Textarea,
+  Checkbox,
 } from "@telegram-apps/telegram-ui";
-import { SlArrowDown } from "react-icons/sl";
-import { useEffect, useState, useCallback } from "react";
+import { SlClose } from "react-icons/sl";
+import { MdUpload } from "react-icons/md";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import type { UserCompanies } from "../@types/user";
+import type { TaskPoint } from "../@types/task";
 import Loading from "../components/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../store/rootReducer";
@@ -28,6 +31,11 @@ import TestImage from "../assets/test_image.jpeg";
 import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import { createTask } from "../api/task/create-task";
 import type { CreateTaskPayload } from "../@types/task";
+import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
+
+import TaskCard from "../components/TaskCardOpened";
+import ImageUpload from "../components/ImageUpload";
+
 
 export interface WorkGroup {
   id: number;
@@ -40,7 +48,9 @@ const adminTaskboardPage = () => {
   const dispatch = useDispatch();
   const telegramData = getTelegramData();
 
-  const [selectedValue, setSelectedValue] = useState<string | number>("");
+  const [selectedValue, setSelectedValue] = useState<string | number>(() => {
+    return getSelectedCompany() || "";
+  });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalSelectedCompanyId, setModalSelectedCompanyId] = useState<
     string | number
@@ -54,6 +64,10 @@ const adminTaskboardPage = () => {
 
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  
+  // Image upload (basic only)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
@@ -65,9 +79,20 @@ const adminTaskboardPage = () => {
       const res = await getCompaniesByClient();
       if (res.data) {
         dispatch(setUserCompanies(res.data));
-        if (res.data.length > 0) {
-          setSelectedValue(res.data[0].company_id || "");
-          setModalSelectedCompanyId(res.data[0].company_id || "");
+        
+        const savedCompanyId = getSelectedCompany();
+        const validSavedCompany = savedCompanyId && res.data.find((c: UserCompanies) => 
+          String(c.company_id) === savedCompanyId
+        );
+        
+        if (validSavedCompany) {
+          setSelectedValue(savedCompanyId);
+          setModalSelectedCompanyId(savedCompanyId);
+        } else if (res.data.length > 0) {
+          const firstCompanyId = res.data[0].company_id || "";
+          setSelectedValue(firstCompanyId);
+          setModalSelectedCompanyId(firstCompanyId);
+          setSelectedCompany(firstCompanyId);
         }
       }
     } catch (e: any) {
@@ -129,11 +154,7 @@ const adminTaskboardPage = () => {
     fetchCompanies();
   }, []);
 
-  useEffect(() => {
-    if (isModalOpen && modalSelectedCompanyId) {
-      fetchWorkGroups(modalSelectedCompanyId);
-    }
-  }, [modalSelectedCompanyId, isModalOpen]);
+
 
   useEffect(() => {
     if (selectedValue !== "") {
@@ -143,82 +164,86 @@ const adminTaskboardPage = () => {
     }
   }, [selectedValue]);
 
+
+
   const handleOpenModal = () => {
     setIsModalOpen(true);
-    if (dataCompanies && dataCompanies.length > 0) {
-      setModalSelectedCompanyId(
-        (selectedValue ?? "") || (dataCompanies[0]?.company_id ?? "")
-      );
-    } else {
-      setModalSelectedCompanyId("");
+    if (modalSelectedCompanyId) {
+      fetchWorkGroups(modalSelectedCompanyId);
     }
-    setTaskName("");
-    setTaskDescription("");
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setUploadedImage(null);
     setTaskName("");
     setTaskDescription("");
-    setWorkGroups([]);
+    setModalSelectedCompanyId("");
     setModalSelectedWorkGroupId("");
   };
 
-  const handleAddTask = async () => {
-    if (
-      !taskName ||
-      !taskDescription ||
-      !modalSelectedCompanyId ||
-      !modalSelectedWorkGroupId
-    ) {
-      alert(
-        "Пожалуйста, заполните все поля (Название, Описание, Компания, Группа)!"
-      );
+  // Image upload handlers
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setUploadedImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Form handlers
+  const handleModalCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCompanyId = event.target.value;
+    setModalSelectedCompanyId(selectedCompanyId);
+    fetchWorkGroups(selectedCompanyId);
+  };
+
+  const handleModalWorkGroupChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setModalSelectedWorkGroupId(event.target.value);
+  };
+
+  const handleSave = async () => {
+    if (!taskName || !taskDescription) {
+      alert("Заполните все обязательные поля.");
       return;
     }
 
-    const taskData: CreateTaskPayload = {
+    const payload: CreateTaskPayload = {
       title: taskName,
+      description: taskDescription,
       company_id: Number(modalSelectedCompanyId),
       work_group_id: Number(modalSelectedWorkGroupId),
-      image: TestImage,
+      image: uploadedImage || "",
       location: [0, 0],
-      type: "string",
-      description: taskDescription,
+      type: "standard",
       task_points: [],
     };
 
     try {
-      const res = await createTask(taskData);
-      if (res.status === 200 || res.status === 201) {
-        alert("Задача успешно добавлена!");
+      const res = await createTask(payload);
+      if (res.data) {
+        alert("Задача успешно создана!");
         handleCloseModal();
         fetchTasks(selectedValue);
-      } else {
-        alert("Ошибка при добавлении задачи.");
-        console.error("API response error:", res);
       }
-    } catch (e: any) {
-      alert("Произошла ошибка при отправке данных задачи.");
-      console.error("Ошибка при добавлении задачи:", e);
+    } catch (error) {
+      console.error("Ошибка создания задачи:", error);
+      alert("Ошибка при создании задачи");
     }
   };
 
+
+
+
+
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedValue(event.target.value);
-  };
-
-  const handleModalSelectChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const newCompanyId = event.target.value;
-    setModalSelectedCompanyId(newCompanyId);
-  };
-
-  const handleWorkGroupSelectChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setModalSelectedWorkGroupId(event.target.value);
+    const newValue = event.target.value;
+    setSelectedValue(newValue);
+    setSelectedCompany(newValue);
   };
 
   return (
@@ -282,142 +307,147 @@ const adminTaskboardPage = () => {
         modal={true}
         preventScrollRestoration={true}
       >
+       
         <div
           style={{
-            borderTop: "1px solid rgba(42, 144, 255, 0.6)",
+            
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
           }}
           className="py-4 px-4 top-shadow-container"
         >
-          <div className="flex justify-center relative top-[-10px]">
-            <SlArrowDown
-              size={26}
-              // color={telegramData?.themeParams.button_color}
-            />
-          </div>
+
           <h3 className="text-center">Добавить задачу</h3>
 
-          <div className="rounded-md overflow-hidden relative cursor-pointer">
-            <img
-              alt="Task image"
-              src={TestImage}
-              className="w-full h-auto object-cover rounded-xl p-2 pb-0"
+          {/* Image Upload Section */}
+          <div className="rounded-md mb-4">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="hidden"
             />
-          </div>
-          <Input
-            placeholder="Название задачи"
-            value={taskName}
-            onChange={(e) => setTaskName(e.target.value)}
-            className="mb-3"
-          />
-          <Textarea
-            placeholder="Описание задачи"
-            style={{ minHeight: "70px" }}
-            value={taskDescription}
-            onChange={(e) => setTaskDescription(e.target.value)}
-          />
-          <div className="mb-3" style={{ height: "84px" }}>
-            {isLoadingCompanies ? (
-              <div
-                className="flex justify-center items-center h-full"
-                style={{ padding: "10px" }}
-              >
-                <Loading size={30} color={"#2a90ff"} />
-                <span
-                  style={{
-                    marginLeft: "10px",
-                    color: "var(--tgui--text_color)",
-                  }}
+            
+            {uploadedImage ? (
+              <div className="relative py-4">
+                <ImageUpload image={uploadedImage} editMode={true}/>
+                <Button
+                  mode="bezeled"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute top-2 right-2 text-xs px-2 py-1 bg-white shadow-md"
                 >
-                  Загрузка компаний...
-                </span>
+                  Изменить изображение
+                </Button>
               </div>
             ) : (
-              <Select
-                status="focused"
-                value={modalSelectedCompanyId}
-                onChange={handleModalSelectChange}
-                disabled={dataCompanies?.length === 0}
-                style={{ width: "100%" }}
+              <div
+                className="flex flex-col items-center justify-center p-8 border-4 border-dashed border-blue-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 bg-gray-50"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  minHeight: "150px",
+                  backgroundColor: telegramData?.colorScheme === "dark" ? "#2a2a2a" : "#f8fafc",
+                  borderColor: telegramData?.colorScheme === "dark" ? "#4a5568" : "#3b82f6",
+                }}
               >
+                <MdUpload 
+                  size={48} 
+                  className="mb-3"
+                  style={{ color: telegramData?.themeParams.button_color || "#3b82f6" }}
+                />
+                <p 
+                  className="text-sm font-medium text-center"
+                  style={{ color: telegramData?.themeParams.text_color || "#374151" }}
+                >
+                  Загрузите изображение задачи
+                </p>
+                <p 
+                  className="text-xs text-center mt-1"
+                  style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
+                >
+                  JPG, PNG до 10MB
+                </p>
+              </div>
+            )}
+            
+            
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Название задачи
+              </label>
+              <Input
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+                placeholder="Введите название задачи"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Описание
+              </label>
+              <Textarea
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder="Введите описание задачи"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Компания
+              </label>
+              <Select
+                value={String(modalSelectedCompanyId)}
+                onChange={handleModalCompanyChange}
+                className="w-full"
+              >
+                <option value="">Выберите компанию</option>
                 {dataCompanies?.map((company: UserCompanies) => (
-                  <option
-                    key={company.company_id}
-                    value={company.company_id || ""}
-                  >
+                  <option key={company.company_id} value={company.company_id}>
                     {company.company_name}
                   </option>
                 ))}
-                {dataCompanies?.length === 0 && (
-                  <option disabled>Нет доступных компаний</option>
-                )}
               </Select>
-            )}
-          </div>
+            </div>
 
-          <div className="mb-5" style={{ height: "84px" }}>
-            {isLoadingWorkGroups ? (
-              <div
-                className="flex justify-center items-center h-full"
-                style={{ padding: "10px" }}
-              >
-                <Loading size={30} color={"#2a90ff"} />
-                <span
-                  style={{
-                    marginLeft: "10px",
-                    color: "var(--tgui--text_color)",
-                  }}
-                >
-                  Загрузка групп...
-                </span>
-              </div>
-            ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Рабочая группа
+              </label>
               <Select
-                status="focused"
-                value={modalSelectedWorkGroupId}
-                onChange={handleWorkGroupSelectChange}
-                disabled={workGroups.length === 0 || !modalSelectedCompanyId}
-                style={{ width: "100%" }}
+                value={String(modalSelectedWorkGroupId)}
+                onChange={handleModalWorkGroupChange}
+                className="w-full"
+                disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
               >
-                {workGroups.length > 0 ? (
-                  workGroups.map((group: WorkGroup) => (
-                    <option key={group.id} value={group.id || ""}>
-                      {group.title}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>Нет доступных групп</option>
-                )}
+                <option value="">Выберите рабочую группу</option>
+                {workGroups.map((group: WorkGroup) => (
+                  <option key={group.id} value={group.id}>
+                    {group.title}
+                  </option>
+                ))}
               </Select>
-            )}
-          </div>
+            </div>
 
-          <div className="flex items-center">
-            <Button
-              stretched
-              mode="bezeled"
-              onClick={handleCloseModal}
-              className="mx-2"
-            >
-              Отмена
-            </Button>
-            <Button
-              stretched
-              onClick={handleAddTask}
-              className="mx-2"
-              disabled={
-                !taskName ||
-                !taskDescription ||
-                !modalSelectedCompanyId ||
-                !modalSelectedWorkGroupId
-              }
-            >
-              Сохранить
-            </Button>
+            <div className="flex justify-end space-x-2">
+              <Button mode="plain" onClick={handleCloseModal}>
+                Отмена
+              </Button>
+              <Button mode="filled" onClick={handleSave}>
+                Сохранить
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
+
     </>
   );
 };

@@ -19,4 +19,6 @@ export interface UsersInCompany {
   photo_url: string;
   tg_id: number | null;
   uc_id: number | null;
+  workgroup_id: number | null;
+  role?: string;
 }

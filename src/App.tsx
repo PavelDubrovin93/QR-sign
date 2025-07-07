@@ -61,7 +61,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 868007436;
+  const token_mock = 934731742;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {

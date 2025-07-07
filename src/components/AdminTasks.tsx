@@ -17,7 +17,7 @@ const AdminTasks = () => {
   return (
     <>
       {dataTasks?.map((task) => {
-        return <TaskCard data={task} path={`/admin-taskboard/${task.id}`} />;
+        return <TaskCard key={task.id} data={task} path={`/admin-taskboard/${task.id}`} />;
       })}
     </>
   );

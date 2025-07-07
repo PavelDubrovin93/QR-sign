@@ -17,7 +17,14 @@ import Loading from "./Loading";
 //   }>;
 // }
 
-const AdminGroupCard = ({ data, loading, companyId }: any) => {
+interface AdminGroupCardProps {
+  data: any;
+  loading: boolean;
+  companyId: number;
+  onDataRefresh: () => Promise<void>;
+}
+
+const AdminGroupCard = ({ data, loading, companyId, onDataRefresh }: AdminGroupCardProps) => {
   if (loading) {
     return (
       <div className="py-4">
@@ -35,13 +42,14 @@ const AdminGroupCard = ({ data, loading, companyId }: any) => {
 
   return (
     <div className="p-4">
-      {data.map((cardData: any) => (
+      {data.map((cardData: any, index: number) => (
         <AdminGroupCardItem
-          key={cardData.workgroup?.id}
+          key={cardData.workgroup?.id || `workgroup-${index}`}
           workgroup={cardData.workgroup}
           users={cardData.users}
           taskboards={cardData.taskboards}
           companyId={companyId}
+          onDataRefresh={onDataRefresh}
         />
       ))}
     </div>

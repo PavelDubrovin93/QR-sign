@@ -152,9 +152,9 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
       >
         <div className="flex flex-col justify-between h-full p-3">
           <div className="flex flex-col items-start gap-2">
-            <div className="rounded-md overflow-hidden relative w-full">
-              <p className="text-sm flex items-center mt-1 mb-2">
-                Участники без группы:
+             <div className="rounded-md overflow-hidden relative w-full"> {/* не получается пофиксить - просто поменяй XD */}
+              <p className="text-sm flex items-center mt-1 mb-2"> 
+                Все участники
               </p>
               <div>
                 {!loading ? (
@@ -185,7 +185,7 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
                             <p>{name}</p>
                           </div>
                           <div>
-                            <IoIosAddCircleOutline size={20} />
+                            {/* <IoIosAddCircleOutline size={20} /> */}
                           </div>
                         </div>
                       );
@@ -211,7 +211,7 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
       >
         <div
           style={{
-            borderTop: "1px solid rgba(42, 144, 255, 0.6)",
+            
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
           }}

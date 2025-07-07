@@ -77,7 +77,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = 868007436; //! webapp?.initDataUnsafe?.user?.id; ALSO CHANGE
+      const telegramUserId = 934731742; //! webapp?.initDataUnsafe?.user?.id; ALSO CHANGE
       const telegramPhotoUrl = ""; //webapp?.initDataUnsafe?.user?.photo_url;
       
       if (!telegramUserId) {
@@ -93,7 +93,6 @@ const RegistrationSteps = ({
       let userData;
 
       if (companyChoice === "create") {
-        // Step 1: Create user with cold registration
         const registrationResponse = await registerUserCold(registrationData);
         
         if (registrationResponse.data) {
@@ -102,11 +101,10 @@ const RegistrationSteps = ({
             user_id: registrationResponse.data.id,
             default_company_choice: null as number | null,
             default_color: "#2a90ff",
-            current_role: "employer", // Default role
+            current_role: "employer",
             name_for_admin: userName.trim(),
           };
 
-          // Step 2: Create company and assign user as admin
           const companyData = {
             title: companyName.trim(),
             description: `Компания создана пользователем ${userName.trim()}`,
@@ -116,13 +114,11 @@ const RegistrationSteps = ({
           const companyResponse = await createCompany(companyData);
           
           if (companyResponse.data) {
-            // Update user role to admin since they created the company
             userData.current_role = "admin";
             userData.default_company_choice = companyResponse.data.id as number;
           }
         }
       } else if (companyChoice === "join") {
-        // Join company using hot registration (validates company exists and creates user + user_company record)
         const companyId = parseInt(companyCode.trim());
         
         if (isNaN(companyId)) {
@@ -130,7 +126,6 @@ const RegistrationSteps = ({
         }
         
         try {
-          // Hot registration validates company exists and creates user + user_company record
           const hotRegistrationResponse = await registerUserHot(companyId, registrationData);
           
           if (hotRegistrationResponse.data) {
@@ -139,18 +134,16 @@ const RegistrationSteps = ({
               user_id: hotRegistrationResponse.data.id,
               default_company_choice: companyId,
               default_color: "#2a90ff",
-              current_role: "pending", // User starts with pending role
+              current_role: "pending",
               name_for_admin: userName.trim(),
             };
           }
         } catch (companyError: any) {
-          // Company doesn't exist or other error from hot registration
           throw new Error("Компания с таким кодом не найдена. Проверьте правильность кода.");
         }
       }
 
       if (userData) {
-        // Update Redux store with user data
         dispatch(setUserProfile(userData));
         setIsModalOpen(false);
         onClose?.();
@@ -273,7 +266,7 @@ const RegistrationSteps = ({
             placeholder="Код компании (например: 123)"
             value={companyCode}
             onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers
+              const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers, its good rn
               setCompanyCode(value);
               setErrors(prev => ({ ...prev, companyCode: false, api: "" }));
             }}
@@ -372,7 +365,7 @@ const RegistrationSteps = ({
       >
         <div
           style={{
-            borderTop: "1px solid rgba(42, 144, 255, 0.6)",
+            
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
             backgroundColor: telegramData?.themeParams?.bg_color || "#ffffff",

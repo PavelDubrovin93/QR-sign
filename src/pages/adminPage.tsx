@@ -27,18 +27,23 @@ import {
   type CreateGroupFormErrors,
 } from "../utils/validate/validateGroupForm";
 import { getUsersInCompany } from "../api/company/get-users-incompany";
+import { getUsersWithRoles } from "../api/company/get-users-with-roles";
 import {
   setUsersInCompany,
   setUsersInCompanyLoading,
 } from "../store/slices/entities/usersInCompany/usersInCompanySlice";
 import UsersInCompanyCard from "../components/UsersInCompanyCard";
+import NotApprovedUsersCard from "../components/NotApprovedUsersCard";
 import type { RootState } from "../store/rootReducer";
 import type { TaskBoard } from "../@types/task";
 import type { UserCompanies, UsersInCompany } from "../@types/user";
+import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
-  const [selectedValue, setSelectedValue] = useState<string | number>("");
+  const [selectedValue, setSelectedValue] = useState<string | number>(() => {
+    return getSelectedCompany() || "";
+  });
   const [_, setIsLoadingGroups] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -84,9 +89,20 @@ const AdminPage = () => {
         const res = await getCompaniesByClient();
         if (res.data) {
           dispatch(setUserCompanies(res.data));
-          if (res.data.length > 0) {
-            setSelectedValue(res.data[0].company_id || "");
-            setModalSelectedCompanyId(res.data[0].company_id || "");
+          
+          const savedCompanyId = getSelectedCompany();
+          const validSavedCompany = savedCompanyId && res.data.find((c: UserCompanies) => 
+            String(c.company_id) === savedCompanyId
+          );
+          
+          if (validSavedCompany) {
+            setSelectedValue(savedCompanyId);
+            setModalSelectedCompanyId(savedCompanyId);
+          } else if (res.data.length > 0) {
+            const firstCompanyId = res.data[0].company_id || "";
+            setSelectedValue(firstCompanyId);
+            setModalSelectedCompanyId(firstCompanyId);
+            setSelectedCompany(firstCompanyId);
           }
         }
       } catch (e: any) {
@@ -113,7 +129,7 @@ const AdminPage = () => {
         try {
           const [groupsResult, usersResult] = await Promise.allSettled([
             getWorkGroupsByCompanyId(String(selectedValue)),
-            getUsersInCompany(String(selectedValue)),
+            getUsersWithRoles(String(selectedValue)),
           ]);
 
           if (groupsResult.status === "fulfilled" && groupsResult.value.data) {
@@ -184,16 +200,16 @@ const AdminPage = () => {
         });
       }
 
-      alert(`Группа "${groupName}" успешно добавлена!`);
       handleCloseModal();
     } catch (e) {
       console.error("Ошибка при создании группы:", e);
-      alert("Не удалось добавить группу. Попробуйте еще раз.");
     }
   };
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedValue(event.target.value);
+    const newValue = event.target.value;
+    setSelectedValue(newValue);
+    setSelectedCompany(newValue);
   };
 
   const handleModalSelectChange = (
@@ -220,6 +236,31 @@ const AdminPage = () => {
     
     return workgroupMatch || userMatch;
   }) || [];
+
+  const refreshWorkgroupData = async () => {
+    if (selectedValue !== "" && selectedValue !== null && selectedValue !== undefined) {
+      try {
+        const [groupsResult, usersResult] = await Promise.allSettled([
+          getWorkGroupsByCompanyId(String(selectedValue)),
+          getUsersWithRoles(String(selectedValue)),
+        ]);
+
+        if (groupsResult.status === "fulfilled" && groupsResult.value.data) {
+          dispatch(setTasksBoardByCompany(groupsResult.value.data));
+        } else {
+          dispatch(setTasksBoardByCompany([]));
+        }
+
+        if (usersResult.status === "fulfilled" && usersResult.value.data) {
+          dispatch(setUsersInCompany(usersResult.value.data));
+        } else {
+          dispatch(setUsersInCompany([]));
+        }
+      } catch (e: any) {
+        console.error("Ошибка обновления данных:", e);
+      }
+    }
+  };
 
   return (
     <>
@@ -289,7 +330,7 @@ const AdminPage = () => {
       >
         <div
           style={{
-            borderTop: "1px solid rgba(42, 144, 255, 0.6)",
+            
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
           }}
@@ -369,7 +410,13 @@ const AdminPage = () => {
           </div>
         </div>
       </Modal>
-      <AdminGroupCard data={filteredTaskBoards} loading={isLoadingTaskBoards} companyId={Number(selectedValue)} />
+      <NotApprovedUsersCard
+        data={dataUsersInCompany}
+        loading={isLoadingUsersInCompany}
+        companyId={Number(selectedValue)}
+        onDataRefresh={refreshWorkgroupData}
+      />
+      <AdminGroupCard data={filteredTaskBoards} loading={isLoadingTaskBoards} companyId={Number(selectedValue)} onDataRefresh={refreshWorkgroupData} />
       <UsersInCompanyCard
         data={dataUsersInCompany}
         loading={isLoadingUsersInCompany}

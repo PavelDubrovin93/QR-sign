@@ -67,8 +67,8 @@ function TaskCard({ data, path }: TaskCardProps) {
               <p className="text-base font-semibold pb-2">{data?.title}</p>
               {taskPoints?.map((point) => {
                 return (
-                  <div className="flex items-start gap-2 pb-2">
-                    <Checkbox checked={!!point.done_at} />
+                  <div key={point.id} className="flex items-start gap-2 pb-2">
+                    <Checkbox checked={!!point.done_at} readOnly />
                     <span className="text-sm">{point.title}</span>
                   </div>
                 );
