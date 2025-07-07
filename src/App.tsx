@@ -61,7 +61,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = 934731742;
+  const token_mock = 601732567; //webapp?.initDataUnsafe?.user?.id;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -76,10 +76,8 @@ function App() {
         
         let targetCompany;
         
-        // First, try to find the default company if specified
         if (defaultCompanyId) {
           targetCompany = companies.find(company => company.company_id === defaultCompanyId);
-          // If default company is found and it's not "not_approved", use it
           if (targetCompany && targetCompany.role !== Roles.NOT_APPROVED) {
             setUserRole(targetCompany.role);
             return;

@@ -15,9 +15,14 @@ import { editTask } from "../api/task/edit-task";
 interface ImageUploadProps {
   editMode: boolean;
   image: string | null;
+  taskPoints: TaskPoint[];
+  setTaskPoints: React.Dispatch<React.SetStateAction<TaskPoint[]>>;
+  activePoint: TaskPoint | null;
+  setActivePoint: React.Dispatch<React.SetStateAction<TaskPoint | null>>;
+  onFullScreenChange?: (isFullScreen: boolean) => void;
 }
 
-function TaskCard({ editMode, image }: ImageUploadProps) {
+function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, setActivePoint, onFullScreenChange }: ImageUploadProps) {
   const mockAudioUrl =
     "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
   const telegramData = getTelegramData();
@@ -25,9 +30,7 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
   const { id } = useParams<{ id: string }>();
 
   const [task, setTask] = useState<Task | null>(null);
-  const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
@@ -62,6 +65,12 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
   useEffect(() => {
     fetchAndSetTaskData();
   }, []);
+
+  useEffect(() => {
+    if (onFullScreenChange) {
+      onFullScreenChange(isFullScreen);
+    }
+  }, [isFullScreen, onFullScreenChange]);
 
   const { isDragging, draggedPointId, handleDragStart, handleDragEnd } =
     useDnDpoints({
@@ -133,13 +142,16 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
     )
       return;
 
-    const clickXRelativeToImagePx = e.clientX - renderedImageRect.left;
-    const clickYRelativeToImagePx = e.clientY - renderedImageRect.top;
+    const target = e.currentTarget as HTMLImageElement;
+    const rect = target.getBoundingClientRect();
+    
+    const clickXRelativeToImagePx = e.clientX - rect.left;
+    const clickYRelativeToImagePx = e.clientY - rect.top;
 
     const newXPercent =
-      (clickXRelativeToImagePx / renderedImageRect.width) * 100;
+      (clickXRelativeToImagePx / rect.width) * 100;
     const newYPercent =
-      (clickYRelativeToImagePx / renderedImageRect.height) * 100;
+      (clickYRelativeToImagePx / rect.height) * 100;
 
     if (
       newXPercent >= 0 &&
@@ -152,7 +164,7 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
           taskPoints.length > 0
             ? Math.max(...taskPoints.map((p) => p.id)) + 1
             : 1,
-        title: "Новая задача",
+        title: "",
         taskboard_id: task?.id || 0,
         thumbnails: "",
         mark_icon: "",
@@ -223,14 +235,14 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
       {/* Модалка с изображением */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-          {editMode && (
+          {/* {editMode && (
             <Button
               style={{ position: "absolute", top: "10px", left: "10px" }}
               onClick={handleEditTask}
             >
               Сохранить изменения
             </Button>
-          )}
+          )} */}
           <button
             className="absolute top-4 right-4 text-white z-50"
             onClick={() => {
@@ -257,8 +269,12 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
 
           {/* Точки поверх изображения */}
           {taskPoints.map((point) => {
-            const pixelX = (point.x / 100) * renderedImageRect.width;
-            const pixelY = (point.y / 100) * renderedImageRect.height;
+            if (!fullSizeRef.current) return null;
+            
+            const imgRect = fullSizeRef.current.getBoundingClientRect();
+            const pixelX = (point.x / 100) * imgRect.width;
+            const pixelY = (point.y / 100) * imgRect.height;
+            
             return (
               <div
                 key={point.id}
@@ -266,8 +282,8 @@ function TaskCard({ editMode, image }: ImageUploadProps) {
                   isDragging && draggedPointId === point.id ? "z-50" : "z-40"
                 }`}
                 style={{
-                  left: `${pixelX + renderedImageRect.left}px`,
-                  top: `${pixelY + renderedImageRect.top}px`,
+                  left: `${pixelX + imgRect.left}px`,
+                  top: `${pixelY + imgRect.top}px`,
                   transform: "translate(-50%, -50%)",
                 }}
                 onMouseDown={(e) => handleDragStart(e, point)}

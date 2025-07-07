@@ -12,8 +12,7 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
     const telegramData = getTelegramData();
     const webapp = window.Telegram?.WebApp;
     
-    const token_mock = 934731742;
-    const telegramUserId = webapp?.initDataUnsafe?.user?.id || token_mock;
+    const telegramUserId = 601732567; //webapp?.initDataUnsafe?.user?.id;
     
     const usersUrl = `${config.BACKEND_URL}/${apiPrefix.api}/companies/get_all_users_in_company_and_uc_id/${companyId}`;
     console.log("getUsersWithRoles - Getting users from:", usersUrl);
@@ -23,7 +22,7 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': telegramUserId.toString(),
+        'Authorization': telegramUserId?.toString() || "",
       },
     });
     

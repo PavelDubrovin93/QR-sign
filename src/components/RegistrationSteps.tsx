@@ -18,7 +18,7 @@ const RegistrationSteps = ({
 }: RegistrationStepsProps) => {
   const dispatch = useDispatch();
   const telegramData = getTelegramData();
-  
+  const webapp = window.Telegram?.WebApp;
 
 
   const [isModalOpen, setIsModalOpen] = useState(showModal);
@@ -77,7 +77,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = 934731742; //! webapp?.initDataUnsafe?.user?.id; ALSO CHANGE
+      const telegramUserId = 601732567; //webapp?.initDataUnsafe?.user?.id;
       const telegramPhotoUrl = ""; //webapp?.initDataUnsafe?.user?.photo_url;
       
       if (!telegramUserId) {
@@ -87,7 +87,7 @@ const RegistrationSteps = ({
       const registrationData = {
         tg_id: telegramUserId,
         name: userName.trim(),
-        photo_url: telegramPhotoUrl,
+        photo_url: telegramPhotoUrl || "",
       };
 
       let userData;

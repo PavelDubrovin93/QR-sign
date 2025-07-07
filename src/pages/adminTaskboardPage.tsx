@@ -27,13 +27,12 @@ import {
   setTasksBoardByCompany,
 } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import AdminTasks from "../components/AdminTasks";
-import TestImage from "../assets/test_image.jpeg";
+
 import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import { createTask } from "../api/task/create-task";
 import type { CreateTaskPayload } from "../@types/task";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
 
-import TaskCard from "../components/TaskCardOpened";
 import ImageUpload from "../components/ImageUpload";
 
 
@@ -67,6 +66,9 @@ const adminTaskboardPage = () => {
   
   // Image upload (basic only)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
+  const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
+  const [isImageFullScreen, setIsImageFullScreen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
@@ -176,6 +178,8 @@ const adminTaskboardPage = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setUploadedImage(null);
+    setTaskPoints([]);
+    setActivePoint(null);
     setTaskName("");
     setTaskDescription("");
     setModalSelectedCompanyId("");
@@ -303,7 +307,7 @@ const adminTaskboardPage = () => {
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        dismissible
+        dismissible={!isImageFullScreen}
         modal={true}
         preventScrollRestoration={true}
       >
@@ -331,7 +335,15 @@ const adminTaskboardPage = () => {
             
             {uploadedImage ? (
               <div className="relative py-4">
-                <ImageUpload image={uploadedImage} editMode={true}/>
+                <ImageUpload 
+                  image={uploadedImage} 
+                  editMode={true}
+                  taskPoints={taskPoints}
+                  setTaskPoints={setTaskPoints}
+                  activePoint={activePoint}
+                  setActivePoint={setActivePoint}
+                  onFullScreenChange={setIsImageFullScreen}
+                />
                 <Button
                   mode="bezeled"
                   onClick={() => fileInputRef.current?.click()}
@@ -373,6 +385,8 @@ const adminTaskboardPage = () => {
             
           </div>
 
+          
+
           {/* Form Fields */}
           <div className="space-y-4">
             <div>
@@ -398,6 +412,62 @@ const adminTaskboardPage = () => {
                 className="w-full"
               />
             </div>
+
+            {/* Task Points List */}
+          {taskPoints.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Точки задач:</h4>
+              <div className="space-y-2">
+                {taskPoints.map((point, index) => (
+                  <div key={point.id} className="space-y-2">
+                    <div className="pl-4 pt-2">
+                      <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {point.id}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      
+                      <Input
+                        value={point.title}
+                        onChange={(e) => {
+                          const newTitle = e.target.value;
+                          setTaskPoints(prev => prev.map(p => 
+                            p.id === point.id ? { ...p, title: newTitle } : p
+                          ));
+                        }}
+                        placeholder="Название точки"
+                        className="flex-1"
+                      />
+                      <Button
+                        mode="plain"
+                        size="s"
+                        onClick={() => {
+                          setTaskPoints(prev => prev.filter(p => p.id !== point.id));
+                          if (activePoint?.id === point.id) {
+                            setActivePoint(null);
+                          }
+                        }}
+                        className="text-red-500"
+                      >
+                        Удалить
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={point.description || ""}
+                      onChange={(e) => {
+                        const newDescription = e.target.value;
+                        setTaskPoints(prev => prev.map(p => 
+                          p.id === point.id ? { ...p, description: newDescription } : p
+                        ));
+                      }}
+                      placeholder="Описание точки"
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
