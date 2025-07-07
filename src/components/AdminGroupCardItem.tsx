@@ -318,7 +318,7 @@ const AdminGroupCardItem = ({
                     <p className="text-base font-semibold pb-2">
                       {task.title}
                     </p>
-                    <p className="text-base font-semibold pb-2">{task.created_at.split('T')[0]}</p>
+                    <p className="text-base font-semibold pb-2">{task.created_at}</p>
                   </div>
                   <div className="list-disc list-inside">
                     {task_points?.map((task: any) => {
@@ -431,13 +431,17 @@ const AdminGroupCardItem = ({
                     Редактировать
                   </Button>
                   <Button
-                    size="s"
-                    stretched
                     mode="outline"
                     onClick={handleDeleteClick}
-                    style={{ color: '#dc2626', borderColor: '#dc2626' }}
+                    className="w-full max-w-xs"
+                    style={{
+                      border: '2px solid #ff4757',
+                      borderRadius: '20px',
+                      borderColor: '#ff4757',
+                      color: '#ff4757'
+                    }}
                   >
-                    Удалить
+                    Удалить  
                   </Button>
                 </div>
               </div>
