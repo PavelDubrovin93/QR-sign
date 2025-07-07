@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import and_
 
 from app.infrastructure.interfaces.repositories.IUserCompanyRepository import (
     IUserCompanyRepository,
@@ -110,7 +111,8 @@ class UserCompanyRepository(IUserCompanyRepository):
         return usercompanies_dto
 
     async def get_user_company_by_company_id_and_user_id(self, company_id: int, user_id: int) -> Optional[UserCompanyDTO]:
-        query = select(UserCompany).where(UserCompany.company_id == company_id and UserCompany.user_id == user_id)
+        query = select(UserCompany).where(and_(UserCompany.company_id == company_id, UserCompany.user_id == user_id))
+        
         result = await self.session.execute(query)
         usercompany = result.scalars().first()
         
