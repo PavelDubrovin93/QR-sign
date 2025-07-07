@@ -65,6 +65,20 @@ class CompanyService(ICompanyService):
             user_id=new_user_company.user_id,
             company_id=new_user_company.company_id,
             workgroup_id=new_user_company.workgroup_id,
+            role=uc.role,
+        )
+        data = await self.uc_repo.update_user_company(updated_uc_dto)
+        return data
+    
+    async def update_user_company_role(  #it needs to be fixed, but im tired (5:13am)
+        self, uc_id: int, new_user_company: UserCompanyDTO
+    ) -> Optional[UserCompanyDTO]:
+        uc = await self.uc_repo.get_user_company_by_id(uc_id)
+        updated_uc_dto = UserCompanyDTO(
+            id=uc.id,
+            user_id=new_user_company.user_id,
+            company_id=new_user_company.company_id,
+            workgroup_id=new_user_company.workgroup_id,
             role=new_user_company.role,
         )
         data = await self.uc_repo.update_user_company(updated_uc_dto)
