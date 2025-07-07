@@ -1,6 +1,9 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.TaskBoardService import TaskBoardService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
@@ -19,6 +22,14 @@ router = APIRouter()
 async def create_taskboard(
     taskboard_data: CreateTaskBoardResponse, session: AsyncSession = Depends(fastapi_get_db), user = Depends(get_current_user)
 ) -> TaskBoardResponse:
+
+    if re.match(BASE64_PATTERN, taskboard_data.image):
+        s3_service = S3Service()
+        uploaded_url = s3_service.upload_image(taskboard_data.image)
+        if uploaded_url:
+            taskboard_data.image = uploaded_url
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при загрузке изображения.")
 
     service = TaskBoardService(session)
     task_board = await service.create_taskboard(taskboard_data=taskboard_data)

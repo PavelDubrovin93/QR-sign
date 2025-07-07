@@ -1,8 +1,10 @@
+import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependenices.user_dependecy import get_current_user
 from app.infrastructure.db.session import fastapi_get_db
+from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
 from app.services.CompanyService import CompanyService
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
@@ -22,8 +24,13 @@ async def create_company(
     session: AsyncSession = Depends(fastapi_get_db),
 ) -> CompanyDTO:
     
-    if new_company.image_url is not None:
-        new_company.image_url = str(new_company.image_url)
+    if re.match(BASE64_PATTERN, new_company.image_url):
+        s3_service = S3Service()
+        uploaded_url = s3_service.upload_image(new_company.image_url)
+        if uploaded_url:
+            new_company.image_url = uploaded_url
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при загрузке изображения.")
 
     service = CompanyService(session)
     company = await service.create_new_company(user=current_user, company=new_company)
