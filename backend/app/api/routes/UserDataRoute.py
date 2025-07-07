@@ -41,3 +41,14 @@ async def get_user_companies(
     service = UserDataService(session)
     companies = await service.companies_for_user(user=current_user)
     return companies
+
+
+@router.get("/user_role/{company_id}")
+async def get_user_role(
+    company_id: int,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(fastapi_get_db),
+):
+    service = UserDataService(session)
+    role = await service.get_user_role(user_id=current_user.id, company_id=company_id)
+    return role

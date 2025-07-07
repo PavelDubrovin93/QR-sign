@@ -63,3 +63,12 @@ class ICompanyService(ABC):
         :return: List[UsersInCompanyResponse]
         """
         pass
+
+    @abstractmethod
+    async def get_all_users_in_company_and_uc_id(self, company_id: int) -> UsersInCompanyResponse:
+        """
+        обновить информацию по связи UserCompany.
+        :param company_id: ID компании
+        :return: List[UsersInCompanyResponse]
+        """
+        pass

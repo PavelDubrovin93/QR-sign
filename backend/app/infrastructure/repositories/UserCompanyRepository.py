@@ -109,6 +109,14 @@ class UserCompanyRepository(IUserCompanyRepository):
 
         return usercompanies_dto
 
+    async def get_user_company_by_company_id_and_user_id(self, company_id: int, user_id: int) -> Optional[UserCompanyDTO]:
+        query = select(UserCompany).where(UserCompany.company_id == company_id and UserCompany.user_id == user_id)
+        result = await self.session.execute(query)
+        usercompany = result.scalars().first()
+        usercompany_dto = await self.__to_dto(usercompany) if usercompany else None
+        
+        return usercompany_dto
+
     async def __to_dto(self, usercompany: UserCompany) -> UserCompanyDTO:
         return UserCompanyDTO(
             id=usercompany.id,

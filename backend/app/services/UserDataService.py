@@ -63,3 +63,10 @@ class UserDataService(IUserDataService):
                     )
                 )
         return responses
+    
+    async def get_user_role(self, user_id: int, company_id: int) -> str:
+        uc_repo = UserCompanyRepository(self.session)
+        uc = await uc_repo.get_user_company_by_company_id_and_user_id(
+            company_id=company_id, user_id=user_id
+        )
+        return uc.role
