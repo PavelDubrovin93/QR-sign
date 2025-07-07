@@ -56,7 +56,8 @@ class S3Service:
         :return: Постоянный URL загруженного файла или None в случае ошибки
         """
         # Декодируем изображение из Base64
-        file_binary = base64.b64decode(file_b64)
+        _, file = file_b64.split(";base64,")
+        file_binary = base64.b64decode(file)
 
         # Преобразование изображения в WebP с качеством 95%
         img = Image.open(io.BytesIO(file_binary))
