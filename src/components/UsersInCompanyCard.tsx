@@ -6,19 +6,22 @@ import Loading from "./Loading";
 
 import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import type { WorkGroup } from "../@types/group";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { UserCompanies, UsersInCompany } from "../@types/user";
 import type { RootState } from "../store/rootReducer";
 import { addUserToGroup } from "../api/company/add-user-toGroup";
+import { getWorkGroupsByCompanyId } from "../api/work_group/get-work_groupsByCompanyId";
+import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 
 interface UsersInCompanyCardProps {
   data: UsersInCompany[];
   loading: boolean;
+  selectedValue: string;
 }
 
-const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
+const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCardProps) => {
   const telegramData = getTelegramData();
-
+  const dispatch = useDispatch();
   const [groups, setGroups] = useState<WorkGroup[]>([]);
   const [loadingGroups, setLoadingGroups] = useState<boolean>(true);
   const [selectedGroup, setSelectedGroup] = useState<string | number>("");
@@ -127,6 +130,10 @@ const UsersInCompanyCard = ({ data, loading }: UsersInCompanyCardProps) => {
       }"`
     );
     handleCloseEditModal();
+    const res = await getWorkGroupsByCompanyId(selectedValue);
+    if(res.data) {
+      dispatch(setTasksBoardByCompany(res.data));
+    }
   };
 
   const handleModalCompanyChange = (

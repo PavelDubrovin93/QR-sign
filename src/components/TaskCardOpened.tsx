@@ -448,7 +448,7 @@ function TaskCard({ editMode }: TaskCardProps) {
             </div>
 
             {/* Описание задач */}
-            <div className="flex flex-col justify-left pl-2 pr-2">
+            <div className="flex flex-col justify-left pl-2 pr-2 w-full">
               <p className="text-base font-semibold pb-4">{task?.title}</p>
               {taskPoints.map((task_point: TaskPoint, index: number) => {
                 const { title, description, voice_message, completed } =

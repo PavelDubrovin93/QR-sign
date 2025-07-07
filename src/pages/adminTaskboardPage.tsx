@@ -535,11 +535,11 @@ const adminTaskboardPage = () => {
               </Select>
             </div>
 
-            <div className="flex justify-end space-x-2">
-              <Button mode="plain" onClick={handleCloseModal}>
+            <div className="flex items-center mt-4">
+              <Button stretched mode="bezeled" onClick={handleCloseModal} className="mx-2">
                 Отмена
               </Button>
-              <Button mode="filled" onClick={handleSave}>
+              <Button stretched mode="filled" onClick={handleSave} className="mx-2">
                 Сохранить
               </Button>
             </div>

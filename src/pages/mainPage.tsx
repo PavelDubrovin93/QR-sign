@@ -26,6 +26,7 @@ function HomePage() {
     (state: any) => state.entities.tasksBoard.data
   );
 
+  console.log(tasksRedux, 'tasksRedux')
   const telegramData = getTelegramData();
 
   useEffect(() => {
@@ -164,7 +165,7 @@ function HomePage() {
             {tasksRedux.length > 0 ? (
               tasksRedux?.map((elm: Task) => {
                 //@ts-ignore
-                return <TaskCard key={elm.id} path={`/taskboard/${elm.id}`} />;
+                return <TaskCard data={elm} key={elm.id} path={`/taskboard/${elm.id}`} />;
               })
             ) : (
               <div className="flex justify-center items-center">

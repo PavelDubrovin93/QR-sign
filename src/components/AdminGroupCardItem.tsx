@@ -337,6 +337,7 @@ const AdminGroupCardItem = ({
                                     toggleTaskCompletion(task.id)
                                   }
                                   readOnly
+                                  disabled
                                 />
                               )}
                             </span>
