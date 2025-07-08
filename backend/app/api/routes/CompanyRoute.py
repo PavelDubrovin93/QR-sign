@@ -24,7 +24,7 @@ async def create_company(
     session: AsyncSession = Depends(fastapi_get_db),
 ) -> CompanyDTO:
     
-    if re.match(BASE64_PATTERN, new_company.image_url):
+    if new_company.image_url != None and re.match(BASE64_PATTERN, new_company.image_url):
         s3_service = S3Service()
         uploaded_url = s3_service.upload_image(new_company.image_url)
         if uploaded_url:
