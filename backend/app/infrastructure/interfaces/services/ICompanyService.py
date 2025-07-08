@@ -47,17 +47,6 @@ class ICompanyService(ABC):
         pass
     
     @abstractmethod
-    async def update_user_company_role(  #it needs to be fixed, but im tired (5:13am)
-        self, uc_id: int, new_user_company: UserCompanyDTO
-    ) -> Optional[UserCompanyDTO]:
-        """
-        обновить информацию по связи UserCompany.
-        :param uc_data: UserCompanyDTO
-        :return: Объект UserCompanyDTO или None
-        """
-        pass
-    
-    @abstractmethod
     async def delete_user_company(self, uc_id: int) -> None:
         """
         обновить информацию по связи UserCompany.

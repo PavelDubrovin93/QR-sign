@@ -78,7 +78,7 @@ class S3Service:
                                   ChecksumSHA256=sha256_value,
                                   ACL='public-read')
         # Генерация постоянного публичного URL
-        public_url = f"https://s3.twcstorage.ru/{self.bucket_name}/{filename}"  # Возможно неверно
+        public_url = f"{self.endpoint_url}/{self.bucket_name}/{filename}"
         return public_url
 
     def delete_image(self, url: str) -> bool:
