@@ -14,7 +14,7 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       '/api': {
-        target: process?.env?.VITE_BACKEND_URL || "http://37.252.17.37",
+        target: process?.env?.VITE_BACKEND_URL || "https://arbuz-darom.ru/",
         changeOrigin: true,
         secure: false,
         ws: true,
