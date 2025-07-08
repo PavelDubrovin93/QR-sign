@@ -83,7 +83,8 @@ class TaskBoardService(ITaskBoardService):
         ))
 
         new_task_points = await self.tp_repo.edit_task_points_by_dto_list(
-            task_points=taskboard.task_points
+            task_points=taskboard.task_points,
+            task_board=taskboard.id
         )
         taskpoints_to_response = []
         for taskpoint in new_task_points:

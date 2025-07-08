@@ -191,10 +191,24 @@ class TaskPointRepository(ITaskPointRepository):
 
         return new_task_point
 
-    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO]):
-        for task_point in task_points:
-            await self.edit_task_point_by_dto(new_task_point=task_point)
-
+    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO], task_board: int):
+        #  Проверяем есть ли записи в запросе
+        if task_points:
+            #  если записи есть, сличаем с тем, что у нас есть в бд
+            db_taskpoints = await self.get_task_point_by_taskboard_id(taskboard_id=task_board)
+            existing_ids = {tp.id for tp in db_taskpoints}
+            incoming_ids = {tp.id for tp in task_points}
+            #  удаляем те записи, которых нет в запросе, но есть в бд
+            to_delete_ids = existing_ids - incoming_ids
+            for taskpoint_id in to_delete_ids:
+                await self.delete_task_point_by_id(taskpoint_id)
+            # Редактируем записи которые есть в запросе
+            for task_point in task_points:
+                #  Если есть записи, которых нету в бд, они обрабатываются в edit_task_point_by_dto
+                await self.edit_task_point_by_dto(new_task_point=task_point)
+        #  Если в запросе нет записей - удаляем все записи связанные с таскбордом
+        else:
+            await self.delete_task_point_by_taskboard_id(task_board)
         return task_points
 
     async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
