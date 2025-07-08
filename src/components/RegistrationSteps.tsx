@@ -77,8 +77,8 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id; //webapp?.initDataUnsafe?.user?.id;
-      const telegramPhotoUrl = ""; //webapp?.initDataUnsafe?.user?.photo_url;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 12312312;
+      const telegramPhotoUrl = "";
       
       if (!telegramUserId) {
         throw new Error("Telegram user ID not found");
