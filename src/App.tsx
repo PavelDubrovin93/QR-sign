@@ -46,7 +46,7 @@ function App() {
   const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [userRole, setUserRole] = useState<string>("");
   const hasAttemptedRoleFetch = useRef(false);
-console.log(userRole, 'role')
+
   const isLoadingProfileUser = useSelector(
     (state: RootState) => state.entities.user.isLoading
   );
