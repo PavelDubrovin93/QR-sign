@@ -33,7 +33,7 @@ class WorkGroupRepository(IWorkGroupRepository):
         result = await self.session.execute(query)
         workgroup_to_edit = result.scalar_one_or_none()
         if workgroup_to_edit is None:
-            raise ValueError(f"Пользователь с id {workgroup.id} не существует.")
+            raise ValueError(f"запись с id {workgroup.id} не существует.")
         workgroup_to_edit.title = workgroup.title
         workgroup_to_edit.description = workgroup.description
         await self.session.commit()

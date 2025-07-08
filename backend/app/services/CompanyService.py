@@ -57,29 +57,15 @@ class CompanyService(ICompanyService):
         self, uc_id: int, new_user_company: UserCompanyDTO
     ) -> Optional[UserCompanyDTO]:
         uc = await self.uc_repo.get_user_company_by_id(uc_id)
-        # dafuck?
-        # role = new_user_company.role if new_user_company.role is not None else uc.role
-        # workgroup_id = new_user_company.workgroup_id if new_user_company.workgroup_id is not None else uc.workgroup_id
+        # dafuck? Проверка наличия переменных в запросе. Если что то не передается, то он по умолчанию впаяет None из валидатора.
+        role = new_user_company.role if new_user_company.role is not None else uc.role
+        workgroup_id = new_user_company.workgroup_id if new_user_company.workgroup_id is not None else uc.workgroup_id
         updated_uc_dto = UserCompanyDTO(
             id=uc.id,
             user_id=new_user_company.user_id,
             company_id=new_user_company.company_id,
-            workgroup_id=new_user_company.workgroup_id,
-            role=uc.role,
-        )
-        data = await self.uc_repo.update_user_company(updated_uc_dto)
-        return data
-    
-    async def update_user_company_role(  #it needs to be fixed, but im tired (5:13am)
-        self, uc_id: int, new_user_company: UserCompanyDTO
-    ) -> Optional[UserCompanyDTO]:
-        uc = await self.uc_repo.get_user_company_by_id(uc_id)
-        updated_uc_dto = UserCompanyDTO(
-            id=uc.id,
-            user_id=new_user_company.user_id,
-            company_id=new_user_company.company_id,
-            workgroup_id=new_user_company.workgroup_id,
-            role=new_user_company.role,
+            workgroup_id=workgroup_id,
+            role=role,
         )
         data = await self.uc_repo.update_user_company(updated_uc_dto)
         return data

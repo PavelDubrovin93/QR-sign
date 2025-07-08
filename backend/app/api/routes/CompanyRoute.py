@@ -58,12 +58,13 @@ async def update_user_company_role(
     return updated_uc
 
 @router.put("/{uc_id}/role", response_model=UserCompanyDTO)
+#  Лишняя ручка
 async def update_user_company_role(
     uc_id: int, new_user_company: UserCompanyDTO, session: AsyncSession = Depends(fastapi_get_db)
 ) -> UserCompanyDTO:
     print(666, uc_id, new_user_company)
     service = CompanyService(session)
-    updated_uc = await service.update_user_company_role(uc_id, new_user_company)
+    updated_uc = await service.update_user_company(uc_id, new_user_company)
     return updated_uc
 
 

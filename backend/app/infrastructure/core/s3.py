@@ -5,13 +5,18 @@ from PIL import Image
 from typing import Optional
 from urllib.parse import urlparse
 import boto3
-from botocore.client import Config
 from botocore.exceptions import ClientError
 from environs import Env
+import hashlib
 
 # Инициализируем Environs для работы с переменными окружения
 env = Env()
 env.read_env()
+
+def calculate_sha256(content):
+    hasher = hashlib.sha256()
+    hasher.update(content)
+    return hasher.hexdigest()
 
 
 BASE64_PATTERN = r'^data:image/(png|jpeg|gif);base64,'
@@ -42,8 +47,7 @@ class S3Service:
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             region_name=region,
-            endpoint_url=endpoint_url,
-            config=Config(signature_version="s3v4")
+            endpoint_url=endpoint_url
         )
         self.bucket_name = bucket_name
 
@@ -64,9 +68,15 @@ class S3Service:
         buffer = io.BytesIO()
         img.save(buffer, format="WebP", quality=95)
         processed_image = buffer.getvalue()
+        sha256_value = calculate_sha256(processed_image)
         filename = f"{uuid.uuid4()}.webp"
         # Загружаем файл в S3
-        self.s3_client.put_object(Bucket=self.bucket_name, Key=filename, Body=processed_image, ContentType="image/webp")
+        self.s3_client.put_object(Bucket=self.bucket_name,
+                                  Key=filename,
+                                  Body=processed_image,
+                                  ContentType="image/webp",
+                                  ChecksumSHA256=sha256_value,
+                                  ACL='public-read')
         # Генерация постоянного публичного URL
         public_url = f"https://s3.twcstorage.ru/{self.bucket_name}/{filename}"  # Возможно неверно
         return public_url
