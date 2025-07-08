@@ -9,7 +9,7 @@ export interface UserRoleResponse {
 
 export const getUserRole = async (companyId: number): Promise<UserRoleResponse> => {
   const webapp = window.Telegram?.WebApp;
-  const telegramUserId = webapp?.initDataUnsafe?.user?.id || 12312312; //webapp?.initDataUnsafe?.user?.id;
+  const telegramUserId = webapp?.initDataUnsafe?.user?.id || 868007436; //webapp?.initDataUnsafe?.user?.id || 868007436;
 
   const response = await fetch(
     `${config.BACKEND_URL}/${apiPrefix.api}/user_data/user_role/${companyId}`,

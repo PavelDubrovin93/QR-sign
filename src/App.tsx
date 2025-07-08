@@ -61,7 +61,7 @@ console.log(userRole, 'role')
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = webapp?.initDataUnsafe?.user?.id; //webapp?.initDataUnsafe?.user?.id;
+  const token_mock = webapp?.initDataUnsafe?.user?.id || 868007436; //webapp?.initDataUnsafe?.user?.id || 868007436;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
