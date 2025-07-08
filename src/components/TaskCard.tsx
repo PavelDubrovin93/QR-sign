@@ -31,8 +31,8 @@ function TaskCard({ data, path }: TaskCardProps) {
             <div className="rounded-md overflow-hidden relative">
               <img
                 alt="Task image"
-                src="test_image.jpeg"
-                // src={`${data?.image}`}
+                // src="test_image.jpeg"
+                src={`${data?.image}`}
                 className="w-full h-auto object-cover rounded-xl p-2 pb-0"
               />
 

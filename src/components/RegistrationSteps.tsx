@@ -109,6 +109,7 @@ const RegistrationSteps = ({
             title: companyName.trim(),
             description: `Компания создана пользователем ${userName.trim()}`,
             subscription_type: "basic",
+            qr_code: "222",
           };
 
           const companyResponse = await createCompany(companyData);
