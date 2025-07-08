@@ -40,13 +40,13 @@ function App() {
   const dispatch = useDispatch();
   const webapp = window.Telegram?.WebApp;
   const telegramData = getTelegramData();
-
+  console.log("ci/cd check check");
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(true);
   const [userRole, setUserRole] = useState<string>("");
   const hasAttemptedRoleFetch = useRef(false);
-console.log(userRole, 'role')
+
   const isLoadingProfileUser = useSelector(
     (state: RootState) => state.entities.user.isLoading
   );
