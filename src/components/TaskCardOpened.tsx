@@ -11,6 +11,7 @@ import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { editTask } from "../api/task/edit-task";
+import { deleteTask } from "../api/task/delete-task";
 
 interface TaskCardProps {
   editMode: boolean;
@@ -266,19 +267,39 @@ function TaskCard({ editMode }: TaskCardProps) {
     }
   };
 
+  const handleDeleteTask = async () => {
+    if (!task?.id) {
+      console.warn("Попытка удалить задачу без ID.");
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Вы уверены, что хотите удалить эту задачу? Это действие нельзя отменить."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const res = await deleteTask(task.id);
+      if (res.status === 200 || res.status === 204) {
+        alert("Задача успешно удалена!");
+        navigate(-1);
+      } else {
+        alert("Ошибка при удалении задачи.");
+        console.error("API response error:", res);
+      }
+    } catch (e: any) {
+      alert("Произошла ошибка при удалении задачи.");
+      console.error("Ошибка при удалении задачи:", e);
+    }
+  };
+
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-          {editMode && (
-            <Button
-              style={{ position: "absolute", top: "10px", left: "10px" }}
-              onClick={handleEditTask}
-            >
-              Сохранить изменения
-            </Button>
-          )}
+
           <button
             className="absolute top-4 right-4 text-white z-50"
             onClick={() => {
@@ -498,7 +519,25 @@ function TaskCard({ editMode }: TaskCardProps) {
 
             {/* Описание задач */}
             <div className="flex flex-col justify-left pl-2 pr-2 w-full">
-              <p className="text-base font-semibold pb-4">{task?.title}</p>
+              {editMode ? (
+                <input
+                  value={task?.title || ""}
+                  onChange={(e) => {
+                    if (task) {
+                      setTask({ ...task, title: e.target.value });
+                    }
+                  }}
+                  placeholder="Название задачи"
+                  className="w-full border rounded p-2 mb-2 text-base font-semibold"
+                  style={{
+                    backgroundColor:
+                      telegramData?.colorScheme === "dark" ? "#444" : "#eee",
+                    color: telegramData?.themeParams.text_color || "#000000",
+                  }}
+                />
+              ) : (
+                <p className="text-base font-semibold pb-4">{task?.title}</p>
+              )}
               {taskPoints.map((task_point: TaskPoint, index: number) => {
                 const { title, description, voice_message, completed } =
                   task_point;
@@ -506,7 +545,6 @@ function TaskCard({ editMode }: TaskCardProps) {
                   <div key={task_point.id}>
                     <div className="gap-2 pb-7">
                       <div className="flex mb-2">
-                        {/* Поставить лоудер на чекбокс */}
                         <Checkbox
                           disabled={editMode ? true : false}
                           checked={completed}
@@ -530,35 +568,58 @@ function TaskCard({ editMode }: TaskCardProps) {
                               return updatedPoints;
                             });
                           }}
-                          // onChange={() => {
-                          //   setTaskPoints((prevPoints) => {
-                          //     const updatedPoints = prevPoints.map((p) =>
-                          //       p.id === task_point.id
-                          //         ? {
-                          //             ...p,
-                          //             completed: !p.completed,
-                          //             done_at: !p.completed
-                          //               ? new Date().toISOString()
-                          //               : null,
-                          //           }
-                          //         : p
-                          //     );
-                          //     if (activePoint?.id === task_point.id) {
-                          //       setActivePoint(
-                          //         updatedPoints.find(
-                          //           (p) => p.id === task_point.id
-                          //         ) || null
-                          //       );
-                          //     }
-                          //     return updatedPoints;
-                          //   });
-                          // }}
                         />
-                        <span className="text-sm ml-2">
-                          {index + 1} - {title}
-                        </span>
+                        {editMode ? (
+                          <input
+                            value={title}
+                            onChange={(e) => {
+                              const newTitle = e.target.value;
+                              setTaskPoints((prevPoints) =>
+                                prevPoints.map((p) =>
+                                  p.id === task_point.id
+                                    ? { ...p, title: newTitle }
+                                    : p
+                                )
+                              );
+                            }}
+                            className="w-full border rounded p-1 ml-2 flex-1"
+                            placeholder={`Название задачи ${index + 1}`}
+                            style={{
+                              backgroundColor:
+                                telegramData?.colorScheme === "dark" ? "#444" : "#eee",
+                              color: telegramData?.themeParams.text_color || "#000000",
+                            }}
+                          />
+                        ) : (
+                          <span className="text-sm ml-2">
+                            {index + 1} - {title}
+                          </span>
+                        )}
                       </div>
-                      <div className="pb-2">{description}</div>
+                      {editMode ? (
+                        <textarea
+                          value={description}
+                          onChange={(e) => {
+                            const newDescription = e.target.value;
+                            setTaskPoints((prevPoints) =>
+                              prevPoints.map((p) =>
+                                p.id === task_point.id
+                                  ? { ...p, description: newDescription }
+                                  : p
+                              )
+                            );
+                          }}
+                          className="w-full border rounded p-2 min-h-[60px] resize-y"
+                          placeholder="Описание задачи"
+                          style={{
+                            backgroundColor:
+                              telegramData?.colorScheme === "dark" ? "#444" : "#eee",
+                            color: telegramData?.themeParams.text_color || "#000000",
+                          }}
+                        />
+                      ) : (
+                        <div className="pb-2">{description}</div>
+                      )}
                       <div>
                         {editMode ? (
                           <AudioMessageComposer />
@@ -573,17 +634,43 @@ function TaskCard({ editMode }: TaskCardProps) {
             </div>
           </div>
 
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 text-gray-500 hover:text-black dark:hover:text-white rounded-full hover:bg-gray-200 transition-colors"
-              aria-label="Назад"
-            >
-              <SlArrowLeft
-                size={24}
-                color={telegramData?.themeParams.button_color}
-              />
-            </button>
+          <div className="flex flex-col gap-2 mt-2">
+            {editMode && (
+              <>
+                <Button
+                  style={{
+                    width: "100%",
+                    backgroundColor: telegramData?.themeParams.button_color || "#3B82F6",
+                    color: "white"
+                  }}
+                  onClick={handleEditTask}
+                >
+                  Сохранить изменения
+                </Button>
+                <Button
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#ef4444",
+                    color: "white"
+                  }}
+                  onClick={handleDeleteTask}
+                >
+                  Удалить
+                </Button>
+              </>
+            )}
+            <div className="flex justify-end">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 text-gray-500 hover:text-black dark:hover:text-white rounded-full hover:bg-gray-200 transition-colors"
+                aria-label="Назад"
+              >
+                <SlArrowLeft
+                  size={24}
+                  color={telegramData?.themeParams.button_color}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </Card>
