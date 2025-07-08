@@ -217,6 +217,55 @@ function TaskCard({ editMode }: TaskCardProps) {
     }
   };
 
+  const handleEditTaskByEmployer = async (updatedPoints: TaskPoint[]) => {
+    if (!task) {
+      console.warn("Попытка сохранить задачу, когда 'task' не определена.");
+      return;
+    }
+
+    if (isDragging) handleDragEnd();
+    const pointsToSend = updatedPoints.map((p) => ({
+      id: p.id,
+      title: p.title,
+      taskboard_id: p.taskboard_id,
+      thumbnails: p.thumbnails,
+      mark_icon: p.mark_icon,
+      coordinates: [p.x, p.y],
+      qrcode: p.qrcode,
+      points: [],
+      description: p.description,
+      voice_message: p.voice_message,
+      done_at: p.completed ? p.done_at : null,
+      issued_at: p.issued_at,
+      warning_at: p.warning_at,
+    })) as unknown as TaskPoint[];
+
+    const taskDataToSend: Task = {
+      ...task,
+      task_points: pointsToSend,
+      done_at: task.done_at || null,
+    };
+
+    console.log(
+      "Отправляем данные задачи на редактирование (по клику работодателя):",
+      taskDataToSend
+    );
+
+    try {
+      const res = await editTask(taskDataToSend);
+      if (res.status === 200 || res.status === 201) {
+        console.log("Изменения успешно сохранены (по клику работодателя).");
+        await fetchAndSetTaskData();
+      } else {
+        alert("Ошибка при сохранении изменений по клику работодателя.");
+        console.error("API response error (employer click):", res);
+      }
+    } catch (e: any) {
+      alert("Произошла ошибка при отправке данных по клику работодателя.");
+      console.error("Ошибка при редактировании задачи (employer click):", e);
+    }
+  };
+
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
@@ -457,10 +506,12 @@ function TaskCard({ editMode }: TaskCardProps) {
                   <div key={task_point.id}>
                     <div className="gap-2 pb-7">
                       <div className="flex mb-2">
+                        {/* Поставить лоудер на чекбокс */}
                         <Checkbox
                           disabled={editMode ? true : false}
                           checked={completed}
                           onChange={() => {
+                            console.log("onChange for list checkbox called");
                             setTaskPoints((prevPoints) => {
                               const updatedPoints = prevPoints.map((p) =>
                                 p.id === task_point.id
@@ -468,21 +519,40 @@ function TaskCard({ editMode }: TaskCardProps) {
                                       ...p,
                                       completed: !p.completed,
                                       done_at: !p.completed
-                                        ? new Date().toISOString()
+                                        ? new Date().toISOString().slice(0, -5)
                                         : null,
                                     }
                                   : p
                               );
-                              if (activePoint?.id === task_point.id) {
-                                setActivePoint(
-                                  updatedPoints.find(
-                                    (p) => p.id === task_point.id
-                                  ) || null
-                                );
-                              }
+
+                              handleEditTaskByEmployer(updatedPoints);
+
                               return updatedPoints;
                             });
                           }}
+                          // onChange={() => {
+                          //   setTaskPoints((prevPoints) => {
+                          //     const updatedPoints = prevPoints.map((p) =>
+                          //       p.id === task_point.id
+                          //         ? {
+                          //             ...p,
+                          //             completed: !p.completed,
+                          //             done_at: !p.completed
+                          //               ? new Date().toISOString()
+                          //               : null,
+                          //           }
+                          //         : p
+                          //     );
+                          //     if (activePoint?.id === task_point.id) {
+                          //       setActivePoint(
+                          //         updatedPoints.find(
+                          //           (p) => p.id === task_point.id
+                          //         ) || null
+                          //       );
+                          //     }
+                          //     return updatedPoints;
+                          //   });
+                          // }}
                         />
                         <span className="text-sm ml-2">
                           {index + 1} - {title}
