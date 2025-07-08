@@ -104,16 +104,15 @@ console.log(userRole, 'role')
 
   useEffect(() => {
     const initializeApp = async () => {
-      sessionToken.set(token_mock.toString());
+      sessionToken.set(token_mock?.toString() || "");
       // if(webapp?.initDataUnsafe?.user?.id) {
       // sessionToken.set(webapp?.initDataUnsafe?.user?.id.toString());
       // }
 
-      const telegramUserId = token_mock;
 
       try {
         setIsCheckingUser(true);
-        const userExistsResponse = await checkUserExists(telegramUserId);
+        const userExistsResponse = await checkUserExists(token_mock || 0);
         
         if (userExistsResponse.data.is_first_time) {
           setIsFirstTimeUser(true);
@@ -171,8 +170,7 @@ console.log(userRole, 'role')
     setShowRegistrationModal(false);
     setIsFirstTimeUser(false);
     
-    const telegramUserId = token_mock; //TODO: change to webapp.initDataUnsafe?.user?.id
-    sessionToken.set(telegramUserId.toString());
+    sessionToken.set(token_mock?.toString() || "");
     
     setTimeout(() => {
       getUserProfile().then(async (res) => {
