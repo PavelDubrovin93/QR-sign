@@ -27,8 +27,11 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [imageTransform, setImageTransform] = useState({ scale: 1, translateX: 0, translateY: 0 });
   const [isPinching, setIsPinching] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [lastPinchDistance, setLastPinchDistance] = useState(0);
-  const [lastPinchCenter, setLastPinchCenter] = useState({ x: 0, y: 0 });
+  const [lastSingleTouch, setLastSingleTouch] = useState({ x: 0, y: 0 });
+  const [initialPinchScale, setInitialPinchScale] = useState(1);
+  const [initialPinchTransform, setInitialPinchTransform] = useState({ translateX: 0, translateY: 0 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
@@ -135,6 +138,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     if (
       !editMode ||
       isDragging ||
+      isDraggingImage ||
+      imageTransform.scale !== 1 ||
       !renderedImageRect.width ||
       !renderedImageRect.height
     )
@@ -143,13 +148,16 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     const target = e.currentTarget as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
-    const clickXRelativeToImagePx = e.clientX - rect.left;
-    const clickYRelativeToImagePx = e.clientY - rect.top;
+    // Учитываем трансформацию при клике
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
+    // Преобразуем координаты клика с учетом трансформации
+    const transformedClickX = (clickX - imageTransform.translateX) / imageTransform.scale;
+    const transformedClickY = (clickY - imageTransform.translateY) / imageTransform.scale;
 
-    const newXPercent =
-      (clickXRelativeToImagePx / rect.width) * 100;
-    const newYPercent =
-      (clickYRelativeToImagePx / rect.height) * 100;
+    const newXPercent = (transformedClickX / rect.width) * 100;
+    const newYPercent = (transformedClickY / rect.height) * 100;
 
     if (
       newXPercent >= 0 &&
@@ -221,6 +229,32 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     setImageTransform({ scale: 1, translateX: 0, translateY: 0 });
   }, []);
 
+  const constrainTransform = useCallback((scale: number, translateX: number, translateY: number) => {
+    if (!fullSizeRef.current) return { scale, translateX, translateY };
+    
+    const imgRect = fullSizeRef.current.getBoundingClientRect();
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    
+    // Размеры изображения с учетом масштаба
+    const scaledWidth = imgRect.width * scale;
+    const scaledHeight = imgRect.height * scale;
+    
+    // Ограничения для translateX
+    const maxTranslateX = Math.max(0, (scaledWidth - containerWidth) / 2);
+    const minTranslateX = -maxTranslateX;
+    
+    // Ограничения для translateY  
+    const maxTranslateY = Math.max(0, (scaledHeight - containerHeight) / 2);
+    const minTranslateY = -maxTranslateY;
+    
+    return {
+      scale: Math.max(0.5, Math.min(4, scale)),
+      translateX: Math.max(minTranslateX, Math.min(maxTranslateX, translateX)),
+      translateY: Math.max(minTranslateY, Math.min(maxTranslateY, translateY))
+    };
+  }, []);
+
   const getDistance = useCallback((touch1: React.Touch, touch2: React.Touch) => {
     return Math.sqrt(
       Math.pow(touch2.clientX - touch1.clientX, 2) + 
@@ -239,12 +273,18 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     if (e.touches.length === 2) {
       e.preventDefault();
       setIsPinching(true);
+      setIsDraggingImage(false);
       const distance = getDistance(e.touches[0], e.touches[1]);
-      const center = getCenter(e.touches[0], e.touches[1]);
       setLastPinchDistance(distance);
-      setLastPinchCenter(center);
+      setInitialPinchScale(imageTransform.scale);
+      setInitialPinchTransform({ translateX: imageTransform.translateX, translateY: imageTransform.translateY });
+    } else if (e.touches.length === 1 && imageTransform.scale > 1) {
+      e.preventDefault();
+      setIsDraggingImage(true);
+      setIsPinching(false);
+      setLastSingleTouch({ x: e.touches[0].clientX, y: e.touches[0].clientY });
     }
-  }, [getDistance, getCenter]);
+  }, [getDistance, getCenter, imageTransform.scale, imageTransform.translateX, imageTransform.translateY]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && isPinching) {
@@ -253,30 +293,105 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       const center = getCenter(e.touches[0], e.touches[1]);
       
       if (lastPinchDistance > 0) {
-        const scale = Math.max(0.5, Math.min(4, imageTransform.scale * (distance / lastPinchDistance)));
+        // Вычисляем новый масштаб относительно начального масштаба
+        const scaleRatio = distance / lastPinchDistance;
+        const newScale = initialPinchScale * scaleRatio;
         
-        // Вычисляем смещение для приближения к центру пинча
-        const deltaX = center.x - lastPinchCenter.x;
-        const deltaY = center.y - lastPinchCenter.y;
+        // Вычисляем смещение для масштабирования относительно центра пинча
+        if (!fullSizeRef.current) return;
+        const imgRect = fullSizeRef.current.getBoundingClientRect();
+        const imgCenterX = imgRect.left + imgRect.width / 2;
+        const imgCenterY = imgRect.top + imgRect.height / 2;
         
-        setImageTransform(prev => ({
-          scale,
-          translateX: prev.translateX + deltaX,
-          translateY: prev.translateY + deltaY
-        }));
+        // Смещение центра пинча от центра изображения
+        const centerOffsetX = center.x - imgCenterX;
+        const centerOffsetY = center.y - imgCenterY;
+        
+        // Применяем масштабирование с учетом центра пинча
+        const scaleDiff = newScale - initialPinchScale;
+        const newTranslateX = initialPinchTransform.translateX - (centerOffsetX * scaleDiff / initialPinchScale);
+        const newTranslateY = initialPinchTransform.translateY - (centerOffsetY * scaleDiff / initialPinchScale);
+        
+        const constrained = constrainTransform(newScale, newTranslateX, newTranslateY);
+        setImageTransform(constrained);
       }
+    } else if (e.touches.length === 1 && isDraggingImage && imageTransform.scale > 1) {
+      e.preventDefault();
+      const deltaX = e.touches[0].clientX - lastSingleTouch.x;
+      const deltaY = e.touches[0].clientY - lastSingleTouch.y;
       
-      setLastPinchDistance(distance);
-      setLastPinchCenter(center);
+      const newTranslateX = imageTransform.translateX + deltaX;
+      const newTranslateY = imageTransform.translateY + deltaY;
+      
+      const constrained = constrainTransform(imageTransform.scale, newTranslateX, newTranslateY);
+      setImageTransform(constrained);
+      
+      setLastSingleTouch({ x: e.touches[0].clientX, y: e.touches[0].clientY });
     }
-  }, [isPinching, lastPinchDistance, lastPinchCenter, imageTransform.scale, getDistance, getCenter]);
+  }, [isPinching, isDraggingImage, lastPinchDistance, lastSingleTouch, imageTransform, getDistance, getCenter, initialPinchScale, initialPinchTransform, constrainTransform]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (e.touches.length < 2) {
       setIsPinching(false);
       setLastPinchDistance(0);
     }
+    if (e.touches.length === 0) {
+      setIsDraggingImage(false);
+    }
   }, []);
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (imageTransform.scale === 1) {
+      // Приближаем к месту двойного клика
+      if (!fullSizeRef.current) return;
+      const imgRect = fullSizeRef.current.getBoundingClientRect();
+      const clickX = e.clientX;
+      const clickY = e.clientY;
+      
+      const targetScale = 2.5;
+      const imgCenterX = imgRect.left + imgRect.width / 2;
+      const imgCenterY = imgRect.top + imgRect.height / 2;
+      
+      const offsetX = clickX - imgCenterX;
+      const offsetY = clickY - imgCenterY;
+      
+      const newTranslateX = -offsetX * (targetScale - 1) / targetScale;
+      const newTranslateY = -offsetY * (targetScale - 1) / targetScale;
+      
+      const constrained = constrainTransform(targetScale, newTranslateX, newTranslateY);
+      setImageTransform(constrained);
+    } else {
+      // Сбрасываем приближение
+      resetImageTransform();
+    }
+  }, [imageTransform.scale, constrainTransform, resetImageTransform]);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    
+    const delta = e.deltaY > 0 ? 0.9 : 1.1; // Zoom out / Zoom in
+    const newScale = imageTransform.scale * delta;
+    
+    if (!fullSizeRef.current) return;
+    const imgRect = fullSizeRef.current.getBoundingClientRect();
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    
+    // Приближаем к позиции курсора
+    const imgCenterX = imgRect.left + imgRect.width / 2;
+    const imgCenterY = imgRect.top + imgRect.height / 2;
+    
+    const offsetX = mouseX - imgCenterX;
+    const offsetY = mouseY - imgCenterY;
+    
+    const scaleDiff = newScale - imageTransform.scale;
+    const newTranslateX = imageTransform.translateX - (offsetX * scaleDiff / imageTransform.scale);
+    const newTranslateY = imageTransform.translateY - (offsetY * scaleDiff / imageTransform.scale);
+    
+    const constrained = constrainTransform(newScale, newTranslateX, newTranslateY);
+    setImageTransform(constrained);
+  }, [imageTransform, constrainTransform]);
 
 
   return (
@@ -314,11 +429,12 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             alt="Full size"
             className="max-w-full max-h-full object-contain transition-transform duration-300 ease-in-out"
             onClick={editMode ? handleImageClick : undefined}
-            onDoubleClick={resetImageTransform}
+            onDoubleClick={handleDoubleClick}
             onLoad={updateRenderedImageRect}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
             style={{
               cursor: editMode && !isDragging ? "crosshair" : "default",
               transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX / imageTransform.scale}px, ${imageTransform.translateY / imageTransform.scale}px)`,
