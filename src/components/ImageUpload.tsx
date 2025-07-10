@@ -192,7 +192,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       setActivePoint(newPoint);
     }
   };
-
+  console.log(currentScale);
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
@@ -237,6 +237,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               maxScale={5}
               centerOnInit={true}
               limitToBounds={false}
+              disabled={isDragging}
               onTransformed={(_ref, state) => {
                 setCurrentScale(state.scale);
               }}
