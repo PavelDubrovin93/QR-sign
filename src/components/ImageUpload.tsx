@@ -239,7 +239,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               limitToBounds={false}
               disabled={isDragging}
               onTransformed={(_ref, state) => {
-                setCurrentScale(state.scale);
+                setCurrentScale(isDragging ? 1 : state.scale);
               }}
               pinch={{ 
                 disabled: false,
