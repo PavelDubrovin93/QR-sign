@@ -27,7 +27,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
-  const [currentTransform, setCurrentTransform] = useState({ x: 0, y: 0, scale: 1 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -240,11 +239,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               limitToBounds={false}
               onTransformed={(_ref, state) => {
                 setCurrentScale(state.scale);
-                setCurrentTransform({
-                  x: state.positionX,
-                  y: state.positionY,
-                  scale: state.scale
-                });
               }}
               pinch={{ 
                 disabled: false,
@@ -274,114 +268,63 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                   alignItems: "center",
                 }}
               >
-                <img
-                  id="image"
-                  ref={fullSizeRef}
-                  src={image || ""}
-                  alt="Full size"
-                  className="max-w-full max-h-full object-contain"
-                  onClick={editMode ? handleImageClick : undefined}
-                  onLoad={updateRenderedImageRect}
-                  style={{
-                    userSelect: "none",
-                    pointerEvents: editMode ? "auto" : "none",
-                  }}
-                />
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <img
+                    id="image"
+                    ref={fullSizeRef}
+                    src={image || ""}
+                    alt="Full size"
+                    className="max-w-full max-h-full object-contain"
+                    onClick={editMode ? handleImageClick : undefined}
+                    onLoad={updateRenderedImageRect}
+                    style={{
+                      userSelect: "none",
+                      pointerEvents: editMode ? "auto" : "none",
+                      display: "block",
+                    }}
+                  />
+
+                  {/* Точки ВНУТРИ трансформации */}
+                  {taskPoints.map((point) => (
+                    <div
+                      key={point.id}
+                      className={`absolute cursor-pointer ${
+                        isDragging && draggedPointId === point.id ? "z-51" : "z-40"
+                      }`}
+                      style={{
+                        left: `${point.x}%`,
+                        top: `${point.y}%`,
+                        transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
+                      }}
+                      onMouseDown={(e) => handleDragStart(e, point)}
+                      onTouchStart={(e) => handleDragStart(e, point)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isDragging) {
+                          setActivePoint(
+                            taskPoints.find((p) => p.id === point.id) || null
+                          );
+                        }
+                      }}
+                    >
+                      <div
+                        className={`flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full transition-all duration-100 ${
+                          activePoint?.id === point.id && editMode ? "pulse" : ""
+                        }`}
+                        style={{
+                          backgroundColor: point.completed
+                            ? "#10B981"
+                            : telegramData?.themeParams.button_color || "#3B82F6",
+                        }}
+                      >
+                        {point.id}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </TransformComponent>
             </TransformWrapper>
           </div>
-
-          {/* Точки поверх изображения */}
-          {taskPoints.map((point) => {
-            if (!fullSizeRef.current) return null;
-            
-            const img = fullSizeRef.current;
-            
-            // Получаем контейнер TransformComponent
-            const transformComponent = img.closest('[style*="transform"]') as HTMLElement;
-            if (!transformComponent) return null;
-            
-            const transformContainer = transformComponent.parentElement;
-            if (!transformContainer) return null;
-            
-            const containerRect = transformContainer.getBoundingClientRect();
-            
-            // Размеры изображения без трансформации
-            const naturalWidth = img.naturalWidth;
-            const naturalHeight = img.naturalHeight;
-            
-            // Вычисляем масштабированные размеры изображения
-            const containerWidth = containerRect.width;
-            const containerHeight = containerRect.height;
-            
-            // Подгоняем изображение под контейнер с сохранением пропорций
-            const aspectRatio = naturalWidth / naturalHeight;
-            const containerAspectRatio = containerWidth / containerHeight;
-            
-            let imgDisplayWidth, imgDisplayHeight;
-            if (aspectRatio > containerAspectRatio) {
-              imgDisplayWidth = containerWidth;
-              imgDisplayHeight = containerWidth / aspectRatio;
-            } else {
-              imgDisplayHeight = containerHeight;
-              imgDisplayWidth = containerHeight * aspectRatio;
-            }
-            
-            // Применяем трансформацию
-            const { x: transformX, y: transformY, scale: transformScale } = currentTransform;
-            
-            const scaledWidth = imgDisplayWidth * transformScale;
-            const scaledHeight = imgDisplayHeight * transformScale;
-            
-            // Центр контейнера
-            const centerX = containerRect.left + containerWidth / 2;
-            const centerY = containerRect.top + containerHeight / 2;
-            
-            // Позиция верхнего левого угла изображения
-            const imgLeft = centerX + transformX - scaledWidth / 2;
-            const imgTop = centerY + transformY - scaledHeight / 2;
-            
-            // Позиция точки
-            const pointX = imgLeft + (point.x / 100) * scaledWidth;
-            const pointY = imgTop + (point.y / 100) * scaledHeight;
-            
-            return (
-              <div
-                key={point.id}
-                className={`absolute cursor-pointer ${
-                  isDragging && draggedPointId === point.id ? "z-51" : "z-40"
-                }`}
-                style={{
-                  left: `${pointX}px`,
-                  top: `${pointY}px`,
-                  transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
-                }}
-                onMouseDown={(e) => handleDragStart(e, point)}
-                onTouchStart={(e) => handleDragStart(e, point)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isDragging) {
-                    setActivePoint(
-                      taskPoints.find((p) => p.id === point.id) || null
-                    );
-                  }
-                }}
-              >
-                <div
-                  className={`flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full transition-all duration-100 ${
-                    activePoint?.id === point.id && editMode ? "pulse" : ""
-                  }`}
-                  style={{
-                    backgroundColor: point.completed
-                      ? "#10B981"
-                      : telegramData?.themeParams.button_color || "#3B82F6",
-                  }}
-                >
-                  {point.id}
-                </div>
-              </div>
-            );
-          })}
 
           {/* Информация о задаче всегда снизу */}
           {activePoint && (
