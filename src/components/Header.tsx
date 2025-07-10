@@ -98,12 +98,12 @@ function Header({ nav }: HeaderProps) {
         ))}
       </SegmentedControl>
 
-      <div className="fixed bottom-0 right-0 p-4 z-1000">
+      <div className="fixed bottom-0 right-0 p-4 z-1">
         <IconButton
           onClick={() => navigate("/scan")}
           mode="bezeled"
           size="l"
-          className="w-14 h-14 z-10000"
+          className="w-14 h-14 z-10"
         >
           <svg
             width="100%"

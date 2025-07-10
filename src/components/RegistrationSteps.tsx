@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button, Input, Modal, Radio, Cell } from "@telegram-apps/telegram-ui";
-import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";  // TODO: remove this, make it from webapp
+import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { SlArrowDown } from "react-icons/sl";
 import { useDispatch } from "react-redux";
 import { setUserProfile } from "../store/slices/entities/user/userSlice";
@@ -77,7 +77,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 868007436;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123;
       const telegramPhotoUrl = "";
       
       if (!telegramUserId) {
@@ -204,8 +204,6 @@ const RegistrationSteps = ({
       <h3 className="text-center text-lg font-bold mb-6">
         Компания
       </h3>
-
-
 
       <div className="space-y-3">
         <Cell
@@ -373,7 +371,7 @@ const RegistrationSteps = ({
             position: "relative",
             zIndex: 1001,
             boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",
-            filter: "none", // Ensure no filter affects the modal content
+            filter: "none",
           }}
           className="py-6 px-4"
         >

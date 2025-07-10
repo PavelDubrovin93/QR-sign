@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Checkbox } from "@telegram-apps/telegram-ui";
+import { Checkbox, Button, CompactPagination } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
 import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
+import { FiTrash2 } from "react-icons/fi";
+
 
 interface ImageUploadProps {
   editMode: boolean;
@@ -265,47 +267,72 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           {/* Информация о задаче всегда снизу */}
           {activePoint && (
             <div
-              className="z-51 fixed bottom-4 left-4 right-4 p-3 bg-white bg-opacity-90 rounded-lg shadow-md"
+              className="z-100001 fixed bottom-0 left-4 right-0 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               style={{
                 backgroundColor: telegramData?.themeParams.section_bg_color,
+                marginBottom: '16px',
+                marginRight: '16px',
+                background: 'var(--tgui--secondary_bg_color)'
               }}
             >
-              <h3 className="font-semibold text-lg text-gray-600">
-                {activePoint.title}
-              </h3>
-              <div className="flex items-center justify-between">
-                <p
-                  className="text-sm text-gray-600"
-                  style={{ color: telegramData?.themeParams.text_color }}
-                >
-                  ID: {activePoint.id},{" "}
-                  {activePoint.completed ? "Выполнено" : "Не выполнено"}
-                </p>
-                {editMode && (
-                  <button
-                    className="text-sm text-red-500"
-                    onClick={() => {
-                      setTaskPoints((prev) =>
-                        prev.filter((p) => p.id !== activePoint.id)
-                      );
-                      setActivePoint(null);
-                    }}
-                  >
-                    Удалить точку
-                  </button>
-                )}
+
+              {/* Section 1: Name */}
+              <div className="p-4 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {activePoint.id}
+                    </span>
+                    <input
+                      disabled={!editMode}
+                      value={activePoint.title}
+                      onChange={(e) => {
+                        const newTitle = e.target.value;
+                        setTaskPoints((prevPoints) => {
+                          const updatedPoints = prevPoints.map((p) =>
+                            p.id === activePoint.id
+                              ? { ...p, title: newTitle }
+                              : p
+                          );
+                          setActivePoint(
+                            updatedPoints.find((p) => p.id === activePoint.id) ||
+                              null
+                          );
+                          return updatedPoints;
+                        });
+                      }}
+                      className="w-full text-lg font-semibold bg-transparent border-none outline-none"
+                      placeholder="Название задачи"
+                      style={{
+                        color: telegramData?.themeParams.text_color || "#000000",
+                      }}
+                    />
+
+                    {editMode && (
+                      <FiTrash2 className="text-red-500" size={24} onClick={() => {
+                          setTaskPoints((prevPoints) =>
+                            prevPoints.filter((p) => p.id !== activePoint.id)
+                          );
+                          setActivePoint(null);
+                        }}   
+                      />
+                    )}
+
+                  </div>
+                  
               </div>
-              {editMode && (
-                <div className="mt-2">
-                  <input
-                    value={activePoint.title}
+
+              {/* Section 2: Description */}
+              <div className="p-4 border-b border-gray-200">
+                {editMode ? (
+                  <textarea
+                    value={activePoint.description}
                     onChange={(e) => {
-                      const newTitle = e.target.value;
+                      const newDescription = e.target.value;
                       setTaskPoints((prevPoints) => {
                         const updatedPoints = prevPoints.map((p) =>
                           p.id === activePoint.id
-                            ? { ...p, title: newTitle }
+                            ? { ...p, description: newDescription }
                             : p
                         );
                         setActivePoint(
@@ -315,56 +342,116 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         return updatedPoints;
                       });
                     }}
-                    className="w-full border rounded p-1 mb-1"
-                    placeholder="Изменить название задачи"
+                    rows={3}
+                    className="w-full text-sm bg-transparent border border-gray-300 rounded p-2 resize-none"
+                    placeholder="Описание задачи"
                     style={{
                       backgroundColor:
-                        telegramData?.colorScheme === "dark" ? "#444" : "#eee",
+                        telegramData?.colorScheme === "dark" ? "#444" : "#f9f9f9",
                       color: telegramData?.themeParams.text_color || "#000000",
+                      borderColor: telegramData?.colorScheme === "dark" ? "#666" : "#ddd",
                     }}
                   />
-                  <label
-                    className="flex items-center text-sm"
-                    style={{ color: telegramData?.themeParams.text_color }}
+                ) : (
+                  <p
+                    className="text-sm text-gray-600 leading-relaxed"
+                    style={{ color: telegramData?.themeParams.hint_color }}
                   >
-                    <Checkbox
-                      disabled={editMode ? true : false}
-                      checked={activePoint.completed}
-                      onChange={(e) => {
-                        const newCompleted = e.target.checked;
-                        setTaskPoints((prevPoints) => {
-                          const updatedPoints = prevPoints.map((p) =>
-                            p.id === activePoint.id
-                              ? {
-                                  ...p,
-                                  completed: newCompleted,
-                                  done_at: newCompleted
-                                    ? new Date().toISOString()
-                                    : null,
-                                }
-                              : p
-                          );
-                          setActivePoint(
-                            updatedPoints.find(
-                              (p) => p.id === activePoint.id
-                            ) || null
-                          );
-                          return updatedPoints;
-                        });
-                      }}
-                      className="mr-2"
-                    />
-                    Выполнено
-                  </label>
+                    {activePoint.description || "Описание отсутствует"}
+                  </p>
+                )}
+              </div>
+
+              {/* Section 3: Bottom Controls */}
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-4">
+                    <label
+                      className="flex items-center text-sm"
+                      style={{ color: telegramData?.themeParams.text_color }}
+                    >
+                      <Checkbox
+                        disabled={!editMode}
+                        checked={activePoint.completed}
+                        onChange={(e) => {
+                          const newCompleted = e.target.checked;
+                          setTaskPoints((prevPoints) => {
+                            const updatedPoints = prevPoints.map((p) =>
+                              p.id === activePoint.id
+                                ? {
+                                    ...p,
+                                    completed: newCompleted,
+                                    done_at: newCompleted
+                                      ? new Date().toISOString()
+                                      : null,
+                                  }
+                                : p
+                            );
+                            setActivePoint(
+                              updatedPoints.find(
+                                (p) => p.id === activePoint.id
+                              ) || null
+                            );
+                            return updatedPoints;
+                          });
+                        }}
+                        className="mr-2"
+                      />
+                      {activePoint.completed ? "Выполнено" : "Не выполнено"}
+                    </label>
+                  </div>
                 </div>
-              )}
-              <button
-                className="mt-2 text-sm text-blue-500"
-                onClick={() => setActivePoint(null)}
-                style={{ color: telegramData?.themeParams.button_color }}
+               
+                <Button
+                  mode="filled"
+                  onClick={() => setActivePoint(null)}
+                  className="w-full max-w-xs mb-2"
+                >
+                  Свернуть  
+                </Button>
+
+              </div>
+
+              {/* Section 4: Bottom pagination */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  background: 'var(--tgui--secondary_bg_color)',
+                  padding: 20,
+                  width: '100%',
+                }}
               >
-                Закрыть
-              </button>
+                <CompactPagination>
+                  {taskPoints.map((point) => (
+                    <CompactPagination.Item
+                      key={point.id}
+                      selected={activePoint?.id === point.id}
+                      onClick={() => {
+                        setActivePoint(point);
+                        if (fullSizeRef.current && isFullScreen) {
+                          const img = fullSizeRef.current;
+                          const imgRect = img.getBoundingClientRect();
+                          const scrollContainer = document.scrollingElement || document.body;
+                          
+                          const pixelX = (point.x / 100) * imgRect.width + imgRect.left;
+                          const pixelY = (point.y / 100) * imgRect.height + imgRect.top;
+                         
+                          window.scrollTo({
+                            top: pixelY - window.innerHeight / 2,
+                            left: pixelX - window.innerWidth / 2,
+                            behavior: 'smooth',
+                          });
+                        }
+                      }}
+                    >
+                      {point.id}
+                    </CompactPagination.Item>
+                  ))}
+                </CompactPagination>
+              </div>
+              
             </div>
           )}
         </div>
