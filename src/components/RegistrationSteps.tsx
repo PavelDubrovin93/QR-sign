@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button, Input, Modal, Radio, Cell } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
-import { SlArrowDown } from "react-icons/sl";
 import { useDispatch } from "react-redux";
 import { setUserProfile } from "../store/slices/entities/user/userSlice";
 import { registerUserCold, registerUserHot } from "../api/user/register-user";

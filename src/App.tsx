@@ -4,7 +4,7 @@ import RegistrationSteps from './components/RegistrationSteps.tsx';
 import TaskCard from "./components/TaskCardOpened.tsx";
 import Header from "./components/Header.tsx";
 import headerNavigationConfig from "./configs/header.nav.config.ts";
-import { Button, Section, Input, Modal } from "@telegram-apps/telegram-ui";
+import { Button, Input, Modal } from "@telegram-apps/telegram-ui";
 
 import AdminLayout from "./components/layouts/AdminLayout.tsx";
 import AdminPage from "./pages/adminPage.tsx";

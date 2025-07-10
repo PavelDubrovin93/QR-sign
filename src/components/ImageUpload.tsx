@@ -433,7 +433,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         if (fullSizeRef.current && isFullScreen) {
                           const img = fullSizeRef.current;
                           const imgRect = img.getBoundingClientRect();
-                          const scrollContainer = document.scrollingElement || document.body;
+                          // const scrollContainer = document.scrollingElement || document.body;
                           
                           const pixelX = (point.x / 100) * imgRect.width + imgRect.left;
                           const pixelY = (point.y / 100) * imgRect.height + imgRect.top;
