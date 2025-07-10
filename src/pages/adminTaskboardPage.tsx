@@ -69,7 +69,7 @@ const adminTaskboardPage = () => {
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const [isImageFullScreen, setIsImageFullScreen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  console.log(isImageFullScreen); //shit fix
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
   );
