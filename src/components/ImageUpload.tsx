@@ -26,6 +26,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [imageTransform, setImageTransform] = useState({ scale: 1, translateX: 0, translateY: 0 });
+  const [isPinching, setIsPinching] = useState(false);
+  const [lastPinchDistance, setLastPinchDistance] = useState(0);
+  const [lastPinchCenter, setLastPinchCenter] = useState({ x: 0, y: 0 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
@@ -184,19 +187,28 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     if (!fullSizeRef.current) return;
 
     const img = fullSizeRef.current;
+    const imgRect = img.getBoundingClientRect();
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
     
     // Масштаб для приближения к точке
-    const targetScale = 2;
+    const targetScale = 2.5;
     
-    // Вычисляем позицию точки в пикселях на изображении
-    const pointX = (point.x / 100) * img.naturalWidth;
-    const pointY = (point.y / 100) * img.naturalHeight;
+    // Вычисляем позицию точки относительно текущего размера изображения
+    const pointX = (point.x / 100) * imgRect.width;
+    const pointY = (point.y / 100) * imgRect.height;
     
-    // Вычисляем смещение для центрирования точки
-    const translateX = (containerWidth / 2 - pointX * targetScale);
-    const translateY = (containerHeight / 2 - pointY * targetScale);
+    // Позиция изображения на экране
+    const imgCenterX = imgRect.left + imgRect.width / 2;
+    const imgCenterY = imgRect.top + imgRect.height / 2;
+    
+    // Смещение от центра изображения до точки
+    const offsetX = pointX - imgRect.width / 2;
+    const offsetY = pointY - imgRect.height / 2;
+    
+    // Вычисляем смещение для центрирования точки на экране
+    const translateX = (containerWidth / 2 - imgCenterX) - (offsetX * targetScale);
+    const translateY = (containerHeight / 2 - imgCenterY) - (offsetY * targetScale);
     
     setImageTransform({
       scale: targetScale,
@@ -209,11 +221,68 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     setImageTransform({ scale: 1, translateX: 0, translateY: 0 });
   }, []);
 
+  const getDistance = useCallback((touch1: React.Touch, touch2: React.Touch) => {
+    return Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) + 
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+  }, []);
+
+  const getCenter = useCallback((touch1: React.Touch, touch2: React.Touch) => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2
+    };
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      setIsPinching(true);
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      const center = getCenter(e.touches[0], e.touches[1]);
+      setLastPinchDistance(distance);
+      setLastPinchCenter(center);
+    }
+  }, [getDistance, getCenter]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && isPinching) {
+      e.preventDefault();
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      const center = getCenter(e.touches[0], e.touches[1]);
+      
+      if (lastPinchDistance > 0) {
+        const scale = Math.max(0.5, Math.min(4, imageTransform.scale * (distance / lastPinchDistance)));
+        
+        // Вычисляем смещение для приближения к центру пинча
+        const deltaX = center.x - lastPinchCenter.x;
+        const deltaY = center.y - lastPinchCenter.y;
+        
+        setImageTransform(prev => ({
+          scale,
+          translateX: prev.translateX + deltaX,
+          translateY: prev.translateY + deltaY
+        }));
+      }
+      
+      setLastPinchDistance(distance);
+      setLastPinchCenter(center);
+    }
+  }, [isPinching, lastPinchDistance, lastPinchCenter, imageTransform.scale, getDistance, getCenter]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      setIsPinching(false);
+      setLastPinchDistance(0);
+    }
+  }, []);
+
 
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
-      {!isFullScreen && (
+      {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
           <div className="absolute top-4 right-4 z-50 flex gap-2">
             {imageTransform.scale > 1 && (
@@ -247,10 +316,14 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             onClick={editMode ? handleImageClick : undefined}
             onDoubleClick={resetImageTransform}
             onLoad={updateRenderedImageRect}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             style={{
               cursor: editMode && !isDragging ? "crosshair" : "default",
               transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX / imageTransform.scale}px, ${imageTransform.translateY / imageTransform.scale}px)`,
               transformOrigin: "top left",
+              touchAction: "none", // Отключаем стандартные touch действия браузера
             }}
           />
 
@@ -262,11 +335,15 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             const imgRect = img.getBoundingClientRect();
             
             // Учитываем трансформацию изображения при позиционировании точек
-            const baseX = (point.x / 100) * img.naturalWidth;
-            const baseY = (point.y / 100) * img.naturalHeight;
+            const baseX = (point.x / 100) * imgRect.width;
+            const baseY = (point.y / 100) * imgRect.height;
             
-            const transformedX = (baseX * imageTransform.scale) + imageTransform.translateX + imgRect.left;
-            const transformedY = (baseY * imageTransform.scale) + imageTransform.translateY + imgRect.top;
+            // Применяем трансформацию к координатам точек
+            const scaledX = baseX * imageTransform.scale;
+            const scaledY = baseY * imageTransform.scale;
+            
+            const transformedX = imgRect.left + scaledX + (imageTransform.translateX);
+            const transformedY = imgRect.top + scaledY + (imageTransform.translateY);
             
             return (
               <div

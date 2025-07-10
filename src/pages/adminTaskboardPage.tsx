@@ -340,7 +340,7 @@ const adminTaskboardPage = () => {
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        dismissible={!isImageFullScreen}
+        dismissible={false}
         modal={true}
         preventScrollRestoration={true}
       >
