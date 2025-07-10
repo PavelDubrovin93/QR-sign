@@ -460,9 +460,6 @@ const AdminGroupCardItem = ({
             }}
             className="py-4 px-4 top-shadow-container"
           >
-            <div className="flex justify-center relative top-[-10px]">
-              <SlArrowDown size={26} />
-            </div>
             <h3 className="text-center text-lg font-bold mb-4">
               Редактировать имя пользователя
             </h3>
@@ -509,9 +506,6 @@ const AdminGroupCardItem = ({
             }}
             className="py-4 px-4 top-shadow-container"
           >
-            <div className="flex justify-center relative top-[-10px]">
-              <SlArrowDown size={26} />
-            </div>
             <h3 className="text-center text-lg font-bold mb-4">
               Участники группы "{workgroup?.title || 'Неизвестная группа'}"
             </h3>

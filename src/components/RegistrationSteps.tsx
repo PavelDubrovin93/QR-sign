@@ -77,7 +77,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 222233;
       const telegramPhotoUrl = "";
       
       if (!telegramUserId) {
@@ -375,12 +375,6 @@ const RegistrationSteps = ({
           }}
           className="py-6 px-4"
         >
-        <div className="flex justify-center relative top-[-10px] mb-4">
-          <SlArrowDown 
-            size={26} 
-            color={telegramData?.themeParams?.text_color || "#000000"}
-          />
-        </div>
 
         <div className="mb-4">
           <div className="flex justify-center space-x-2">
