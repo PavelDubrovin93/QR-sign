@@ -27,8 +27,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
-  const [touchStartPos, setTouchStartPos] = useState<{x: number, y: number} | null>(null);
-  const [hasUserMoved, setHasUserMoved] = useState(false);
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -145,35 +143,20 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   }, []);
 
-  const handleImageTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
-    setHasUserMoved(false);
-  };
-
-  const handleImageTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartPos) return;
-    
-    const touch = e.touches[0];
-    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
-    const deltaY = Math.abs(touch.clientY - touchStartPos.y);
-    
-    // Если палец сдвинулся больше чем на 10px, считаем что это движение
-    if (deltaX > 10 || deltaY > 10) {
-      setHasUserMoved(true);
-    }
-  };
-
-  const handleImageTouchEnd = (e: React.TouchEvent) => {
-    // Создаем точку только если палец НЕ двигался (быстрый тап)
-    if (!editMode || hasUserMoved || !touchStartPos) return;
+  const handleImageClick = (e: React.MouseEvent) => {
+    if (
+      !editMode ||
+      isDragging ||
+      !renderedImageRect.width ||
+      !renderedImageRect.height
+    )
+      return;
 
     const target = e.currentTarget as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
-    const touch = e.changedTouches[0];
-    const clickX = touch.clientX - rect.left;
-    const clickY = touch.clientY - rect.top;
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
 
     const newXPercent = (clickX / rect.width) * 100;
     const newYPercent = (clickY / rect.height) * 100;
@@ -208,9 +191,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       setTaskPoints((prevPoints) => [...prevPoints, newPoint]);
       setActivePoint(newPoint);
     }
-
-    setTouchStartPos(null);
-    setHasUserMoved(false);
   };
 
   return (
@@ -295,9 +275,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     src={image || ""}
                     alt="Full size"
                     className="max-w-full max-h-full object-contain"
-                    onTouchStart={editMode ? handleImageTouchStart : undefined}
-                    onTouchMove={editMode ? handleImageTouchMove : undefined}
-                    onTouchEnd={editMode ? handleImageTouchEnd : undefined}
+                    onClick={editMode ? handleImageClick : undefined}
                     onLoad={updateRenderedImageRect}
                     style={{
                       userSelect: "none",
@@ -319,13 +297,19 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
                         pointerEvents: 'auto',
                       }}
-                      onTouchStart={(e) => {
-                        if (!editMode) return;
+                      onMouseDown={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         handleDragStart(e, point);
                       }}
-                      onTouchEnd={(e) => {
+                      onTouchStart={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
+                        handleDragStart(e, point);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         if (!isDragging) {
                           setActivePoint(
                             taskPoints.find((p) => p.id === point.id) || null
