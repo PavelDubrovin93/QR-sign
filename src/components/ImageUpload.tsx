@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Checkbox, Button, CompactPagination } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
-import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { FiTrash2 } from "react-icons/fi";
@@ -27,6 +26,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedPointId, setDraggedPointId] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -69,47 +71,109 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   }, [isFullScreen, onFullScreenChange]);
 
-  const { isDragging, draggedPointId, handleDragStart, handleDragEnd } =
-    useDnDpoints({
-      editMode,
-      setTaskPoints,
-      activePoint,
-      setActivePoint,
-      renderedImageRect,
+  const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent, point: TaskPoint) => {
+    if (!editMode) return;
+    
+    setIsDragging(true);
+    setDraggedPointId(point.id);
+    setActivePoint(point);
+    
+    let clientX: number, clientY: number;
+    if ("touches" in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    if (fullSizeRef.current) {
+      const imgRect = fullSizeRef.current.getBoundingClientRect();
+      const pointX = imgRect.left + (point.x / 100) * imgRect.width;
+      const pointY = imgRect.top + (point.y / 100) * imgRect.height;
+      
+      setDragOffset({
+        x: clientX - pointX,
+        y: clientY - pointY,
+      });
+    }
+  }, [editMode, setActivePoint]);
+
+  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (!isDragging || !draggedPointId || !fullSizeRef.current) return;
+    
+    let clientX: number, clientY: number;
+    if ("touches" in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    const imgRect = fullSizeRef.current.getBoundingClientRect();
+    
+    const newX = clientX - dragOffset.x - imgRect.left;
+    const newY = clientY - dragOffset.y - imgRect.top;
+    
+    const newXPercent = Math.max(0, Math.min(100, (newX / imgRect.width) * 100));
+    const newYPercent = Math.max(0, Math.min(100, (newY / imgRect.height) * 100));
+    
+    setTaskPoints((prevPoints) => {
+      const updatedPoints = prevPoints.map((p) =>
+        p.id === draggedPointId
+          ? { ...p, x: newXPercent, y: newYPercent }
+          : p
+      );
+      
+      const updatedActivePoint = updatedPoints.find((p) => p.id === draggedPointId);
+      if (updatedActivePoint) {
+        setActivePoint(updatedActivePoint);
+      }
+      
+      return updatedPoints;
     });
+    
+    e.preventDefault();
+  }, [isDragging, draggedPointId, dragOffset, setTaskPoints, setActivePoint]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+    setDraggedPointId(null);
+    setDragOffset({ x: 0, y: 0 });
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleDragMove);
+      window.addEventListener("mouseup", handleDragEnd);
+      window.addEventListener("touchmove", handleDragMove, { passive: false });
+      window.addEventListener("touchend", handleDragEnd);
+    } else {
+      window.removeEventListener("mousemove", handleDragMove);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", handleDragMove);
+      window.removeEventListener("touchend", handleDragEnd);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleDragMove);
+      window.removeEventListener("mouseup", handleDragEnd);
+      window.removeEventListener("touchmove", handleDragMove);
+      window.removeEventListener("touchend", handleDragEnd);
+    };
+  }, [isDragging, handleDragMove, handleDragEnd]);
 
   const updateRenderedImageRect = useCallback(() => {
-    if (!fullSizeRef.current) return;
-
-    const img = fullSizeRef.current;
-    const imgRect = img.getBoundingClientRect();
-
-    const naturalWidth = img.naturalWidth;
-    const naturalHeight = img.naturalHeight;
-
-    let actualWidth = imgRect.width;
-    let actualHeight = imgRect.height;
-    let actualLeft = imgRect.left;
-    let actualTop = imgRect.top;
-
-    if (naturalWidth && naturalHeight) {
-      const aspectRatio = naturalWidth / naturalHeight;
-      const containerAspectRatio = imgRect.width / imgRect.height;
-
-      if (aspectRatio > containerAspectRatio) {
-        actualHeight = imgRect.width / aspectRatio;
-        actualTop = imgRect.top + (imgRect.height - actualHeight) / 2;
-      } else {
-        actualWidth = imgRect.height * aspectRatio;
-        actualLeft = imgRect.left + (imgRect.width - actualWidth) / 2;
-      }
+    if (fullSizeRef.current) {
+      const rect = fullSizeRef.current.getBoundingClientRect();
+      setRenderedImageRect({
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        top: rect.top,
+      });
     }
-    setRenderedImageRect({
-      width: actualWidth,
-      height: actualHeight,
-      left: actualLeft,
-      top: actualTop,
-    });
   }, []);
 
   useEffect(() => {
@@ -192,7 +256,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       setActivePoint(newPoint);
     }
   };
-  console.log(currentScale);
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
@@ -295,7 +358,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                       style={{
                         left: `${point.x}%`,
                         top: `${point.y}%`,
-                        transform: `translate(-50%, -50%) scale(${isDragging ? 1 : Math.max(1 / currentScale, 0.5)})`,
+                        transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
                         pointerEvents: 'auto',
                       }}
                       onMouseDown={(e) => {
@@ -544,9 +607,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     pointerEvents: "none",
                   }}
                 >
-                  <div>
-                    {point.x} " x " {point.y}
-                  </div>
                   <div
                     className="flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full"
                     style={{
