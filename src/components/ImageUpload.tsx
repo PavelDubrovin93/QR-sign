@@ -27,6 +27,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
+  const [touchStartPos, setTouchStartPos] = useState<{x: number, y: number} | null>(null);
+  const [hasUserMoved, setHasUserMoved] = useState(false);
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -143,14 +145,28 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   }, []);
 
-  const handleImageClick = (e: React.TouchEvent) => {
-    if (
-      !editMode ||
-      isDragging ||
-      !renderedImageRect.width ||
-      !renderedImageRect.height
-    )
-      return;
+  const handleImageTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setHasUserMoved(false);
+  };
+
+  const handleImageTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos) return;
+    
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+    const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+    
+    // Если палец сдвинулся больше чем на 10px, считаем что это движение
+    if (deltaX > 10 || deltaY > 10) {
+      setHasUserMoved(true);
+    }
+  };
+
+  const handleImageTouchEnd = (e: React.TouchEvent) => {
+    // Создаем точку только если палец НЕ двигался (быстрый тап)
+    if (!editMode || hasUserMoved || !touchStartPos) return;
 
     const target = e.currentTarget as HTMLImageElement;
     const rect = target.getBoundingClientRect();
@@ -192,6 +208,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       setTaskPoints((prevPoints) => [...prevPoints, newPoint]);
       setActivePoint(newPoint);
     }
+
+    setTouchStartPos(null);
+    setHasUserMoved(false);
   };
 
   return (
@@ -276,7 +295,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     src={image || ""}
                     alt="Full size"
                     className="max-w-full max-h-full object-contain"
-                    onTouchEnd={editMode ? handleImageClick : undefined}
+                    onTouchStart={editMode ? handleImageTouchStart : undefined}
+                    onTouchMove={editMode ? handleImageTouchMove : undefined}
+                    onTouchEnd={editMode ? handleImageTouchEnd : undefined}
                     onLoad={updateRenderedImageRect}
                     style={{
                       userSelect: "none",
@@ -299,13 +320,12 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         pointerEvents: 'auto',
                       }}
                       onTouchStart={(e) => {
+                        if (!editMode) return;
                         e.stopPropagation();
-                        e.preventDefault();
                         handleDragStart(e, point);
                       }}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
-                        e.preventDefault();
                         if (!isDragging) {
                           setActivePoint(
                             taskPoints.find((p) => p.id === point.id) || null
