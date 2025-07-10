@@ -130,44 +130,20 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     };
   }, [updateRenderedImageRect]);
 
-  const centerOnPoint = useCallback((point: TaskPoint) => {
+  const centerOnPoint = useCallback((_point: TaskPoint) => {
     if (!pinchZoomRef.current) return;
-
-    const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight;
     
-    // Приближаем с масштабом 2.5x и центрируем на точке
+    // Простое приближение в центр изображения на 2.5x
     const targetScale = 2.5;
     
-    // Координаты точки в процентах от размера изображения
-    const pointXPercent = point.x / 100;
-    const pointYPercent = point.y / 100;
-    
-    // Центрируем на точке
-    const centerX = containerWidth / 2;
-    const centerY = containerHeight / 2;
-    
-    // Вычисляем смещение для центрирования точки
-    const offsetX = centerX - (pointXPercent * containerWidth * targetScale);
-    const offsetY = centerY - (pointYPercent * containerHeight * targetScale);
-    
-    // Используем API библиотеки для установки трансформации
-    pinchZoomRef.current.scaleTo({
-      scale: targetScale,
-      x: offsetX,
-      y: offsetY,
-      animated: true
-    });
+    if (pinchZoomRef.current.scaleTo) {
+      pinchZoomRef.current.scaleTo(targetScale);
+    }
   }, []);
 
   const resetImageTransform = useCallback(() => {
-    if (pinchZoomRef.current) {
-      pinchZoomRef.current.scaleTo({
-        scale: 1,
-        x: 0,
-        y: 0,
-        animated: true
-      });
+    if (pinchZoomRef.current && pinchZoomRef.current.scaleTo) {
+      pinchZoomRef.current.scaleTo(1);
     }
   }, []);
 
@@ -222,24 +198,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   };
 
-  const handleDoubleClick = useCallback(() => {
-    if (currentScale === 1) {
-      // Приближаем
-      if (pinchZoomRef.current) {
-        pinchZoomRef.current.scaleTo({
-          scale: 2.5,
-          animated: true
-        });
-      }
-    } else {
-      // Сбрасываем
-      resetImageTransform();
-    }
-  }, [currentScale, resetImageTransform]);
-
-
-
-
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
@@ -269,33 +227,34 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           </div>
 
           {/* Изображение */}
-                                <div style={{
-             cursor: editMode && !isDragging ? "crosshair" : "default",
-             width: '100%',
-             height: '100%',
-             display: 'flex',
-             justifyContent: 'center',
-             alignItems: 'center',
-             touchAction: "none",
-           }}>
-             <PinchZoom
-               ref={pinchZoomRef}
-               onUpdate={(updateAction: any) => setCurrentScale(updateAction.scale)}
-             >
-               <img
-                 ref={fullSizeRef}
-                 src={image || ""}
-                 alt="Full size"
-                 className="max-w-full max-h-full object-contain transition-transform duration-300 ease-in-out"
-                 onClick={editMode ? handleImageClick : undefined}
-                 onDoubleClick={handleDoubleClick}
-                 onLoad={updateRenderedImageRect}
-                 style={{
-                   transformOrigin: "top left",
-                 }}
-               />
-             </PinchZoom>
-           </div>
+          <div style={{
+            cursor: editMode && !isDragging ? "crosshair" : "default",
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            touchAction: "manipulation",
+          }}>
+            <PinchZoom
+              ref={pinchZoomRef}
+              onUpdate={(updateAction: any) => setCurrentScale(updateAction.scale)}
+            >
+              <img
+                ref={fullSizeRef}
+                src={image || ""}
+                alt="Full size"
+                className="max-w-full max-h-full object-contain"
+                onClick={editMode ? handleImageClick : undefined}
+                onLoad={updateRenderedImageRect}
+                style={{
+                  transformOrigin: "top left",
+                  userSelect: "none",
+                  pointerEvents: editMode ? "auto" : "none",
+                }}
+              />
+            </PinchZoom>
+          </div>
 
           {/* Точки поверх изображения */}
           {taskPoints.map((point) => {
