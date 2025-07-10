@@ -544,6 +544,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     pointerEvents: "none",
                   }}
                 >
+                  <div>
+                    {point.x} " x " {point.y}
+                  </div>
                   <div
                     className="flex items-center justify-center w-6 h-6 text-white text-xs font-bold rounded-full"
                     style={{
