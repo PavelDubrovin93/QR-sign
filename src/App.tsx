@@ -35,7 +35,7 @@ import { checkUserExists } from "./api/user/check-user-exists.ts";
 import type { UserCompanies } from "./@types/user.ts";
 import { getCompaniesByClient } from "./api/company/get-companies-byClient.ts";
 import { setUserCompanies } from "./store/slices/entities/user_companies/user_companiesSlice.ts";
-import { registerUserHot } from "./api/user/register-user.ts";
+import { createUserCompany } from "./api/company/update-user-company.ts";
 
 
 function App() {
@@ -67,7 +67,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = webapp?.initDataUnsafe?.user?.id || 222233; //webapp?.initDataUnsafe?.user?.id || 222233;
+  const token_mock = webapp?.initDataUnsafe?.user?.id || 4444444444; //webapp?.initDataUnsafe?.user?.id || 4444444444;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -231,17 +231,18 @@ function App() {
   };
 
   const handleSubmitApplication = async () => {
-    if (!companyCode.trim()) return;
+    if (!companyCode.trim() || !userProfile?.id) return;
     
     setIsSubmittingApplication(true);
     try {
-      const userData = {
-        tg_id: token_mock,
-        name: webapp?.initDataUnsafe?.user?.first_name || "User",
-        photo_url: webapp?.initDataUnsafe?.user?.photo_url || "",
+      const userCompanyData = {
+        user_id: userProfile.id,
+        company_id: parseInt(companyCode),
+        workgroup_id: null,
+        role: Roles.NOT_APPROVED,
       };
 
-      await registerUserHot(parseInt(companyCode), userData);
+      await createUserCompany(userCompanyData);
       
       // Reset form
       setCompanyCode("");

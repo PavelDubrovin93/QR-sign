@@ -8,7 +8,7 @@ import {
 } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import AdminGroupCard from "../components/AdminGroupCard";
-import { SlArrowDown } from "react-icons/sl";
+
 import { getCompaniesByClient } from "../api/company/get-companies-byClient";
 import Loading from "../components/Loading";
 import {
@@ -336,9 +336,6 @@ const AdminPage = () => {
           }}
           className="py-4 px-4 top-shadow-container"
         >
-          <div className="flex justify-center relative top-[-10px]">
-            <SlArrowDown size={26} />
-          </div>
           <Input
             placeholder="Название группы"
             status={formErrors.groupName ? "error" : "focused"}

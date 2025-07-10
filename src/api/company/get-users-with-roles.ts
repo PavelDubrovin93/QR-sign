@@ -9,7 +9,7 @@ export interface UserWithRole extends UsersInCompany {
 export const getUsersWithRoles = async (companyId: string): Promise<{ data: UserWithRole[] }> => {
   try {
     const webapp = window.Telegram?.WebApp;
-    const telegramUserId = webapp?.initDataUnsafe?.user?.id || 222233; //webapp?.initDataUnsafe?.user?.id || 222233;
+    const telegramUserId = webapp?.initDataUnsafe?.user?.id || 4444444444; //webapp?.initDataUnsafe?.user?.id || 4444444444;
     
     const usersUrl = `${config.BACKEND_URL}/${apiPrefix.api}/companies/get_all_users_in_company_and_uc_id/${companyId}`;
     console.log("getUsersWithRoles - Getting users from:", usersUrl);

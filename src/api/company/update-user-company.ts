@@ -21,4 +21,10 @@ export const updateUserCompany = (uc_id: number, data: UpdateUserCompanyRequest)
   put<UpdateUserCompanyResponse, UpdateUserCompanyRequest>(
     `${config.BACKEND_URL}/${apiPrefix.api}/companies/${uc_id}`,
     data
+  );
+
+export const createUserCompany = (data: UpdateUserCompanyRequest) =>
+  put<UpdateUserCompanyResponse, UpdateUserCompanyRequest>(
+    `${config.BACKEND_URL}/${apiPrefix.api}/companies/0`,
+    data
   ); 

@@ -25,6 +25,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
 
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [imageTransform, setImageTransform] = useState({ scale: 1, translateX: 0, translateY: 0 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
@@ -179,42 +180,77 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   };
 
+  const centerOnPoint = useCallback((point: TaskPoint) => {
+    if (!fullSizeRef.current) return;
+
+    const img = fullSizeRef.current;
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    
+    // Масштаб для приближения к точке
+    const targetScale = 2;
+    
+    // Вычисляем позицию точки в пикселях на изображении
+    const pointX = (point.x / 100) * img.naturalWidth;
+    const pointY = (point.y / 100) * img.naturalHeight;
+    
+    // Вычисляем смещение для центрирования точки
+    const translateX = (containerWidth / 2 - pointX * targetScale);
+    const translateY = (containerHeight / 2 - pointY * targetScale);
+    
+    setImageTransform({
+      scale: targetScale,
+      translateX,
+      translateY
+    });
+  }, []);
+
+  const resetImageTransform = useCallback(() => {
+    setImageTransform({ scale: 1, translateX: 0, translateY: 0 });
+  }, []);
 
 
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
-      {isFullScreen && (
+      {!isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-          {/* {editMode && (
-            <Button
-              style={{ position: "absolute", top: "10px", left: "10px" }}
-              onClick={handleEditTask}
+          <div className="absolute top-4 right-4 z-50 flex gap-2">
+            {imageTransform.scale > 1 && (
+              <button
+                className="bg-black bg-opacity-50 text-white p-2 rounded-full"
+                onClick={resetImageTransform}
+                title="Сбросить приближение"
+              >
+                <span className="text-sm">1:1</span>
+              </button>
+            )}
+            <button
+              className="text-white"
+              onClick={() => {
+                setIsFullScreen(false);
+                setActivePoint(null);
+                resetImageTransform();
+                if (isDragging) handleDragEnd();
+              }}
             >
-              Сохранить изменения
-            </Button>
-          )} */}
-          <button
-            className="absolute top-4 right-4 text-white z-50"
-            onClick={() => {
-              setIsFullScreen(false);
-              setActivePoint(null);
-              if (isDragging) handleDragEnd();
-            }}
-          >
-            <SlClose size={24} />
-          </button>
+              <SlClose size={24} />
+            </button>
+          </div>
 
           {/* Изображение */}
           <img
             ref={fullSizeRef}
             src={image || ""}
             alt="Full size"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full object-contain transition-transform duration-300 ease-in-out"
             onClick={editMode ? handleImageClick : undefined}
+            onDoubleClick={resetImageTransform}
             onLoad={updateRenderedImageRect}
             style={{
               cursor: editMode && !isDragging ? "crosshair" : "default",
+              transform: `scale(${imageTransform.scale}) translate(${imageTransform.translateX / imageTransform.scale}px, ${imageTransform.translateY / imageTransform.scale}px)`,
+              transformOrigin: "top left",
             }}
           />
 
@@ -222,20 +258,26 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           {taskPoints.map((point) => {
             if (!fullSizeRef.current) return null;
             
-            const imgRect = fullSizeRef.current.getBoundingClientRect();
-            const pixelX = (point.x / 100) * imgRect.width;
-            const pixelY = (point.y / 100) * imgRect.height;
+            const img = fullSizeRef.current;
+            const imgRect = img.getBoundingClientRect();
+            
+            // Учитываем трансформацию изображения при позиционировании точек
+            const baseX = (point.x / 100) * img.naturalWidth;
+            const baseY = (point.y / 100) * img.naturalHeight;
+            
+            const transformedX = (baseX * imageTransform.scale) + imageTransform.translateX + imgRect.left;
+            const transformedY = (baseY * imageTransform.scale) + imageTransform.translateY + imgRect.top;
             
             return (
               <div
                 key={point.id}
                 className={`absolute cursor-pointer ${
-                  isDragging && draggedPointId === point.id ? "z-50" : "z-40"
+                  isDragging && draggedPointId === point.id ? "z-51" : "z-40"
                 }`}
                 style={{
-                  left: `${pixelX + imgRect.left}px`,
-                  top: `${pixelY + imgRect.top}px`,
-                  transform: "translate(-50%, -50%)",
+                  left: `${transformedX}px`,
+                  top: `${transformedY}px`,
+                  transform: `translate(-50%, -50%) scale(${1 / imageTransform.scale})`,
                 }}
                 onMouseDown={(e) => handleDragStart(e, point)}
                 onTouchStart={(e) => handleDragStart(e, point)}
@@ -430,20 +472,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                       selected={activePoint?.id === point.id}
                       onClick={() => {
                         setActivePoint(point);
-                        if (fullSizeRef.current && isFullScreen) {
-                          const img = fullSizeRef.current;
-                          const imgRect = img.getBoundingClientRect();
-                          // const scrollContainer = document.scrollingElement || document.body;
-                          
-                          const pixelX = (point.x / 100) * imgRect.width + imgRect.left;
-                          const pixelY = (point.y / 100) * imgRect.height + imgRect.top;
-                         
-                          window.scrollTo({
-                            top: pixelY - window.innerHeight / 2,
-                            left: pixelX - window.innerWidth / 2,
-                            behavior: 'smooth',
-                          });
-                        }
+                        centerOnPoint(point);
                       }}
                     >
                       {point.id}

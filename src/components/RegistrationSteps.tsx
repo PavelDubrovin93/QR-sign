@@ -76,7 +76,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 222233;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 4444444444;
       const telegramPhotoUrl = "";
       
       if (!telegramUserId) {
