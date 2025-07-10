@@ -18,4 +18,4 @@ class TaskBoardEntity(EntityDB):
 
     company = relationship("CompanyEntity", back_populates="task_boards")
     work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
-    tasks = relationship("TaskPointEntity", back_populates="taskboard")
+    tasks = relationship("TaskPointEntity", back_populates="taskboard", cascade="all, delete-orphan")

@@ -31,11 +31,6 @@ class UserService(IUserService):
         new_ui_settings = await self.uisettings_repo.create_ui_settings(
             UISettingsDTO(user_id=new_user.id)
         )
-        # await self.usercompany_repo.create_user_company(
-        #     UserCompanyDTO(
-        #         user_id=new_user.id,
-        #     )
-        # )
         new_user_response = UserResponse(
             id=new_user.id,
             tg_id=new_user.tg_id,
@@ -44,6 +39,11 @@ class UserService(IUserService):
             ui_settings=new_ui_settings.id,
         )
         return new_user_response
+
+
+    async def delete_user(self, user_id: int) -> bool:
+        deleted = await self.user_repo.delete_user_by_id(user_id=user_id)
+        return True
 
     async def register_user_hot(
         self, company_id: int, new_user_data: CreateUserResponse

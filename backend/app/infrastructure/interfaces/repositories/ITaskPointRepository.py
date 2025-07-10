@@ -103,7 +103,8 @@ class ITaskPointRepository(ABC):
         pass
     
     @abstractmethod
-    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO]) -> List[TaskPointDTO]:
+    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO], task_board: int
+                                           ) -> List[TaskPointDTO]:
         """
         Обновляет task_points в базе данных.
         :param task_points: список экземпляров задач

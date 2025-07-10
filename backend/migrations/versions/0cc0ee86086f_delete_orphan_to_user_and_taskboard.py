@@ -1,16 +1,19 @@
-"""add UISetting, WorkGroup
+"""delete-orphan_to_user_and_taskboard
 
-Revision ID: 1301e4c10333
-Revises: abbe87c8a2b5
-Create Date: 2025-06-06 08:16:13.117354
+Revision ID: 0cc0ee86086f
+Revises: 847e4749f050
+Create Date: 2025-07-10 14:32:43.258392
 
 """
-
 from typing import Sequence, Union
 
+from alembic import op
+import sqlalchemy as sa
+
+
 # revision identifiers, used by Alembic.
-revision: str = "1301e4c10333"
-down_revision: Union[str, None] = "abbe87c8a2b5"
+revision: str = '0cc0ee86086f'
+down_revision: Union[str, None] = '847e4749f050'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
