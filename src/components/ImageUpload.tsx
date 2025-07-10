@@ -7,7 +7,7 @@ import useDnDpoints from "../utils/hooks/useDnDpoints";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { FiTrash2 } from "react-icons/fi";
-import PinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 
 interface ImageUploadProps {
@@ -29,7 +29,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [currentScale, setCurrentScale] = useState(1);
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
-  const pinchZoomRef = useRef<any>(null);
+  const transformRef = useRef<any>(null);
   const [renderedImageRect, setRenderedImageRect] = useState({
     width: 0,
     height: 0,
@@ -131,28 +131,15 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   }, [updateRenderedImageRect]);
 
   const centerOnPoint = useCallback((_point: TaskPoint) => {
-    if (!pinchZoomRef.current) return;
+    if (!transformRef.current) return;
     
-    // Простое приближение в центр изображения на 2.5x
-    const targetScale = 2.5;
-    
-    if (pinchZoomRef.current.scaleTo) {
-      pinchZoomRef.current.scaleTo(targetScale);
-    }
+    // Простое приближение на 2.5x
+    transformRef.current.zoomToElement("image", 2.5, 300);
   }, []);
 
   const resetImageTransform = useCallback(() => {
-    if (pinchZoomRef.current && pinchZoomRef.current.scaleTo) {
-      pinchZoomRef.current.scaleTo(1);
-    }
-  }, []);
-
-  const onUpdate = useCallback(({ x, y, scale }: { x: number; y: number; scale: number }) => {
-    setCurrentScale(scale);
-    
-    if (fullSizeRef.current) {
-      const value = make3dTransformValue({ x, y, scale });
-      fullSizeRef.current.style.setProperty("transform", value);
+    if (transformRef.current) {
+      transformRef.current.resetTransform(300);
     }
   }, []);
 
@@ -244,24 +231,59 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-            <PinchZoom
-              ref={pinchZoomRef}
-              onUpdate={onUpdate}
+            <TransformWrapper
+              ref={transformRef}
+              initialScale={1}
+              minScale={1}
+              maxScale={5}
+              centerOnInit={true}
+              limitToBounds={false}
+              onTransformed={(_ref, state) => {
+                setCurrentScale(state.scale);
+              }}
+              pinch={{ 
+                disabled: false,
+                step: 5 
+              }}
+              panning={{ 
+                disabled: false,
+                velocityDisabled: true 
+              }}
+              wheel={{ disabled: false }}
+              doubleClick={{ 
+                disabled: false,
+                step: 2
+              }}
             >
-              <img
-                ref={fullSizeRef}
-                src={image || ""}
-                alt="Full size"
-                className="max-w-full max-h-full object-contain"
-                onClick={editMode ? handleImageClick : undefined}
-                onLoad={updateRenderedImageRect}
-                style={{
-                  transformOrigin: "center center",
-                  userSelect: "none",
-                  pointerEvents: editMode ? "auto" : "none",
+              <TransformComponent
+                wrapperStyle={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-              />
-            </PinchZoom>
+                contentStyle={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  id="image"
+                  ref={fullSizeRef}
+                  src={image || ""}
+                  alt="Full size"
+                  className="max-w-full max-h-full object-contain"
+                  onClick={editMode ? handleImageClick : undefined}
+                  onLoad={updateRenderedImageRect}
+                  style={{
+                    userSelect: "none",
+                    pointerEvents: editMode ? "auto" : "none",
+                  }}
+                />
+              </TransformComponent>
+            </TransformWrapper>
           </div>
 
           {/* Точки поверх изображения */}
