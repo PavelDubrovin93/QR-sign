@@ -143,7 +143,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   }, []);
 
-  const handleImageClick = (e: React.MouseEvent) => {
+  const handleImageClick = (e: React.TouchEvent) => {
     if (
       !editMode ||
       isDragging ||
@@ -155,8 +155,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     const target = e.currentTarget as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const touch = e.changedTouches[0];
+    const clickX = touch.clientX - rect.left;
+    const clickY = touch.clientY - rect.top;
 
     const newXPercent = (clickX / rect.width) * 100;
     const newYPercent = (clickY / rect.height) * 100;
@@ -275,7 +276,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     src={image || ""}
                     alt="Full size"
                     className="max-w-full max-h-full object-contain"
-                    onClick={editMode ? handleImageClick : undefined}
+                    onTouchEnd={editMode ? handleImageClick : undefined}
                     onLoad={updateRenderedImageRect}
                     style={{
                       userSelect: "none",
@@ -295,11 +296,16 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         left: `${point.x}%`,
                         top: `${point.y}%`,
                         transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
+                        pointerEvents: 'auto',
                       }}
-                      onMouseDown={(e) => handleDragStart(e, point)}
-                      onTouchStart={(e) => handleDragStart(e, point)}
-                      onClick={(e) => {
+                      onTouchStart={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
+                        handleDragStart(e, point);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         if (!isDragging) {
                           setActivePoint(
                             taskPoints.find((p) => p.id === point.id) || null
