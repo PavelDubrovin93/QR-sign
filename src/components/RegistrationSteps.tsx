@@ -367,7 +367,7 @@ const RegistrationSteps = ({
             
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
-            backgroundColor: telegramData?.themeParams?.bg_color || "#ffffff",
+            backgroundColor: telegramData?.themeParams?.bg_color,
             position: "relative",
             zIndex: 1001,
             boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.15)",

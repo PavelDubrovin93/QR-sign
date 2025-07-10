@@ -40,6 +40,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
+            docker rm nginx-front
             DOCKERHUB_USERNAME="${{ env.DOCKERHUB_USERNAME }}"
             DOCKERHUB_TOKEN="${{ secrets.DOCKERHUB_TOKEN }}"
             IMAGE_NAME="${{ env.IMAGE_NAME }}"
