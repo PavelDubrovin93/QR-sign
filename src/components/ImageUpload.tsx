@@ -27,7 +27,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
-  const [currentTransform, setCurrentTransform] = useState({ x: 0, y: 0, scale: 1 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -240,11 +239,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               limitToBounds={false}
               onTransformed={(_ref, state) => {
                 setCurrentScale(state.scale);
-                setCurrentTransform({
-                  x: state.positionX,
-                  y: state.positionY,
-                  scale: state.scale
-                });
               }}
               pinch={{ 
                 disabled: false,
@@ -298,30 +292,10 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             const img = fullSizeRef.current;
             const imgRect = img.getBoundingClientRect();
             
-            // Получаем контейнер изображения для расчета центра
-            const container = img.parentElement?.parentElement;
-            if (!container) return null;
-            
-            const containerRect = container.getBoundingClientRect();
-            
-            // Вычисляем позицию точки с учетом трансформации
-            const { x: transformX, y: transformY, scale: transformScale } = currentTransform;
-            
-            // Центр контейнера
-            const containerCenterX = containerRect.left + containerRect.width / 2;
-            const containerCenterY = containerRect.top + containerRect.height / 2;
-            
-            // Исходные размеры изображения без трансформации
-            const originalWidth = imgRect.width / transformScale;
-            const originalHeight = imgRect.height / transformScale;
-            
-            // Позиция точки относительно центра изображения (в исходных размерах)
-            const pointOffsetX = (point.x / 100 - 0.5) * originalWidth;
-            const pointOffsetY = (point.y / 100 - 0.5) * originalHeight;
-            
-            // Применяем трансформацию
-            const finalX = containerCenterX + transformX + pointOffsetX * transformScale;
-            const finalY = containerCenterY + transformY + pointOffsetY * transformScale;
+            // Простое позиционирование - изображение уже трансформировано библиотекой
+            // Просто используем его текущие размеры и позицию
+            const pointX = imgRect.left + (point.x / 100) * imgRect.width;
+            const pointY = imgRect.top + (point.y / 100) * imgRect.height;
             
             return (
               <div
@@ -330,8 +304,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                   isDragging && draggedPointId === point.id ? "z-51" : "z-40"
                 }`}
                 style={{
-                  left: `${finalX}px`,
-                  top: `${finalY}px`,
+                  left: `${pointX}px`,
+                  top: `${pointY}px`,
                   transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
                 }}
                 onMouseDown={(e) => handleDragStart(e, point)}
