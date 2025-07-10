@@ -21,6 +21,15 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
+    async def delete_user(self, user_id: int) -> bool:
+        """
+        Холодная регистрация пользователя (регистрация без ассоциации с конкретной компанией).
+        :param user_id: ID пользователя
+        :return: True, если удаление прошло успехно
+        """
+        pass
+
+    @abstractmethod
     async def register_user_hot(
         self, company_id: int, new_user_data: CreateUserResponse
     ) -> UserResponse:

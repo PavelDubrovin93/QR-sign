@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.UserService import UserService
 from app.validation.responses.UserResponse import CreateUserResponse, UserResponse
 from app.infrastructure.repositories.UserRepository import UserRepository
+from starlette.status import HTTP_204_NO_CONTENT
 
 router = APIRouter()
 
@@ -30,6 +31,18 @@ async def cold_register(
     service = UserService(session)
     user = await service.register_user_cold(new_user_data)
     return user
+
+
+@router.delete("/{user_id}", status_code=HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    session: AsyncSession = Depends(fastapi_get_db),
+):
+    service = UserService(session)
+    deleted_user = await service.delete_user(user_id)
+    
+    if not deleted_user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
 
 @router.post("/{company_id}", response_model=UserResponse, status_code=201)
