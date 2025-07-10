@@ -239,7 +239,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               limitToBounds={false}
               disabled={isDragging}
               onTransformed={(_ref, state) => {
-                setCurrentScale(isDragging ? 1 : state.scale);
+                setCurrentScale(state.scale);
               }}
               pinch={{ 
                 disabled: false,
@@ -295,7 +295,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                       style={{
                         left: `${point.x}%`,
                         top: `${point.y}%`,
-                        transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
+                        transform: `translate(-50%, -50%) scale(${isDragging ? 1 : Math.max(1 / currentScale, 0.5)})`,
                         pointerEvents: 'auto',
                       }}
                       onMouseDown={(e) => {
