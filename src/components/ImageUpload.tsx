@@ -27,6 +27,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const [task, setTask] = useState<Task | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentScale, setCurrentScale] = useState(1);
+  const [currentTransform, setCurrentTransform] = useState({ x: 0, y: 0, scale: 1 });
   const thumbnailRef = useRef<HTMLImageElement>(null);
   const fullSizeRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<any>(null);
@@ -239,6 +240,11 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               limitToBounds={false}
               onTransformed={(_ref, state) => {
                 setCurrentScale(state.scale);
+                setCurrentTransform({
+                  x: state.positionX,
+                  y: state.positionY,
+                  scale: state.scale
+                });
               }}
               pinch={{ 
                 disabled: false,
@@ -290,12 +296,54 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             if (!fullSizeRef.current) return null;
             
             const img = fullSizeRef.current;
-            const imgRect = img.getBoundingClientRect();
             
-            // Простое позиционирование - изображение уже трансформировано библиотекой
-            // Просто используем его текущие размеры и позицию
-            const pointX = imgRect.left + (point.x / 100) * imgRect.width;
-            const pointY = imgRect.top + (point.y / 100) * imgRect.height;
+            // Получаем контейнер TransformComponent
+            const transformComponent = img.closest('[style*="transform"]') as HTMLElement;
+            if (!transformComponent) return null;
+            
+            const transformContainer = transformComponent.parentElement;
+            if (!transformContainer) return null;
+            
+            const containerRect = transformContainer.getBoundingClientRect();
+            
+            // Размеры изображения без трансформации
+            const naturalWidth = img.naturalWidth;
+            const naturalHeight = img.naturalHeight;
+            
+            // Вычисляем масштабированные размеры изображения
+            const containerWidth = containerRect.width;
+            const containerHeight = containerRect.height;
+            
+            // Подгоняем изображение под контейнер с сохранением пропорций
+            const aspectRatio = naturalWidth / naturalHeight;
+            const containerAspectRatio = containerWidth / containerHeight;
+            
+            let imgDisplayWidth, imgDisplayHeight;
+            if (aspectRatio > containerAspectRatio) {
+              imgDisplayWidth = containerWidth;
+              imgDisplayHeight = containerWidth / aspectRatio;
+            } else {
+              imgDisplayHeight = containerHeight;
+              imgDisplayWidth = containerHeight * aspectRatio;
+            }
+            
+            // Применяем трансформацию
+            const { x: transformX, y: transformY, scale: transformScale } = currentTransform;
+            
+            const scaledWidth = imgDisplayWidth * transformScale;
+            const scaledHeight = imgDisplayHeight * transformScale;
+            
+            // Центр контейнера
+            const centerX = containerRect.left + containerWidth / 2;
+            const centerY = containerRect.top + containerHeight / 2;
+            
+            // Позиция верхнего левого угла изображения
+            const imgLeft = centerX + transformX - scaledWidth / 2;
+            const imgTop = centerY + transformY - scaledHeight / 2;
+            
+            // Позиция точки
+            const pointX = imgLeft + (point.x / 100) * scaledWidth;
+            const pointY = imgTop + (point.y / 100) * scaledHeight;
             
             return (
               <div
