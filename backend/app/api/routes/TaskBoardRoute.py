@@ -3,7 +3,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
+from app.infrastructure.core.s3 import s3_service, BASE64_PATTERN
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.TaskBoardService import TaskBoardService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
@@ -24,7 +24,6 @@ async def create_taskboard(
 ) -> TaskBoardResponse:
 
     if re.match(BASE64_PATTERN, taskboard_data.image):
-        s3_service = S3Service()
         uploaded_url = s3_service.upload_image(taskboard_data.image)
     taskboard_data.image = uploaded_url
     service = TaskBoardService(session)

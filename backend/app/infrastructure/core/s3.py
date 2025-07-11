@@ -99,3 +99,5 @@ class S3Service:
         except ClientError as e:
             print(f"Ошибка при удалении файла: {e}")
             return False
+
+s3_service = S3Service()

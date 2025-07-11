@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependenices.user_dependecy import get_current_user
 from app.infrastructure.db.session import fastapi_get_db
-from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
+from app.infrastructure.core.s3 import s3_service, BASE64_PATTERN
 from app.services.CompanyService import CompanyService
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
@@ -25,7 +25,6 @@ async def create_company(
 ) -> CompanyDTO:
     
     if new_company.image_url != None and re.match(BASE64_PATTERN, new_company.image_url):
-        s3_service = S3Service()
         uploaded_url = s3_service.upload_image(new_company.image_url)
         if uploaded_url:
             new_company.image_url = uploaded_url

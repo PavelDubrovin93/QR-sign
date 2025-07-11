@@ -1,5 +1,6 @@
+import re
+from app.infrastructure.core.s3 import s3_service, BASE64_PATTERN
 from typing import List, Optional
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -173,6 +174,15 @@ class TaskPointRepository(ITaskPointRepository):
         
         if task_point is None:
             raise ValueError(f"Таскпоинт с id {new_task_point.id} не существует.")
+        if task_point.thumbnails == 'True' and new_task_point.thumbnails == None:
+            task_point.thumbnails = new_task_point.thumbnails
+        elif task_point.thumbnails == 'True' and re.match(BASE64_PATTERN, new_task_point.thumbnails):
+            uploaded_url = s3_service.upload_image(new_task_point.thumbnails)
+            if uploaded_url:
+                task_point.thumbnails = uploaded_url
+                task_point.done_at = new_task_point.done_at
+        else:
+            raise HTTPException(status_code=500, detail="Ошибка при загрузке изображения.")
         
         task_point.title = new_task_point.title
         task_point.taskboard_id = new_task_point.taskboard_id
@@ -183,7 +193,6 @@ class TaskPointRepository(ITaskPointRepository):
         task_point.qrcode = new_task_point.qrcode
         task_point.description = new_task_point.description
         task_point.voice_message = new_task_point.voice_message
-        task_point.done_at = new_task_point.done_at
         task_point.issued_at = new_task_point.issued_at
         task_point.warning_at = new_task_point.warning_at
 
