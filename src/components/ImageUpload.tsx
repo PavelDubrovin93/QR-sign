@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Checkbox, Button, CompactPagination } from "@telegram-apps/telegram-ui";
+import { Checkbox, Button } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
-import { FiTrash2, FiLock, FiUnlock } from "react-icons/fi";
+import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 
@@ -283,6 +283,35 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     }
   }, []);
 
+  // Навигация по точкам
+  const goToNextPoint = useCallback(() => {
+    if (taskPoints.length === 0) return;
+    
+    const currentIndex = activePoint 
+      ? taskPoints.findIndex(p => p.id === activePoint.id)
+      : -1;
+    
+    const nextIndex = currentIndex < taskPoints.length - 1 ? currentIndex + 1 : 0;
+    const nextPoint = taskPoints[nextIndex];
+    
+    setActivePoint(nextPoint);
+    centerOnPoint(nextPoint);
+  }, [taskPoints, activePoint, centerOnPoint]);
+
+  const goToPreviousPoint = useCallback(() => {
+    if (taskPoints.length === 0) return;
+    
+    const currentIndex = activePoint 
+      ? taskPoints.findIndex(p => p.id === activePoint.id)
+      : -1;
+    
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : taskPoints.length - 1;
+    const prevPoint = taskPoints[prevIndex];
+    
+    setActivePoint(prevPoint);
+    centerOnPoint(prevPoint);
+  }, [taskPoints, activePoint, centerOnPoint]);
+
   const handleImageClick = (e: React.MouseEvent) => {
     if (
       !editMode ||
@@ -464,6 +493,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         style={{
                           backgroundColor: point.completed
                             ? "#10B981"
+                            : activePoint?.id === point.id && editMode
+                            ? "#F59E0B"
                             : telegramData?.themeParams.button_color || "#3B82F6",
                         }}
                       >
@@ -476,7 +507,72 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             </TransformWrapper>
           </div>
 
-          {/* Информация о задаче всегда снизу */}
+          {/* Улучшенная пагинация - всегда видна в полноэкранном режиме */}
+          {taskPoints.length > 0 && (
+            <div
+              className="fixed bottom-0 left-0 right-0"
+              style={{
+                background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+                padding: '20px 16px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                zIndex: 100002
+              }}
+            >
+              {/* Стрелка влево */}
+              <button
+                onClick={goToPreviousPoint}
+                className="flex items-center justify-center w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full text-white transition-all"
+                disabled={taskPoints.length <= 1}
+                style={{ opacity: taskPoints.length <= 1 ? 0.3 : 1 }}
+              >
+                <FiChevronLeft size={24} />
+              </button>
+
+              {/* Пагинация с номерами точек */}
+              <div className="flex items-center gap-2 max-w-xs overflow-x-auto">
+                {taskPoints.map((point) => (
+                  <button
+                    key={point.id}
+                    onClick={() => {
+                      setActivePoint(point);
+                      centerOnPoint(point);
+                    }}
+                    className={`flex items-center justify-center min-w-12 h-12 rounded-xl text-sm font-bold transition-all ${
+                      activePoint?.id === point.id
+                        ? 'bg-white text-black scale-110'
+                        : 'bg-black bg-opacity-60 hover:bg-opacity-80 text-white'
+                    }`}
+                    style={{
+                      backgroundColor: activePoint?.id === point.id 
+                        ? '#ffffff'
+                        : point.completed 
+                        ? 'rgba(16, 185, 129, 0.8)'
+                        : 'rgba(0, 0, 0, 0.6)',
+                      color: activePoint?.id === point.id ? '#000000' : '#ffffff',
+                      border: activePoint?.id === point.id ? '2px solid #3B82F6' : 'none'
+                    }}
+                  >
+                    {point.id}
+                  </button>
+                ))}
+              </div>
+
+              {/* Стрелка вправо */}
+              <button
+                onClick={goToNextPoint}
+                className="flex items-center justify-center w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full text-white transition-all"
+                disabled={taskPoints.length <= 1}
+                style={{ opacity: taskPoints.length <= 1 ? 0.3 : 1 }}
+              >
+                <FiChevronRight size={24} />
+              </button>
+            </div>
+          )}
+
+          {/* Панель редактирования активной точки */}
           {activePoint && (
             <div
               className="z-100001 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
@@ -668,34 +764,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     </Button>
                   </div>
                 </div>
-              </div>
-
-              {/* Section 4: Bottom pagination - Fixed at bottom */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background: 'var(--tgui--secondary_bg_color)',
-                  padding: '8px',
-                  width: '100%',
-                  flexShrink: 0
-                }}
-              >
-                <CompactPagination>
-                  {taskPoints.map((point) => (
-                    <CompactPagination.Item
-                      key={point.id}
-                      selected={activePoint?.id === point.id}
-                      onClick={() => {
-                        setActivePoint(point);
-                        centerOnPoint(point);
-                      }}
-                    >
-                      {point.id}
-                    </CompactPagination.Item>
-                  ))}
-                </CompactPagination>
               </div>
               
             </div>
