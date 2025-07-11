@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Checkbox, Button } from "@telegram-apps/telegram-ui";
+import { Checkbox, Button, CompactPagination } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
@@ -532,32 +532,21 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               </button>
 
               {/* Пагинация с номерами точек */}
-              <div className="flex items-center gap-2 max-w-xs overflow-x-auto">
-                {taskPoints.map((point) => (
-                  <button
-                    key={point.id}
-                    onClick={() => {
-                      setActivePoint(point);
-                      centerOnPoint(point);
-                    }}
-                    className={`flex items-center justify-center min-w-12 h-12 rounded-xl text-sm font-bold transition-all ${
-                      activePoint?.id === point.id
-                        ? 'bg-white text-black scale-110'
-                        : 'bg-black bg-opacity-60 hover:bg-opacity-80 text-white'
-                    }`}
-                    style={{
-                      backgroundColor: activePoint?.id === point.id 
-                        ? '#ffffff'
-                        : point.completed 
-                        ? 'rgba(16, 185, 129, 0.8)'
-                        : 'rgba(0, 0, 0, 0.6)',
-                      color: activePoint?.id === point.id ? '#000000' : '#ffffff',
-                      border: activePoint?.id === point.id ? '2px solid #3B82F6' : 'none'
-                    }}
-                  >
-                    {point.id}
-                  </button>
-                ))}
+              <div style={{ transform: 'scale(1.5)', padding: '0 20px' }}>
+                <CompactPagination>
+                  {taskPoints.map((point) => (
+                    <CompactPagination.Item
+                      key={point.id}
+                      selected={activePoint?.id === point.id}
+                      onClick={() => {
+                        setActivePoint(point);
+                        centerOnPoint(point);
+                      }}
+                    >
+                      {point.id}
+                    </CompactPagination.Item>
+                  ))}
+                </CompactPagination>
               </div>
 
               {/* Стрелка вправо */}
@@ -764,6 +753,34 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              {/* Section 4: Bottom pagination - Fixed at bottom */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  background: 'var(--tgui--secondary_bg_color)',
+                  padding: '8px',
+                  width: '100%',
+                  flexShrink: 0
+                }}
+              >
+                <CompactPagination>
+                  {taskPoints.map((point) => (
+                    <CompactPagination.Item
+                      key={point.id}
+                      selected={activePoint?.id === point.id}
+                      onClick={() => {
+                        setActivePoint(point);
+                        centerOnPoint(point);
+                      }}
+                    >
+                      {point.id}
+                    </CompactPagination.Item>
+                  ))}
+                </CompactPagination>
               </div>
               
             </div>
