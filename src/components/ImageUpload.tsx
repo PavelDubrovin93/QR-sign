@@ -44,35 +44,48 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   useEffect(() => {
     if (!activePoint) return;
 
-    const initialViewportHeight = window.innerHeight;
-    const targetBottomPosition = 16; // желаемое расстояние от низа
-
     const handleViewportChange = () => {
-      const currentViewportHeight = window.innerHeight;
-      const heightDifference = initialViewportHeight - currentViewportHeight;
-      
-      if (heightDifference > 100) { // клавиатура открыта
-        // Поднимаем модалку выше клавиатуры
-        setModalBottomOffset(targetBottomPosition + Math.min(heightDifference - 50, 200));
+      // Используем visualViewport API для более точного определения клавиатуры
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const heightDifference = windowHeight - viewportHeight;
+        
+        if (heightDifference > 150) { // клавиатура открыта
+          setModalBottomOffset(16 + Math.min(heightDifference, 250));
+        } else {
+          setModalBottomOffset(16);
+        }
       } else {
-        // Возвращаем в исходную позицию
-        setModalBottomOffset(targetBottomPosition);
+        // Fallback для старых браузеров
+        const initialViewportHeight = window.innerHeight;
+        const currentViewportHeight = window.innerHeight;
+        const heightDifference = initialViewportHeight - currentViewportHeight;
+        
+        if (heightDifference > 100) {
+          setModalBottomOffset(16 + Math.min(heightDifference - 50, 200));
+        } else {
+          setModalBottomOffset(16);
+        }
       }
     };
 
-    window.addEventListener('resize', handleViewportChange);
-    window.addEventListener('orientationchange', handleViewportChange);
-    
-    // Проверяем также изменения через наблюдатель
-    const observer = new ResizeObserver(handleViewportChange);
-    if (document.body) {
-      observer.observe(document.body);
+    // Используем visualViewport events если доступны
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      window.visualViewport.addEventListener('scroll', handleViewportChange);
+    } else {
+      // Fallback для старых браузеров
+      window.addEventListener('resize', handleViewportChange);
     }
 
     return () => {
-      window.removeEventListener('resize', handleViewportChange);
-      window.removeEventListener('orientationchange', handleViewportChange);
-      observer.disconnect();
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportChange);
+        window.visualViewport.removeEventListener('scroll', handleViewportChange);
+      } else {
+        window.removeEventListener('resize', handleViewportChange);
+      }
     };
   }, [activePoint]);
 
