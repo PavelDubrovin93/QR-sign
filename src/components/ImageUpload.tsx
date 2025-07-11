@@ -507,56 +507,67 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             </TransformWrapper>
           </div>
 
-          {/* Улучшенная пагинация - всегда видна в полноэкранном режиме */}
+          {/* CompactPagination - всегда видна в полноэкранном режиме */}
           {taskPoints.length > 0 && (
             <div
-              className="fixed bottom-0 left-0 right-0"
               style={{
-                background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
-                padding: '20px 16px 16px',
+                position: 'fixed',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
                 gap: '12px',
+                background: 'var(--tgui--secondary_bg_color)',
+                padding: '8px 16px',
+                borderRadius: '20px',
                 zIndex: 100002
               }}
             >
               {/* Стрелка влево */}
               <button
                 onClick={goToPreviousPoint}
-                className="flex items-center justify-center w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full text-white transition-all"
                 disabled={taskPoints.length <= 1}
-                style={{ opacity: taskPoints.length <= 1 ? 0.3 : 1 }}
+                style={{ 
+                  opacity: taskPoints.length <= 1 ? 0.3 : 1,
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--tgui--text_color)',
+                  cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
+                }}
               >
-                <FiChevronLeft size={24} />
+                <FiChevronLeft size={20} />
               </button>
 
-              {/* Пагинация с номерами точек */}
-              <div style={{ transform: 'scale(1.5)', padding: '0 20px' }}>
-                <CompactPagination>
-                  {taskPoints.map((point) => (
-                    <CompactPagination.Item
-                      key={point.id}
-                      selected={activePoint?.id === point.id}
-                      onClick={() => {
-                        setActivePoint(point);
-                        centerOnPoint(point);
-                      }}
-                    >
-                      {point.id}
-                    </CompactPagination.Item>
-                  ))}
-                </CompactPagination>
-              </div>
+              {/* CompactPagination */}
+              <CompactPagination>
+                {taskPoints.map((point) => (
+                  <CompactPagination.Item
+                    key={point.id}
+                    selected={activePoint?.id === point.id}
+                    onClick={() => {
+                      setActivePoint(point);
+                      centerOnPoint(point);
+                    }}
+                  >
+                    {point.id}
+                  </CompactPagination.Item>
+                ))}
+              </CompactPagination>
 
               {/* Стрелка вправо */}
               <button
                 onClick={goToNextPoint}
-                className="flex items-center justify-center w-12 h-12 bg-black bg-opacity-60 hover:bg-opacity-80 rounded-full text-white transition-all"
                 disabled={taskPoints.length <= 1}
-                style={{ opacity: taskPoints.length <= 1 ? 0.3 : 1 }}
+                style={{ 
+                  opacity: taskPoints.length <= 1 ? 0.3 : 1,
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--tgui--text_color)',
+                  cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
+                }}
               >
-                <FiChevronRight size={24} />
+                <FiChevronRight size={20} />
               </button>
             </div>
           )}
@@ -755,33 +766,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                 </div>
               </div>
 
-              {/* Section 4: Bottom pagination - Fixed at bottom */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background: 'var(--tgui--secondary_bg_color)',
-                  padding: '8px',
-                  width: '100%',
-                  flexShrink: 0
-                }}
-              >
-                <CompactPagination>
-                  {taskPoints.map((point) => (
-                    <CompactPagination.Item
-                      key={point.id}
-                      selected={activePoint?.id === point.id}
-                      onClick={() => {
-                        setActivePoint(point);
-                        centerOnPoint(point);
-                      }}
-                    >
-                      {point.id}
-                    </CompactPagination.Item>
-                  ))}
-                </CompactPagination>
-              </div>
               
             </div>
           )}
