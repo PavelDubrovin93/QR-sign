@@ -1,5 +1,5 @@
 import re
-from app.infrastructure.core.s3 import s3_service, BASE64_PATTERN
+from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -177,6 +177,7 @@ class TaskPointRepository(ITaskPointRepository):
         if task_point.thumbnails == 'True' and new_task_point.thumbnails == None:
             task_point.thumbnails = new_task_point.thumbnails
         elif task_point.thumbnails == 'True' and re.match(BASE64_PATTERN, new_task_point.thumbnails):
+            s3_service = S3Service()
             uploaded_url = s3_service.upload_image(new_task_point.thumbnails)
             if uploaded_url:
                 task_point.thumbnails = uploaded_url
