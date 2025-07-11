@@ -63,7 +63,6 @@ const adminTaskboardPage = () => {
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   
-  // Image upload (basic only)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
@@ -73,10 +72,8 @@ const adminTaskboardPage = () => {
   console.log(isImageFullScreen); //shit fix
   console.log(isKeyboardOpen); //shit fix
 
-  // Глобальное отслеживание клавиатуры на уровне страницы
   useEffect(() => {
     const setViewportHeight = () => {
-      // Устанавливаем CSS переменную с реальной высотой viewport
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
       

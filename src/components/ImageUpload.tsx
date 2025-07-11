@@ -40,24 +40,21 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   });
   const [modalBottomOffset, setModalBottomOffset] = useState(16);
 
-  // Отслеживание изменений viewport для стабильного позиционирования модалки
   useEffect(() => {
     if (!activePoint) return;
 
     const handleViewportChange = () => {
-      // Используем visualViewport API для более точного определения клавиатуры
       if (window.visualViewport) {
         const viewportHeight = window.visualViewport.height;
         const windowHeight = window.innerHeight;
         const heightDifference = windowHeight - viewportHeight;
         
-        if (heightDifference > 150) { // клавиатура открыта
+        if (heightDifference > 150) { 
           setModalBottomOffset(16 + Math.min(heightDifference, 250));
         } else {
           setModalBottomOffset(16);
         }
       } else {
-        // Fallback для старых браузеров
         const initialViewportHeight = window.innerHeight;
         const currentViewportHeight = window.innerHeight;
         const heightDifference = initialViewportHeight - currentViewportHeight;
@@ -70,12 +67,10 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       }
     };
 
-    // Используем visualViewport events если доступны
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportChange);
       window.visualViewport.addEventListener('scroll', handleViewportChange);
     } else {
-      // Fallback для старых браузеров
       window.addEventListener('resize', handleViewportChange);
     }
 
@@ -247,7 +242,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const centerOnPoint = useCallback((point: TaskPoint) => {
     if (!transformRef.current || !fullSizeRef.current) return;
     
-    // Сначала сбрасываем трансформацию для корректных расчетов
     transformRef.current.resetTransform(0);
     
     setTimeout(() => {
@@ -255,7 +249,6 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       
       const img = fullSizeRef.current;
       
-      // Ждем когда изображение полностью загрузится и получит размеры
       const waitForImageLoad = () => {
         const imgRect = img.getBoundingClientRect();
         if (imgRect.width === 0 || imgRect.height === 0) {
@@ -263,11 +256,9 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           return;
         }
         
-        // Координаты точки в пикселях относительно изображения
         const pointXPx = (point.x / 100) * imgRect.width;
         const pointYPx = (point.y / 100) * imgRect.height;
         
-        // Получаем размеры контейнера
         const container = img.closest('.react-transform-component');
         if (!container) return;
         
@@ -275,12 +266,10 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
         const centerX = containerRect.width / 2;
         const centerY = containerRect.height / 2;
         
-        // Вычисляем финальную позицию с зумом 2.5
         const scale = 2.5;
         const finalX = centerX - (pointXPx * scale);
         const finalY = centerY - (pointYPx * scale);
         
-        // Применяем трансформацию
         transformRef.current?.setTransform(finalX, finalY, scale, 300);
       };
       
