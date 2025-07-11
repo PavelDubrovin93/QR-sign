@@ -345,16 +345,24 @@ const adminTaskboardPage = () => {
           overflow: hidden;
         }
         
-        /* Стили для Telegram UI Modal */
-        .keyboard-open [data-telegram-modal] {
-          transform: translateY(calc(-1 * var(--keyboard-height, 0px))) !important;
-          transition: transform 0.3s ease-in-out !important;
+        /* Стили для Telegram UI Modal - контролируем высоту через props */
+        [data-telegram-modal] {
+          transition: height 0.3s ease-in-out !important;
         }
         
-        /* Альтернативный селектор для модалов */
-        .keyboard-open .top-shadow-container {
-          transform: translateY(calc(-1 * var(--keyboard-height, 0px))) !important;
-          transition: transform 0.3s ease-in-out !important;
+        /* Контейнер модала остается в исходной позиции */
+        .top-shadow-container {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        /* Делаем контент модала скроллируемым */
+        .modal-content {
+          flex: 1;
+          overflow-y: auto;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
         }
       `}</style>
       <div className="flex w-full justify-center px-5">
@@ -415,6 +423,11 @@ const adminTaskboardPage = () => {
         dismissible={false}
         modal={true}
         preventScrollRestoration={true}
+        style={{
+          height: isKeyboardOpen ? `calc(100vh - var(--keyboard-height, 0px))` : '100vh',
+          maxHeight: isKeyboardOpen ? `calc(100vh - var(--keyboard-height, 0px))` : '100vh',
+          transition: 'height 0.3s ease-in-out, max-height 0.3s ease-in-out'
+        }}
       >
        
         <div
@@ -427,193 +440,189 @@ const adminTaskboardPage = () => {
 
           <h3 className="text-center">Добавить задачу</h3>
 
-          {/* Image Upload Section */}
-          <div className="rounded-md mb-4">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              accept="image/*"
-              className="hidden"
-            />
-            
-            {uploadedImage ? (
-              <div className="relative flex flex-col items-center justify-center py-4">
-                <ImageUpload 
-                  image={uploadedImage} 
-                  editMode={true}
-                  taskPoints={taskPoints}
-                  setTaskPoints={setTaskPoints}
-                  activePoint={activePoint}
-                  setActivePoint={setActivePoint}
-                  onFullScreenChange={setIsImageFullScreen}
-                />
-                <Button
-                  mode="bezeled"
+          <div className="modal-content">
+            {/* Image Upload Section */}
+            <div className="rounded-md mb-4">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              
+              {uploadedImage ? (
+                <div className="relative flex flex-col items-center justify-center py-4">
+                  <ImageUpload 
+                    image={uploadedImage} 
+                    editMode={true}
+                    taskPoints={taskPoints}
+                    setTaskPoints={setTaskPoints}
+                    activePoint={activePoint}
+                    setActivePoint={setActivePoint}
+                    onFullScreenChange={setIsImageFullScreen}
+                  />
+                  <Button
+                    mode="bezeled"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute top-2 right-2 text-xs px-6 py-1 bg-white shadow-md"
+                  >
+                    Изменить изображение
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center p-8 border-4 border-dashed border-blue-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 bg-gray-50"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute top-2 right-2 text-xs px-6 py-1 bg-white shadow-md"
+                  style={{
+                    minHeight: "150px",
+                    backgroundColor: telegramData?.colorScheme === "dark" ? "#2a2a2a" : "#f8fafc",
+                    borderColor: telegramData?.colorScheme === "dark" ? "#4a5568" : "#3b82f6",
+                    marginLeft: "1.5rem",
+                    marginRight: "1.5rem",
+                  }}
                 >
-                  Изменить изображение
-                </Button>
-              </div>
-            ) : (
-              <div
-                className="flex flex-col items-center justify-center p-8 border-4 border-dashed border-blue-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 bg-gray-50"
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  minHeight: "150px",
-                  backgroundColor: telegramData?.colorScheme === "dark" ? "#2a2a2a" : "#f8fafc",
-                  borderColor: telegramData?.colorScheme === "dark" ? "#4a5568" : "#3b82f6",
-                  marginLeft: "1.5rem",
-                  marginRight: "1.5rem",
-                }}
-              >
-                <MdUpload 
-                  size={48} 
-                  className="mb-3"
-                  style={{ color: telegramData?.themeParams.button_color || "#3b82f6" }}
+                  <MdUpload 
+                    size={48} 
+                    className="mb-3"
+                    style={{ color: telegramData?.themeParams.button_color || "#3b82f6" }}
+                  />
+                  <p 
+                    className="text-sm font-medium text-center"
+                    style={{ color: telegramData?.themeParams.text_color || "#374151" }}
+                  >
+                    Загрузите изображение задачи
+                  </p>
+                  <p 
+                    className="text-xs text-center mt-1"
+                    style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
+                  >
+                    JPG, PNG до 10MB
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div>
+                <Input
+                  value={taskName}
+                  status="focused"
+                  onChange={(e) => setTaskName(e.target.value)}
+                  placeholder="Название задачи"
+                  className="w-full"
                 />
-                <p 
-                  className="text-sm font-medium text-center"
-                  style={{ color: telegramData?.themeParams.text_color || "#374151" }}
-                >
-                  Загрузите изображение задачи
-                </p>
-                <p 
-                  className="text-xs text-center mt-1"
-                  style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
-                >
-                  JPG, PNG до 10MB
-                </p>
               </div>
-            )}
-            
-            
+
+              <div>
+                <Textarea
+                  value={taskDescription}
+                  status="focused"
+                  onChange={(e) => setTaskDescription(e.target.value)}
+                  placeholder="Описание задачи"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Task Points List */}
+              {taskPoints.length > 0 && (
+                <div className="mb-4">
+                  <div className="space-y-2">
+                    {taskPoints.map((point) => (
+                      <div key={point.id} className="space-y-2">
+                        <hr key={point.id} className="border-gray-200" />
+                        <div className="px-4 pt-2 flex items-center justify-left">
+                          <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                            {point.id}
+                          </span>
+                          <Input
+                            value={point.title}
+                            status="focused"
+                            onChange={(e) => {
+                              const newTitle = e.target.value;
+                              setTaskPoints(prev => prev.map(p => 
+                                p.id === point.id ? { ...p, title: newTitle } : p
+                              ));
+                            }}
+                            placeholder="Название точки"
+                            style={{flexGrow: 1, marginRight: "10px"}}
+                          />
+                          <Button
+                            mode="plain"
+                            size="s"
+                            onClick={() => {
+                              setTaskPoints(prev => prev.filter(p => p.id !== point.id));
+                              if (activePoint?.id === point.id) {
+                                setActivePoint(null);
+                              }
+                            }}
+                            className="text-red-500 pr-2"
+                          >
+                            <FiTrash2 color="red" size={20} />
+                          </Button>
+                        </div>
+                      
+                        <Textarea
+                          value={point.description || ""}
+                          status="focused"
+                          onChange={(e) => {
+                            const newDescription = e.target.value;
+                            setTaskPoints(prev => prev.map(p => 
+                              p.id === point.id ? { ...p, description: newDescription } : p
+                            ));
+                          }}
+                          placeholder="Описание точки"
+                          className="w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Select
+                  value={String(modalSelectedCompanyId || "")}
+                  onChange={handleModalCompanyChange}
+                  status="focused"
+                  className="w-full"
+                >
+                  <option value="">Выберите компанию</option>
+                  {dataCompanies?.map((company: UserCompanies) => (
+                    <option key={company.company_id} value={company.company_id || ""}>
+                      {company.company_name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <Select
+                  value={String(modalSelectedWorkGroupId)}
+                  onChange={handleModalWorkGroupChange}
+                  className="w-full"
+                  status="focused"
+                  disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
+                >
+                  <option value="">Выберите рабочую группу</option>
+                  {workGroups.map((group: WorkGroup) => (
+                    <option key={group.id} value={group.id}>
+                      {group.title}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </div>
 
-          
-
-          {/* Form Fields */}
-          <div className="space-y-4">
-            <div>
-              <Input
-                value={taskName}
-                status="focused"
-                onChange={(e) => setTaskName(e.target.value)}
-                placeholder="Название задачи"
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <Textarea
-                value={taskDescription}
-                status="focused"
-                onChange={(e) => setTaskDescription(e.target.value)}
-                placeholder="Описание задачи"
-                className="w-full"
-              />
-            </div>
-
-            {/* Task Points List */}
-          {taskPoints.length > 0 && (
-            <div className="mb-4">
-              <div className="space-y-2">
-                {taskPoints.map((point) => (
-
-                  <div key={point.id} className="space-y-2">
-                    <hr key={point.id} className="border-gray-200" />
-                    <div className="px-4 pt-2 flex items-center justify-left">
-                      <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
-                        {point.id}
-                      </span>
-                      <Input
-                        value={point.title}
-                        status="focused"
-                        onChange={(e) => {
-                          const newTitle = e.target.value;
-                          setTaskPoints(prev => prev.map(p => 
-                            p.id === point.id ? { ...p, title: newTitle } : p
-                          ));
-                        }}
-                        placeholder="Название точки"
-                        style={{flexGrow: 1, marginRight: "10px"}}
-                      />
-                      <Button
-                        mode="plain"
-                        size="s"
-                        onClick={() => {
-                          setTaskPoints(prev => prev.filter(p => p.id !== point.id));
-                          if (activePoint?.id === point.id) {
-                            setActivePoint(null);
-                          }
-                        }}
-                        className="text-red-500 pr-2"
-                      >
-                        <FiTrash2 color="red" size={20} />
-                      </Button>
-                    </div>
-                  
-                    <Textarea
-                      value={point.description || ""}
-                      status="focused"
-                      onChange={(e) => {
-                        const newDescription = e.target.value;
-                        setTaskPoints(prev => prev.map(p => 
-                          p.id === point.id ? { ...p, description: newDescription } : p
-                        ));
-                      }}
-                      placeholder="Описание точки"
-                      className="w-full"
-                    />
-                    
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-            <div>
-              <Select
-                value={String(modalSelectedCompanyId || "")}
-                onChange={handleModalCompanyChange}
-                status="focused"
-                className="w-full"
-              >
-                <option value="">Выберите компанию</option>
-                {dataCompanies?.map((company: UserCompanies) => (
-                  <option key={company.company_id} value={company.company_id || ""}>
-                    {company.company_name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <Select
-                value={String(modalSelectedWorkGroupId)}
-                onChange={handleModalWorkGroupChange}
-                className="w-full"
-                status="focused"
-                disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
-              >
-                <option value="">Выберите рабочую группу</option>
-                {workGroups.map((group: WorkGroup) => (
-                  <option key={group.id} value={group.id}>
-                    {group.title}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="flex items-center mt-4">
-              <Button stretched mode="bezeled" onClick={handleCloseModal} className="mx-2">
-                Отмена
-              </Button>
-              <Button stretched mode="filled" onClick={handleSave} className="mx-2">
-                Сохранить
-              </Button>
-            </div>
+          <div className="flex items-center mt-4 px-4">
+            <Button stretched mode="bezeled" onClick={handleCloseModal} className="mx-2">
+              Отмена
+            </Button>
+            <Button stretched mode="filled" onClick={handleSave} className="mx-2">
+              Сохранить
+            </Button>
           </div>
         </div>
       </Modal>
