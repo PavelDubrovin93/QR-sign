@@ -38,6 +38,43 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     left: 0,
     top: 0,
   });
+  const [modalBottomOffset, setModalBottomOffset] = useState(16);
+
+  // Отслеживание изменений viewport для стабильного позиционирования модалки
+  useEffect(() => {
+    if (!activePoint) return;
+
+    const initialViewportHeight = window.innerHeight;
+    const targetBottomPosition = 16; // желаемое расстояние от низа
+
+    const handleViewportChange = () => {
+      const currentViewportHeight = window.innerHeight;
+      const heightDifference = initialViewportHeight - currentViewportHeight;
+      
+      if (heightDifference > 100) { // клавиатура открыта
+        // Поднимаем модалку выше клавиатуры
+        setModalBottomOffset(targetBottomPosition + Math.min(heightDifference - 50, 200));
+      } else {
+        // Возвращаем в исходную позицию
+        setModalBottomOffset(targetBottomPosition);
+      }
+    };
+
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('orientationchange', handleViewportChange);
+    
+    // Проверяем также изменения через наблюдатель
+    const observer = new ResizeObserver(handleViewportChange);
+    if (document.body) {
+      observer.observe(document.body);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      observer.disconnect();
+    };
+  }, [activePoint]);
 
   const fetchAndSetTaskData = useCallback(async () => {
     if (!id) return;
@@ -440,18 +477,20 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           {/* Информация о задаче всегда снизу */}
           {activePoint && (
             <div
-              className="z-100001 fixed bottom-0 left-4 right-0 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
+              className="z-100001 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               style={{
                 height: '200px',
                 backgroundColor: telegramData?.themeParams.section_bg_color,
-                marginBottom: '16px',
                 marginRight: '16px',
                 background: 'var(--tgui--secondary_bg_color)',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'fixed',
-                bottom: '16px'
+                bottom: `${modalBottomOffset}px`,
+                left: '16px',
+                right: '16px',
+                zIndex: 100001
               }}
             >
 
