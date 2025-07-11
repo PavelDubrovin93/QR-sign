@@ -69,60 +69,57 @@ const adminTaskboardPage = () => {
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const [isImageFullScreen, setIsImageFullScreen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [modalBottomOffset, setModalBottomOffset] = useState(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   console.log(isImageFullScreen); //shit fix
-  const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
-    (state: RootState) => state.entities.user_companies
-  );
 
-  // Отслеживание изменений viewport для стабильного позиционирования модала
+  // Глобальное отслеживание клавиатуры на уровне страницы
   useEffect(() => {
-    if (!isModalOpen) return;
-
-    const handleViewportChange = () => {
-      // Используем visualViewport API для более точного определения клавиатуры
+    const setViewportHeight = () => {
+      // Устанавливаем CSS переменную с реальной высотой viewport
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      
       if (window.visualViewport) {
-        const viewportHeight = window.visualViewport.height;
-        const windowHeight = window.innerHeight;
-        const heightDifference = windowHeight - viewportHeight;
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
         
-        if (heightDifference > 150) { // клавиатура открыта
-          setModalBottomOffset(Math.min(heightDifference, 250));
-        } else {
-          setModalBottomOffset(0);
-        }
-      } else {
-        // Fallback для старых браузеров
-        const initialViewportHeight = window.innerHeight;
-        const currentViewportHeight = window.innerHeight;
-        const heightDifference = initialViewportHeight - currentViewportHeight;
+        const isKeyboard = keyboardHeight > 150;
+        setIsKeyboardOpen(isKeyboard);
         
-        if (heightDifference > 100) {
-          setModalBottomOffset(Math.min(heightDifference - 50, 200));
+        if (isKeyboard) {
+          document.body.classList.add('keyboard-open');
+          document.documentElement.style.setProperty('--safe-area-inset-bottom', `${keyboardHeight}px`);
         } else {
-          setModalBottomOffset(0);
+          document.body.classList.remove('keyboard-open');
+          document.documentElement.style.setProperty('--safe-area-inset-bottom', '0px');
         }
       }
     };
 
-    // Используем visualViewport events если доступны
+    setViewportHeight();
+
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportChange);
-      window.visualViewport.addEventListener('scroll', handleViewportChange);
+      window.visualViewport.addEventListener('resize', setViewportHeight);
+      window.visualViewport.addEventListener('scroll', setViewportHeight);
     } else {
-      // Fallback для старых браузеров
-      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('resize', setViewportHeight);
     }
 
     return () => {
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleViewportChange);
-        window.visualViewport.removeEventListener('scroll', handleViewportChange);
+        window.visualViewport.removeEventListener('resize', setViewportHeight);
+        window.visualViewport.removeEventListener('scroll', setViewportHeight);
       } else {
-        window.removeEventListener('resize', handleViewportChange);
+        window.removeEventListener('resize', setViewportHeight);
       }
     };
-  }, [isModalOpen]);
+  }, []);
+
+  const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
+    (state: RootState) => state.entities.user_companies
+  );
+
+
 
   const fetchCompanies = useCallback(async () => {
     dispatch(setIsLoadingCompanies(true));
@@ -335,6 +332,30 @@ const adminTaskboardPage = () => {
 
   return (
     <>
+      <style>{`
+        :root {
+          --vh: 1vh;
+          --keyboard-height: 0px;
+          --safe-area-inset-bottom: 0px;
+        }
+        
+        body.keyboard-open {
+          height: calc(var(--vh, 1vh) * 100);
+          overflow: hidden;
+        }
+        
+        /* Стили для Telegram UI Modal */
+        .keyboard-open [data-telegram-modal] {
+          transform: translateY(calc(-1 * var(--keyboard-height, 0px))) !important;
+          transition: transform 0.3s ease-in-out !important;
+        }
+        
+        /* Альтернативный селектор для модалов */
+        .keyboard-open .top-shadow-container {
+          transform: translateY(calc(-1 * var(--keyboard-height, 0px))) !important;
+          transition: transform 0.3s ease-in-out !important;
+        }
+      `}</style>
       <div className="flex w-full justify-center px-5">
         <Button className="mb-4 w-full" onClick={handleOpenModal}>
           Добавить задачу
@@ -399,8 +420,6 @@ const adminTaskboardPage = () => {
           style={{
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
-            transform: `translateY(-${modalBottomOffset}px)`,
-            transition: 'transform 0.3s ease-in-out'
           }}
           className="py-4 top-shadow-container"
         >
