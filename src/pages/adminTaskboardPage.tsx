@@ -71,6 +71,7 @@ const adminTaskboardPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   console.log(isImageFullScreen); //shit fix
+  console.log(isKeyboardOpen); //shit fix
 
   // Глобальное отслеживание клавиатуры на уровне страницы
   useEffect(() => {
