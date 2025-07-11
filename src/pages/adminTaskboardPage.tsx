@@ -69,10 +69,46 @@ const adminTaskboardPage = () => {
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const [isImageFullScreen, setIsImageFullScreen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [modalBottomOffset, setModalBottomOffset] = useState(0);
   console.log(isImageFullScreen); //shit fix
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
   );
+
+  // Отслеживание изменений viewport для стабильного позиционирования модала
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const initialViewportHeight = window.innerHeight;
+
+    const handleViewportChange = () => {
+      const currentViewportHeight = window.innerHeight;
+      const heightDifference = initialViewportHeight - currentViewportHeight;
+      
+      if (heightDifference > 100) { // клавиатура открыта
+        // Поднимаем модал выше клавиатуры
+        setModalBottomOffset(Math.min(heightDifference - 50, 200));
+      } else {
+        // Возвращаем в исходную позицию
+        setModalBottomOffset(0);
+      }
+    };
+
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('orientationchange', handleViewportChange);
+    
+    // Проверяем также изменения через наблюдатель
+    const observer = new ResizeObserver(handleViewportChange);
+    if (document.body) {
+      observer.observe(document.body);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      observer.disconnect();
+    };
+  }, [isModalOpen]);
 
   const fetchCompanies = useCallback(async () => {
     dispatch(setIsLoadingCompanies(true));
@@ -347,9 +383,10 @@ const adminTaskboardPage = () => {
        
         <div
           style={{
-            
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
+            transform: `translateY(-${modalBottomOffset}px)`,
+            transition: 'transform 0.3s ease-in-out'
           }}
           className="py-4 top-shadow-container"
         >
