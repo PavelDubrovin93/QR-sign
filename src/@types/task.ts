@@ -30,6 +30,7 @@ export interface TaskPoint {
   completed: boolean;
   x: number;
   y: number;
+  locked?: boolean;
 }
 
 export interface TaskBoard {

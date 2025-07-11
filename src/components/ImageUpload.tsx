@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
-import { FiTrash2 } from "react-icons/fi";
+import { FiTrash2, FiLock, FiUnlock } from "react-icons/fi";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 
@@ -406,7 +406,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               className="z-100001 fixed bottom-0 left-4 right-0 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               style={{
-                maxHeight: '20vh',
+                maxHeight: '25vh',
                 backgroundColor: telegramData?.themeParams.section_bg_color,
                 marginBottom: '16px',
                 marginRight: '16px',
@@ -424,13 +424,13 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                 }}
               >
                 {/* Section 1: Name */}
-                <div className="p-2 border-b border-gray-200">
+                <div className="p-2 border-b ">
                     <div className="flex items-center gap-2">
                       <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
                           {activePoint.id}
                       </span>
                       <input
-                        disabled={!editMode}
+                        disabled={!editMode || activePoint.locked}
                         value={activePoint.title}
                         onChange={(e) => {
                           const newTitle = e.target.value;
@@ -451,17 +451,47 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         placeholder="Название задачи"
                         style={{
                           color: telegramData?.themeParams.text_color || "#000000",
+                          opacity: activePoint.locked ? 0.6 : 1
                         }}
                       />
 
                       {editMode && (
-                        <FiTrash2 className="text-red-500 flex-shrink-0" size={18} onClick={() => {
-                            setTaskPoints((prevPoints) =>
-                              prevPoints.filter((p) => p.id !== activePoint.id)
-                            );
-                            setActivePoint(null);
-                          }}   
-                        />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              setTaskPoints((prevPoints) => {
+                                const updatedPoints = prevPoints.map((p) =>
+                                  p.id === activePoint.id
+                                    ? { ...p, locked: !p.locked }
+                                    : p
+                                );
+                                setActivePoint(
+                                  updatedPoints.find((p) => p.id === activePoint.id) ||
+                                    null
+                                );
+                                return updatedPoints;
+                              });
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            {activePoint.locked ? (
+                              <FiLock size={16} />
+                            ) : (
+                              <FiUnlock size={16} />
+                            )}
+                          </button>
+                          
+                          <FiTrash2 
+                            className="text-red-500" 
+                            size={18} 
+                            onClick={() => {
+                              setTaskPoints((prevPoints) =>
+                                prevPoints.filter((p) => p.id !== activePoint.id)
+                              );
+                              setActivePoint(null);
+                            }}   
+                          />
+                        </div>
                       )}
 
                     </div>
@@ -469,9 +499,10 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                 </div>
 
                 {/* Section 2: Description */}
-                <div className="p-2 border-b border-gray-200">
+                <div className="p-2 border-b ">
                   {editMode ? (
                     <textarea
+                      disabled={!editMode || activePoint.locked}
                       value={activePoint.description}
                       onChange={(e) => {
                         const newDescription = e.target.value;
@@ -496,6 +527,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                           telegramData?.colorScheme === "dark" ? "#444" : "#f9f9f9",
                         color: telegramData?.themeParams.text_color || "#000000",
                         borderColor: telegramData?.colorScheme === "dark" ? "#666" : "#ddd",
+                        opacity: activePoint.locked ? 0.6 : 1
                       }}
                     />
                   ) : (
@@ -509,14 +541,14 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                 </div>
 
                 {/* Section 3: Bottom Controls */}
-                <div className="p-2 border-b border-gray-200">
+                <div className="p-2 border-b ">
                   <div className="flex items-center justify-between">
                     <label
                       className="flex items-center text-xs"
                       style={{ color: telegramData?.themeParams.text_color }}
                     >
                       <Checkbox
-                        disabled={!editMode}
+                        disabled={!editMode || activePoint.locked}
                         checked={activePoint.completed}
                         onChange={(e) => {
                           const newCompleted = e.target.checked;
@@ -541,6 +573,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                           });
                         }}
                         className="mr-1 scale-75"
+                        style={{ opacity: activePoint.locked ? 0.6 : 1 }}
                       />
                       {activePoint.completed ? "Выполнено" : "Не выполнено"}
                     </label>
