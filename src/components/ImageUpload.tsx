@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Checkbox, Button, CompactPagination } from "@telegram-apps/telegram-ui";
+import { Checkbox, CompactPagination } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useParams } from "react-router-dom";
-import { SlClose } from "react-icons/sl";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi";
