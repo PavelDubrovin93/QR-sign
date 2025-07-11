@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Button, Input, Modal, Radio, Cell } from "@telegram-apps/telegram-ui";
+import { useState, useEffect, useRef } from "react";
+import { Button, Input, Modal, Radio } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useDispatch } from "react-redux";
 import { setUserProfile } from "../store/slices/entities/user/userSlice";
@@ -23,7 +23,7 @@ const RegistrationSteps = ({
   const [isModalOpen, setIsModalOpen] = useState(showModal);
   const [currentStep, setCurrentStep] = useState(1);
   const [userName, setUserName] = useState("");
-  const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("");
+  const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("join");
   const [companyCode, setCompanyCode] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +34,39 @@ const RegistrationSteps = ({
     companyName: false,
     api: "",
   });
+  
+  const [modalMinHeight, setModalMinHeight] = useState('auto');
+  const lastViewportHeight = useRef(0);
+
+  useEffect(() => {
+    if (webapp) {
+      lastViewportHeight.current = webapp.viewportHeight;
+
+      const initialStableHeight = webapp.viewportStableHeight;
+      setModalMinHeight(`${initialStableHeight * 0.9}px`);
+
+      const handleViewportChanged = () => {
+        const currentHeight = webapp.viewportHeight;
+        const stableHeight = webapp.viewportStableHeight;
+        setModalMinHeight(`${stableHeight * 0.9}px`);
+
+        if (currentHeight > lastViewportHeight.current) {
+          setTimeout(() => {
+            webapp.ready();
+          }, 0);
+          setTimeout(() => {
+            webapp.expand();
+          }, 0);
+        }
+        lastViewportHeight.current = currentHeight;
+      };
+
+      webapp.onEvent('viewportChanged', handleViewportChanged);
+      return () => {
+        webapp.offEvent('viewportChanged', handleViewportChanged);
+      };
+    }
+  }, [webapp]);
 
   useEffect(() => {
     setIsModalOpen(showModal);
@@ -205,50 +238,45 @@ const RegistrationSteps = ({
       </h3>
 
       <div className="space-y-3">
-        <Cell
-          before={
-            <Radio
-              name="companyChoice"
-              value="join"
-              checked={companyChoice === "join"}
-              onChange={() => handleCompanyChoiceSelect("join")}
-            />
-          }
+        <div
+          className={`
+              flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
+              ${errors.companyChoice && companyChoice !== "join" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
+              ${companyChoice === "join" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
+          `}
           onClick={() => handleCompanyChoiceSelect("join")}
-          style={{
-            backgroundColor: errors.companyChoice ? 'rgba(255, 0, 0, 0.1)' : 'transparent',
-            border: errors.companyChoice ? '1px solid red' : 'none',
-            borderRadius: '8px',
-            marginBottom: '8px',
-          }}
         >
+          <Radio
+            name="companyChoice"
+            value="join"
+            checked={companyChoice === "join"}
+            className="mr-5"
+          />
           <div>
-            <p className="font-medium">Присоединиться к компании</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Присоединиться к компании</p>
             <p className="text-sm text-gray-500">Введите числовой код компании для присоединения</p>
           </div>
-        </Cell>
+        </div>
 
-        <Cell
-          before={
-            <Radio
-              name="companyChoice"
-              value="create"
-              checked={companyChoice === "create"}
-              onChange={() => handleCompanyChoiceSelect("create")}
-            />
-          }
+        <div
+          className={`
+              flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
+              ${errors.companyChoice && companyChoice !== "create" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
+              ${companyChoice === "create" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
+          `}
           onClick={() => handleCompanyChoiceSelect("create")}
-          style={{
-            backgroundColor: errors.companyChoice ? 'rgba(255, 0, 0, 0.1)' : 'transparent',
-            border: errors.companyChoice ? '1px solid red' : 'none',
-            borderRadius: '8px',
-          }}
         >
+          <Radio
+            name="companyChoice"
+            value="create"
+            checked={companyChoice === "create"}
+            className="mr-5"
+          />
           <div>
-            <p className="font-medium">Создать свою компанию</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Создать свою компанию</p>
             <p className="text-sm text-gray-500">Создайте новую компанию и управляйте командой</p>
           </div>
-        </Cell>
+        </div>
       </div>
 
       {errors.companyChoice && (
@@ -359,7 +387,7 @@ const RegistrationSteps = ({
         dismissible={false}
         modal={true}
         preventScrollRestoration={true}
-        style={{ zIndex: 1000 }}
+        style={{ zIndex: 1000, minHeight: modalMinHeight, }}
       >
         <div
           style={{
