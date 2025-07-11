@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { SlClose } from "react-icons/sl";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
-import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 
@@ -39,6 +39,32 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     top: 0,
   });
   const [modalBottomOffset, setModalBottomOffset] = useState(16);
+  
+    // отступ для пагинации
+  const calculatePaginationOffset = useCallback(() => {
+    if (taskPoints.length === 0) return 0;
+    const pointsPerRow = 14;
+    const rows = Math.ceil(taskPoints.length / pointsPerRow);
+ 
+    const paginationHeight = 28 + (rows * 18) + ((rows - 1) * 4); 
+    return paginationHeight;
+  }, [taskPoints.length]);
+  const [isPointPanelVisible, setIsPointPanelVisible] = useState(false);
+  const [isPointPanelAnimating, setIsPointPanelAnimating] = useState(false);
+
+
+  // Управление видимостью панели с анимацией
+  useEffect(() => {
+    if (activePoint) {
+      setIsPointPanelVisible(true);
+      const timer = setTimeout(() => setIsPointPanelAnimating(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setIsPointPanelAnimating(false);
+      const timer = setTimeout(() => setIsPointPanelVisible(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [activePoint]);
 
   useEffect(() => {
     if (!activePoint) return;
@@ -117,7 +143,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   }, [isFullScreen, onFullScreenChange]);
 
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent, point: TaskPoint) => {
-    if (!editMode) return;
+    if (!editMode || point.locked) return;
     
     setIsDragging(true);
     setDraggedPointId(point.id);
@@ -242,7 +268,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const centerOnPoint = useCallback((point: TaskPoint) => {
     if (!transformRef.current || !fullSizeRef.current) return;
     
-    transformRef.current.resetTransform(0);
+    transformRef.current.resetTransform(300);
     
     setTimeout(() => {
       if (!transformRef.current || !fullSizeRef.current) return;
@@ -270,11 +296,11 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
         const finalX = centerX - (pointXPx * scale);
         const finalY = centerY - (pointYPx * scale);
         
-        transformRef.current?.setTransform(finalX, finalY, scale, 300);
+        transformRef.current?.setTransform(finalX, finalY, scale, 500);
       };
       
       waitForImageLoad();
-    }, 100);
+    }, 350); 
   }, []);
 
   const resetImageTransform = useCallback(() => {
@@ -366,6 +392,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
       {/* Модалка с изображением */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+
+          
           <div className="absolute top-4 right-4 z-50 flex gap-2">
             {currentScale > 1 && (
               <button
@@ -373,20 +401,23 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                 onClick={resetImageTransform}
                 title="Сбросить приближение"
               >
-                <span className="text-sm">1:1</span>
+                <span className="text-sm">Отдалить</span>
               </button>
             )}
             <button
-              className="text-white"
-              onClick={() => {
+                className="bg-black bg-opacity-50 text-white p-2 rounded-full"
+                onClick={() => {
                 setIsFullScreen(false);
                 setActivePoint(null);
                 resetImageTransform();
                 if (isDragging) handleDragEnd();
               }}
-            >
-              <SlClose size={24} />
-            </button>
+                title="Свернуть"
+              >
+                <span className="text-sm">Свернуть</span>
+              </button>
+
+            
           </div>
 
           {/* Изображение */}
@@ -397,7 +428,10 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            position: 'relative'
           }}>
+
+
             <TransformWrapper
               ref={transformRef}
               initialScale={1}
@@ -457,7 +491,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                   {taskPoints.map((point) => (
                     <div
                       key={point.id}
-                      className={`absolute cursor-pointer ${
+                      className={`absolute ${
                         isDragging && draggedPointId === point.id ? "z-51" : "z-40"
                       }`}
                       style={{
@@ -465,6 +499,8 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                         top: `${point.y}%`,
                         transform: `translate(-50%, -50%) scale(${Math.max(1 / currentScale, 0.5)})`,
                         pointerEvents: 'auto',
+                        cursor: point.locked ? 'not-allowed' : 'pointer',
+                        opacity: point.locked ? 0.7 : 1
                       }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
@@ -496,6 +532,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                             : activePoint?.id === point.id && editMode
                             ? "#F59E0B"
                             : telegramData?.themeParams.button_color || "#3B82F6",
+                          border: point.locked ? '2px solid #DC2626' : 'none'
                         }}
                       >
                         {point.id}
@@ -508,112 +545,252 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
           </div>
 
           {/* CompactPagination - всегда видна в полноэкранном режиме */}
-          {taskPoints.length > 0 && (
-            <div
-              style={{
-                position: 'fixed',
-                bottom: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: 'var(--tgui--secondary_bg_color)',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                zIndex: 100002
-              }}
-            >
-              {/* Стрелка влево */}
-              <button
-                onClick={goToPreviousPoint}
-                disabled={taskPoints.length <= 1}
-                style={{ 
-                  opacity: taskPoints.length <= 1 ? 0.3 : 1,
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--tgui--text_color)',
-                  cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
+          {taskPoints.length > 0 && (() => {
+            const pointsPerRow = 14;
+            const rows = [];
+            for (let i = 0; i < taskPoints.length; i += pointsPerRow) {
+              rows.push(taskPoints.slice(i, i + pointsPerRow));
+            }
+
+            return (
+              <div
+                style={{
+                  position: 'fixed',
+                  bottom: '20px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'var(--tgui--secondary_bg_color)',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  zIndex: 100002
                 }}
               >
-                <FiChevronLeft size={20} />
-              </button>
-
-              {/* CompactPagination */}
-              <CompactPagination>
-                {taskPoints.map((point) => (
-                  <CompactPagination.Item
-                    key={point.id}
-                    selected={activePoint?.id === point.id}
-                    onClick={() => {
-                      setActivePoint(point);
-                      centerOnPoint(point);
+                {/* Стрелки навигации */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {/* Стрелка влево */}
+                  <button
+                    onClick={goToPreviousPoint}
+                    disabled={taskPoints.length <= 1}
+                    style={{ 
+                      opacity: taskPoints.length <= 1 ? 0.3 : 1,
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--tgui--text_color)',
+                      cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
                     }}
                   >
-                    {point.id}
-                  </CompactPagination.Item>
-                ))}
-              </CompactPagination>
+                    <FiChevronLeft size={20} />
+                  </button>
 
-              {/* Стрелка вправо */}
-              <button
-                onClick={goToNextPoint}
-                disabled={taskPoints.length <= 1}
-                style={{ 
-                  opacity: taskPoints.length <= 1 ? 0.3 : 1,
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--tgui--text_color)',
-                  cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
-                }}
-              >
-                <FiChevronRight size={20} />
-              </button>
-            </div>
-          )}
+                  {/* CompactPagination rows */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {rows.map((rowPoints, rowIndex) => (
+                      <CompactPagination key={rowIndex}>
+                        {rowPoints.map((point) => (
+                          <CompactPagination.Item
+                            key={point.id}
+                            selected={activePoint?.id === point.id}
+                            onClick={() => {
+                              setActivePoint(point);
+                              centerOnPoint(point);
+                            }}
+                          >
+                            {point.id}
+                          </CompactPagination.Item>
+                        ))}
+                      </CompactPagination>
+                    ))}
+                  </div>
+
+                  {/* Стрелка вправо */}
+                  <button
+                    onClick={goToNextPoint}
+                    disabled={taskPoints.length <= 1}
+                    style={{ 
+                      opacity: taskPoints.length <= 1 ? 0.3 : 1,
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--tgui--text_color)',
+                      cursor: taskPoints.length <= 1 ? 'default' : 'pointer'
+                    }}
+                  >
+                    <FiChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Панель редактирования активной точки */}
-          {activePoint && (
+          {isPointPanelVisible && (
             <div
-              className="z-100001 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
+              className="z-100001 bg-opacity-90 rounded-lg shadow-md overflow-hidden pb-1"
               onClick={(e) => e.stopPropagation()}
               style={{
-                height: '200px',
+                height: 'auto',
+                paddingBottom: '16px',
                 backgroundColor: telegramData?.themeParams.section_bg_color,
-                marginRight: '16px',
                 background: 'var(--tgui--secondary_bg_color)',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'fixed',
-                bottom: `${modalBottomOffset}px`,
+                bottom: `${modalBottomOffset + calculatePaginationOffset()}px`,
                 left: '16px',
                 right: '16px',
-                zIndex: 100001
+                zIndex: 100001,
+                transform: isPointPanelAnimating 
+                  ? 'translateY(0) scale(1)' 
+                  : 'translateY(20px) scale(0.95)',
+                opacity: isPointPanelAnimating ? 1 : 0,
+                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transformOrigin: 'center bottom',
+                boxShadow: isPointPanelAnimating 
+                  ? '0 10px 25px rgba(0, 0, 0, 0.2)' 
+                  : '0 5px 15px rgba(0, 0, 0, 0.1)'
               }}
             >
+              {activePoint && (
+                <div 
+                  style={{
+                    flex: 1,
+                    overflow: 'auto',
+                    paddingRight: '4px'
+                  }}
+                >
+                  {/* Section 1: Name */}
+                  <div className="p-2  ">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
+                            {activePoint.id}
+                        </span>
+                        <input
+                          disabled={!editMode || activePoint.locked}
+                          value={activePoint.title}
+                          onChange={(e) => {
+                            const newTitle = e.target.value;
+                            setTaskPoints((prevPoints) => {
+                              const updatedPoints = prevPoints.map((p) =>
+                                p.id === activePoint.id
+                                  ? { ...p, title: newTitle }
+                                  : p
+                              );
+                              setActivePoint(
+                                updatedPoints.find((p) => p.id === activePoint.id) ||
+                                  null
+                              );
+                              return updatedPoints;
+                            });
+                          }}
+                          className="text-sm font-medium bg-transparent border-none outline-none"
+                          placeholder="Название задачи"
+                          style={{
+                            color: telegramData?.themeParams.text_color || "#000000",
+                            opacity: activePoint.locked ? 0.6 : 1,
+                            border: `1px solid ${telegramData?.themeParams.button_color}`,
+                            borderRadius: '4px',
+                            padding: '4px',
+                            marginRight: '4px',
+                            width: 'calc(100% - 100px)',
+                            maxWidth: '200px'
+                          }}
+                        />
 
-              <div 
-                style={{
-                  flex: 1,
-                  overflow: 'auto',
-                  paddingRight: '4px'
-                }}
-              >
-                {/* Section 1: Name */}
-                <div className="p-2 border-b ">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
-                          {activePoint.id}
-                      </span>
-                      <input
+                        {editMode && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                setTaskPoints((prevPoints) => {
+                                  const updatedPoints = prevPoints.map((p) =>
+                                    p.id === activePoint.id
+                                      ? { ...p, locked: !p.locked }
+                                      : p
+                                  );
+                                  setActivePoint(
+                                    updatedPoints.find((p) => p.id === activePoint.id) ||
+                                      null
+                                  );
+                                  return updatedPoints;
+                                });
+                              }}
+                              className="transition-colors duration-200 p-0.5 rounded hover:bg-gray-100"
+                              style={{
+                                color: activePoint.locked ? (telegramData?.themeParams.button_color || "#3B82F6") : "#6B7280",
+                                minWidth: '24px',
+                                minHeight: '24px'
+                              }}
+                            >
+                              {activePoint.locked ? (
+                                <FiLock size={16} />
+                              ) : (
+                                <FiUnlock size={16} />
+                              )}
+                            </button>
+                            
+                            <button 
+                              className="text-red-500 hover:text-red-700 transition-all duration-200 p-0.5 rounded hover:bg-red-50"
+                              onClick={() => {
+                                setTaskPoints((prevPoints) =>
+                                  prevPoints.filter((p) => p.id !== activePoint.id)
+                                );
+                                setActivePoint(null);
+                              }}   
+                              style={{
+                                minWidth: '24px',
+                                minHeight: '24px'
+                              }}
+                            >
+                              <FiTrash2 size={16} />
+                            </button>
+
+                            <button
+                              onClick={() => setActivePoint(null)}
+                              className="text-blue-500 hover:text-blue-700 transition-all duration-200 p-0.5 rounded hover:bg-blue-50"
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: '24px',
+                                minHeight: '24px'
+                              }}
+                            >
+                              <FiChevronDown 
+                                size={16} 
+                                className="transition-transform duration-300 hover:translate-y-1"
+                              />
+                            </button>
+                          </div>
+                        )}
+
+                      </div>
+                      
+                  </div>
+
+                  {/* Section 2: Description */}
+                  <div className="p-2  ">
+                    {editMode ? (
+                      <textarea
                         disabled={!editMode || activePoint.locked}
-                        value={activePoint.title}
+                        value={activePoint.description}
                         onChange={(e) => {
-                          const newTitle = e.target.value;
+                          const newDescription = e.target.value;
                           setTaskPoints((prevPoints) => {
                             const updatedPoints = prevPoints.map((p) =>
                               p.id === activePoint.id
-                                ? { ...p, title: newTitle }
+                                ? { ...p, description: newDescription }
                                 : p
                             );
                             setActivePoint(
@@ -623,150 +800,67 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                             return updatedPoints;
                           });
                         }}
-                        className="flex-1 text-sm font-medium bg-transparent border-none outline-none"
-                        placeholder="Название задачи"
+                        rows={2}
+                        className="w-full text-xs bg-transparent border rounded p-1 resize-none"
+                        placeholder="Описание задачи"
                         style={{
+                          backgroundColor: telegramData?.themeParams.section_bg_color,
                           color: telegramData?.themeParams.text_color || "#000000",
+                          borderColor: telegramData?.themeParams.button_color,
                           opacity: activePoint.locked ? 0.6 : 1
                         }}
                       />
+                    ) : (
+                      <p
+                        className="text-xs text-gray-600 leading-relaxed"
+                        style={{ color: telegramData?.themeParams.hint_color }}
+                      >
+                        {activePoint.description || "Описание отсутствует"}
+                      </p>
+                    )}
+                  </div>
 
-                      {editMode && (
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => {
-                              setTaskPoints((prevPoints) => {
-                                const updatedPoints = prevPoints.map((p) =>
-                                  p.id === activePoint.id
-                                    ? { ...p, locked: !p.locked }
-                                    : p
-                                );
-                                setActivePoint(
-                                  updatedPoints.find((p) => p.id === activePoint.id) ||
-                                    null
-                                );
-                                return updatedPoints;
-                              });
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            {activePoint.locked ? (
-                              <FiLock size={16} />
-                            ) : (
-                              <FiUnlock size={16} />
-                            )}
-                          </button>
-                          
-                          <FiTrash2 
-                            className="text-red-500" 
-                            size={18} 
-                            onClick={() => {
-                              setTaskPoints((prevPoints) =>
-                                prevPoints.filter((p) => p.id !== activePoint.id)
+                  {/* Section 3: Bottom Controls */}
+                  <div className="px-2 pb-0">
+                    <div className="flex items-center justify-between">
+                      <label
+                        className="flex items-center text-xs"
+                        style={{ color: telegramData?.themeParams.text_color }}
+                      >
+                        <Checkbox
+                          disabled={!editMode || activePoint.locked}
+                          checked={activePoint.completed}
+                          onChange={(e) => {
+                            const newCompleted = e.target.checked;
+                            setTaskPoints((prevPoints) => {
+                              const updatedPoints = prevPoints.map((p) =>
+                                p.id === activePoint.id
+                                  ? {
+                                      ...p,
+                                      completed: newCompleted,
+                                      done_at: newCompleted
+                                        ? new Date().toISOString()
+                                        : null,
+                                    }
+                                  : p
                               );
-                              setActivePoint(null);
-                            }}   
-                          />
-                        </div>
-                      )}
-
+                              setActivePoint(
+                                updatedPoints.find(
+                                  (p) => p.id === activePoint.id
+                                ) || null
+                              );
+                              return updatedPoints;
+                            });
+                          }}
+                          className="mr-1 scale-75"
+                          style={{ opacity: activePoint.locked ? 0.6 : 1 }}
+                        />
+                        {activePoint.completed ? "Выполнено" : "Не выполнено"}
+                      </label>
                     </div>
-                    
-                </div>
-
-                {/* Section 2: Description */}
-                <div className="p-2 border-b ">
-                  {editMode ? (
-                    <textarea
-                      disabled={!editMode || activePoint.locked}
-                      value={activePoint.description}
-                      onChange={(e) => {
-                        const newDescription = e.target.value;
-                        setTaskPoints((prevPoints) => {
-                          const updatedPoints = prevPoints.map((p) =>
-                            p.id === activePoint.id
-                              ? { ...p, description: newDescription }
-                              : p
-                          );
-                          setActivePoint(
-                            updatedPoints.find((p) => p.id === activePoint.id) ||
-                              null
-                          );
-                          return updatedPoints;
-                        });
-                      }}
-                      rows={2}
-                      className="w-full text-xs bg-transparent border border-gray-300 rounded p-1 resize-none"
-                      placeholder="Описание задачи"
-                      style={{
-                        backgroundColor:
-                          telegramData?.colorScheme === "dark" ? "#444" : "#f9f9f9",
-                        color: telegramData?.themeParams.text_color || "#000000",
-                        borderColor: telegramData?.colorScheme === "dark" ? "#666" : "#ddd",
-                        opacity: activePoint.locked ? 0.6 : 1
-                      }}
-                    />
-                  ) : (
-                    <p
-                      className="text-xs text-gray-600 leading-relaxed"
-                      style={{ color: telegramData?.themeParams.hint_color }}
-                    >
-                      {activePoint.description || "Описание отсутствует"}
-                    </p>
-                  )}
-                </div>
-
-                {/* Section 3: Bottom Controls */}
-                <div className="p-2 border-b ">
-                  <div className="flex items-center justify-between">
-                    <label
-                      className="flex items-center text-xs"
-                      style={{ color: telegramData?.themeParams.text_color }}
-                    >
-                      <Checkbox
-                        disabled={!editMode || activePoint.locked}
-                        checked={activePoint.completed}
-                        onChange={(e) => {
-                          const newCompleted = e.target.checked;
-                          setTaskPoints((prevPoints) => {
-                            const updatedPoints = prevPoints.map((p) =>
-                              p.id === activePoint.id
-                                ? {
-                                    ...p,
-                                    completed: newCompleted,
-                                    done_at: newCompleted
-                                      ? new Date().toISOString()
-                                      : null,
-                                  }
-                                : p
-                            );
-                            setActivePoint(
-                              updatedPoints.find(
-                                (p) => p.id === activePoint.id
-                              ) || null
-                            );
-                            return updatedPoints;
-                          });
-                        }}
-                        className="mr-1 scale-75"
-                        style={{ opacity: activePoint.locked ? 0.6 : 1 }}
-                      />
-                      {activePoint.completed ? "Выполнено" : "Не выполнено"}
-                    </label>
-                    
-                    <Button
-                      mode="filled"
-                      onClick={() => setActivePoint(null)}
-                      className="text-xs px-3 py-1"
-                      size="s"
-                    >
-                      Свернуть  
-                    </Button>
                   </div>
                 </div>
-              </div>
-
-              
+              )}
             </div>
           )}
         </div>
@@ -797,6 +891,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                     left: `${point.x}%`,
                     top: `${point.y}%`,
                     pointerEvents: "none",
+                    opacity: point.locked ? 0.7 : 1
                   }}
                 >
                   <div
@@ -805,6 +900,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
                       backgroundColor: point.completed
                         ? "#10B981"
                         : telegramData?.themeParams.button_color || "#3B82F6",
+                      border: point.locked ? '2px solid #DC2626' : 'none'
                     }}
                   >
                     {point.id}
