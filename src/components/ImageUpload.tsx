@@ -194,11 +194,29 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     };
   }, [updateRenderedImageRect]);
 
-  const centerOnPoint = useCallback((_point: TaskPoint) => {
-    if (!transformRef.current) return;
+  const centerOnPoint = useCallback((point: TaskPoint) => {
+    if (!transformRef.current || !fullSizeRef.current) return;
     
-    // Простое приближение на 2.5x
-    transformRef.current.zoomToElement("image", 2.5, 300);
+    const img = fullSizeRef.current;
+    const imgRect = img.getBoundingClientRect();
+    
+    // Конвертируем процентные координаты точки в пиксели относительно изображения
+    const pointX = (point.x / 100) * imgRect.width;
+    const pointY = (point.y / 100) * imgRect.height;
+    
+    // Получаем центр контейнера
+    const containerRect = img.parentElement?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const centerX = containerRect.width / 2;
+    const centerY = containerRect.height / 2;
+    
+    // Вычисляем смещение для центрирования точки
+    const offsetX = centerX - pointX;
+    const offsetY = centerY - pointY;
+    
+    // Применяем зум и позиционирование
+    transformRef.current.setTransform(offsetX, offsetY, 2.5, 300);
   }, []);
 
   const resetImageTransform = useCallback(() => {
@@ -406,13 +424,16 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               className="z-100001 fixed bottom-0 left-4 right-0 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               style={{
-                maxHeight: '25vh',
+                maxHeight: '200px',
+                height: 'auto',
                 backgroundColor: telegramData?.themeParams.section_bg_color,
                 marginBottom: '16px',
                 marginRight: '16px',
                 background: 'var(--tgui--secondary_bg_color)',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                position: 'fixed',
+                bottom: '16px'
               }}
             >
 
