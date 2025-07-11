@@ -197,26 +197,45 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   const centerOnPoint = useCallback((point: TaskPoint) => {
     if (!transformRef.current || !fullSizeRef.current) return;
     
-    const img = fullSizeRef.current;
-    const imgRect = img.getBoundingClientRect();
+    // Сначала сбрасываем трансформацию для корректных расчетов
+    transformRef.current.resetTransform(0);
     
-    // Конвертируем процентные координаты точки в пиксели относительно изображения
-    const pointX = (point.x / 100) * imgRect.width;
-    const pointY = (point.y / 100) * imgRect.height;
-    
-    // Получаем центр контейнера
-    const containerRect = img.parentElement?.getBoundingClientRect();
-    if (!containerRect) return;
-    
-    const centerX = containerRect.width / 2;
-    const centerY = containerRect.height / 2;
-    
-    // Вычисляем смещение для центрирования точки
-    const offsetX = centerX - pointX;
-    const offsetY = centerY - pointY;
-    
-    // Применяем зум и позиционирование
-    transformRef.current.setTransform(offsetX, offsetY, 2.5, 300);
+    setTimeout(() => {
+      if (!transformRef.current || !fullSizeRef.current) return;
+      
+      const img = fullSizeRef.current;
+      
+      // Ждем когда изображение полностью загрузится и получит размеры
+      const waitForImageLoad = () => {
+        const imgRect = img.getBoundingClientRect();
+        if (imgRect.width === 0 || imgRect.height === 0) {
+          setTimeout(waitForImageLoad, 50);
+          return;
+        }
+        
+        // Координаты точки в пикселях относительно изображения
+        const pointXPx = (point.x / 100) * imgRect.width;
+        const pointYPx = (point.y / 100) * imgRect.height;
+        
+        // Получаем размеры контейнера
+        const container = img.closest('.react-transform-component');
+        if (!container) return;
+        
+        const containerRect = container.getBoundingClientRect();
+        const centerX = containerRect.width / 2;
+        const centerY = containerRect.height / 2;
+        
+        // Вычисляем финальную позицию с зумом 2.5
+        const scale = 2.5;
+        const finalX = centerX - (pointXPx * scale);
+        const finalY = centerY - (pointYPx * scale);
+        
+        // Применяем трансформацию
+        transformRef.current?.setTransform(finalX, finalY, scale, 300);
+      };
+      
+      waitForImageLoad();
+    }, 100);
   }, []);
 
   const resetImageTransform = useCallback(() => {
@@ -424,8 +443,7 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
               className="z-100001 fixed bottom-0 left-4 right-0 bg-opacity-90 rounded-lg shadow-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               style={{
-                maxHeight: '200px',
-                height: 'auto',
+                height: '200px',
                 backgroundColor: telegramData?.themeParams.section_bg_color,
                 marginBottom: '16px',
                 marginRight: '16px',
