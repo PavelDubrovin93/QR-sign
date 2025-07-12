@@ -1028,6 +1028,7 @@ function TaskCard({ editMode }: TaskCardProps) {
             {/* Описание задач */}
             <div className="flex flex-col justify-left pl-2 pr-2 w-full">
               {editMode ? (
+                <div>
                 <input
                   value={task?.title || ""}
                   onChange={(e) => {
@@ -1046,9 +1047,31 @@ function TaskCard({ editMode }: TaskCardProps) {
                     marginRight: '4px',
                   }}
                 />
+
+                <textarea
+                  value={task?.description || ""}
+                  onChange={(e) => {
+                    if (task) {
+                      setTask({ ...task, description: e.target.value });
+                    }
+                  }}
+                  placeholder="Описание задачи"
+                  className="w-full border rounded p-2 mb-2 text-base font-semibold"
+                  style={{
+                    backgroundColor: telegramData?.themeParams.section_bg_color,
+                    color: telegramData?.themeParams.text_color,
+                    border: `1px solid ${telegramData?.themeParams.button_color}`,
+                    borderRadius: '4px',
+                    padding: '4px',
+                    marginRight: '4px',
+                  }}
+                  />
+                </div>  
               ) : (
                 <p className="text-base font-semibold pb-4">{task?.title}</p>
               )}
+
+
               {taskPoints.map((task_point: TaskPoint, index: number) => {
                 const { title, description, voice_message, completed } =
                   task_point;
