@@ -2,14 +2,18 @@ from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.infrastructure.interfaces.services.IUserDataService import \
+    IUserDataService
+from app.infrastructure.repositories.CompanyRepository import CompanyRepository
+from app.infrastructure.repositories.TaskBoardRepository import \
+    TaskBoardRepository
+from app.infrastructure.repositories.TaskPointRepository import \
+    TaskPointRepository
+from app.infrastructure.repositories.UserCompanyRepository import \
+    UserCompanyRepository
+from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 from app.validation.responses.UserCompanyResponse import UserCompanyResponse
-from app.infrastructure.interfaces.services.IUserDataService import IUserDataService
-from app.infrastructure.repositories.CompanyRepository import CompanyRepository
-from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
-from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
-from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
-from app.validation.dtoModels.UserDTO import UserDTO
 
 
 class UserDataService(IUserDataService):
@@ -63,7 +67,7 @@ class UserDataService(IUserDataService):
                     )
                 )
         return responses
-    
+
     async def get_user_role(self, user_id: int, company_id: int) -> str:
         uc_repo = UserCompanyRepository(self.session)
         uc = await uc_repo.get_user_company_by_company_id_and_user_id(

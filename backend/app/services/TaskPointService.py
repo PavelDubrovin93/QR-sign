@@ -1,16 +1,16 @@
-from fastapi import HTTPException
+from typing import List
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.validation.responses.TaskBoardResponse import TaskPointResponse
-from app.infrastructure.interfaces.services.ITaskPointService import ITaskPointService
-from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
-from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
-
-from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
-from app.validation.responses.TaskBoardResponse import CreateTaskBoardResponse
-
-from typing import List
+from app.infrastructure.interfaces.services.ITaskPointService import \
+    ITaskPointService
+from app.infrastructure.repositories.TaskBoardRepository import \
+    TaskBoardRepository
+from app.infrastructure.repositories.TaskPointRepository import \
+    TaskPointRepository
+from app.validation.responses.TaskBoardResponse import (
+    TaskPointResponse)
 
 
 class TaskPointService(ITaskPointService):
@@ -19,11 +19,15 @@ class TaskPointService(ITaskPointService):
         self.tb_repo = TaskBoardRepository(self.session)
         self.tp_repo = TaskPointRepository(self.session)
 
-    async def get_taskpoints_by_taskboard_id(self, taskboard_id: int) -> List[TaskPointResponse]:
+    async def get_taskpoints_by_taskboard_id(
+        self, taskboard_id: int
+    ) -> List[TaskPointResponse]:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
         if not taskboard:
-            raise HTTPException(status_code=404, detail="Taskboard not found") #TODO: useless
-    
+            raise HTTPException(
+                status_code=404, detail="Taskboard not found"
+            )  # TODO: useless
+
         taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard_id)
 
         return taskpoints

@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 from app.validation.responses.UserCompanyResponse import UserCompanyResponse
-from app.validation.dtoModels.UserDTO import UserDTO
 
 
 class IUserDataService(ABC):

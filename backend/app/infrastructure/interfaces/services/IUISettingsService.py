@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from app.validation.responses.UISettingResponse import UISettingResponse
 from app.validation.dtoModels.UserDTO import UserDTO
+from app.validation.responses.UISettingResponse import UISettingResponse
 
 
 class IUISettingsService(ABC):

@@ -1,20 +1,21 @@
 import re
 from app.infrastructure.core.s3 import S3Service, BASE64_PATTERN
 from typing import List, Optional
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.ITaskPointRepository import (
-    ITaskPointRepository,
-)
-from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
-from app.models.dbModels.TaskPoint.TaskPointEntity import TaskPointEntity as TaskPoint
-from app.models.dbModels.UserCompany.UserCompanyEntity import (
-    UserCompanyEntity as UserCompany,
-)
-from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
+from app.infrastructure.interfaces.repositories.ITaskPointRepository import \
+    ITaskPointRepository
+from app.models.dbModels.TaskBoard.TaskBoardEntity import \
+    TaskBoardEntity as TaskBoard
+from app.models.dbModels.TaskPoint.TaskPointEntity import \
+    TaskPointEntity as TaskPoint
+from app.models.dbModels.UserCompany.UserCompanyEntity import \
+    UserCompanyEntity as UserCompany
+from app.models.dbModels.WorkGroup.WorkGroupEntity import \
+    WorkGroupEntity as WorkGroup
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
-from fastapi import HTTPException
 
 
 class TaskPointRepository(ITaskPointRepository):
@@ -113,7 +114,6 @@ class TaskPointRepository(ITaskPointRepository):
         await self.session.delete(task_board_to_delete)
         await self.session.commit()
 
-    
     async def delete_task_point_by_taskboard_id(self, taskboard_id: int) -> None:
         query = select(TaskPoint).where(TaskPoint.taskboard_id == taskboard_id)
         result = await self.session.execute(query)
@@ -121,7 +121,9 @@ class TaskPointRepository(ITaskPointRepository):
 
         for task_point in task_points:
             if task_point is None:
-                raise HTTPException(status_code=404, detail=f"Task Point {task_point} not found")
+                raise HTTPException(
+                    status_code=404, detail=f"Task Point {task_point} not found"
+                )
             await self.session.delete(task_point)
 
         await self.session.commit()
@@ -171,7 +173,7 @@ class TaskPointRepository(ITaskPointRepository):
         query = select(TaskPoint).where(TaskPoint.id == new_task_point.id)
         result = await self.session.execute(query)
         task_point = result.scalar_one_or_none()
-        
+
         if task_point is None:
             raise ValueError(f"Таскпоинт с id {new_task_point.id} не существует.")
         if task_point.thumbnails == 'True' and new_task_point.thumbnails == None:
@@ -201,11 +203,15 @@ class TaskPointRepository(ITaskPointRepository):
 
         return new_task_point
 
-    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO], task_board: int):
+    async def edit_task_points_by_dto_list(
+        self, task_points: List[TaskPointDTO], task_board: int
+    ):
         #  Проверяем есть ли записи в запросе
         if task_points:
             #  если записи есть, сличаем с тем, что у нас есть в бд
-            db_taskpoints = await self.get_task_point_by_taskboard_id(taskboard_id=task_board)
+            db_taskpoints = await self.get_task_point_by_taskboard_id(
+                taskboard_id=task_board
+            )
             existing_ids = {tp.id for tp in db_taskpoints}
             incoming_ids = {tp.id for tp in task_points}
             #  удаляем те записи, которых нет в запросе, но есть в бд

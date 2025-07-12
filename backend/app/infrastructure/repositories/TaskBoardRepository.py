@@ -1,25 +1,20 @@
 from typing import List, Optional
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.ITaskBoardRepository import (
-    ITaskBoardRepository,
-)
-
-from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity as TaskBoard
-from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
-from app.models.dbModels.UserCompany.UserCompanyEntity import UserCompanyEntity as UserCompany #TODO: FIX LATER
-
-
+from app.infrastructure.interfaces.repositories.ITaskBoardRepository import \
+    ITaskBoardRepository
+from app.models.dbModels.TaskBoard.TaskBoardEntity import \
+    TaskBoardEntity as TaskBoard
+from app.models.dbModels.UserCompany.UserCompanyEntity import \
+    UserCompanyEntity as UserCompany  # TODO: FIX LATER
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
-from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
 
 
-from fastapi import HTTPException
-
-#pesos
+# pesos
 class TaskBoardRepository(ITaskBoardRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -122,8 +117,12 @@ class TaskBoardRepository(ITaskBoardRepository):
 
         return taskboard
 
-    async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
-        query = select(UserCompany).where(UserCompany.company_id == company_id and UserCompany.user_id == user_id) #TODO: rebase to proper repo
+    async def get_task_boards_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> List[TaskBoardResponse]:
+        query = select(UserCompany).where(
+            UserCompany.company_id == company_id and UserCompany.user_id == user_id
+        )  # TODO: rebase to proper repo
         result = await self.session.execute(query)
         usercompanies = result.scalars().all()
         work_group_ids = [usercompany.workgroup_id for usercompany in usercompanies]
@@ -134,7 +133,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_boards_dto = [
             await self.__to_dto(task_board) for task_board in task_boards
         ]
-        
+
         return task_boards_dto
 
     async def get_taskboard_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:

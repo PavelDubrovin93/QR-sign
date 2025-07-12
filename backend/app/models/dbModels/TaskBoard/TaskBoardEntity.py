@@ -1,4 +1,5 @@
-from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (ARRAY, Column, DateTime, Float, ForeignKey, Integer,
+                        String, Text)
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB
@@ -18,4 +19,6 @@ class TaskBoardEntity(EntityDB):
 
     company = relationship("CompanyEntity", back_populates="task_boards")
     work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
-    tasks = relationship("TaskPointEntity", back_populates="taskboard", cascade="all, delete-orphan")
+    tasks = relationship(
+        "TaskPointEntity", back_populates="taskboard", cascade="all, delete-orphan"
+    )

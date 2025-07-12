@@ -3,13 +3,12 @@ import logging
 import uvicorn
 from environs import Env
 from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.infrastructure.exception_handler import global_exception_handler
 from app.infrastructure.init_db import init_db
 from app.infrastructure.logger import logger
-from fastapi.middleware.cors import CORSMiddleware
-
 
 env = Env()
 env.read_env()

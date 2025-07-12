@@ -5,6 +5,7 @@ from app.models.dbModels.TaskBoard.TaskBoardEntity import TaskBoardEntity
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
 
+
 class ITaskBoardRepository(ABC):
     """
     Интерфейс репозитория для работы с доской задач.
@@ -84,7 +85,9 @@ class ITaskBoardRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
+    async def get_task_boards_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> List[TaskBoardResponse]:
         """
         Получить список таскбордов по идентификатору компании, в которых учавствует пользователь.
         :param company_id: ID компании

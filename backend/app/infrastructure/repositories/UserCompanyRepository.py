@@ -1,15 +1,13 @@
 from typing import List, Optional
 
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
 
-from app.infrastructure.interfaces.repositories.IUserCompanyRepository import (
-    IUserCompanyRepository,
-)
-from app.models.dbModels.UserCompany.UserCompanyEntity import (
-    UserCompanyEntity as UserCompany,
-)
+from app.infrastructure.interfaces.repositories.IUserCompanyRepository import \
+    IUserCompanyRepository
+from app.models.dbModels.UserCompany.UserCompanyEntity import \
+    UserCompanyEntity as UserCompany
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 
 
@@ -86,8 +84,9 @@ class UserCompanyRepository(IUserCompanyRepository):
         await self.session.delete(user_company_to_delete)
         await self.session.commit()
 
-
-    async def get_all_users_in_company_with_company_id(self, company_id: int) -> List[UserCompanyDTO]:
+    async def get_all_users_in_company_with_company_id(
+        self, company_id: int
+    ) -> List[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.company_id == company_id)
         result = await self.session.execute(query)
         usercompanies = result.scalars().all()
@@ -99,7 +98,9 @@ class UserCompanyRepository(IUserCompanyRepository):
 
         return usercompanies_dto
 
-    async def get_all_uc_in_company_by_workgroup_id(self, workgroup_id: int) -> List[UserCompanyDTO]:
+    async def get_all_uc_in_company_by_workgroup_id(
+        self, workgroup_id: int
+    ) -> List[UserCompanyDTO]:
         query = select(UserCompany).where(UserCompany.workgroup_id == workgroup_id)
         result = await self.session.execute(query)
         usercompanies = result.scalars().all()
@@ -110,12 +111,16 @@ class UserCompanyRepository(IUserCompanyRepository):
 
         return usercompanies_dto
 
-    async def get_user_company_by_company_id_and_user_id(self, company_id: int, user_id: int) -> Optional[UserCompanyDTO]:
-        query = select(UserCompany).where(and_(UserCompany.company_id == company_id, UserCompany.user_id == user_id))
-        
+    async def get_user_company_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> Optional[UserCompanyDTO]:
+        query = select(UserCompany).where(
+            and_(UserCompany.company_id == company_id, UserCompany.user_id == user_id)
+        )
+
         result = await self.session.execute(query)
         usercompany = result.scalars().first()
-        
+
         usercompany_dto = await self.__to_dto(usercompany) if usercompany else None
         print(123123, company_id, user_id, usercompany_dto)
         return usercompany_dto

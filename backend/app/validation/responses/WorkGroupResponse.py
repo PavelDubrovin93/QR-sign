@@ -1,9 +1,10 @@
-from app.validation.Entity import Entity
+from typing import List
+
+from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
-from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
+from app.validation.Entity import Entity
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
-from typing import List
 
 
 class CreateWorkGroupResponse(Entity):
@@ -15,6 +16,7 @@ class CreateWorkGroupResponse(Entity):
 class UserAndUC(Entity):
     user: UserDTO
     uc: UserCompanyDTO
+
 
 class WorkGroupAndTaskboardResponse(Entity):
     taskboards: List[TaskBoardResponse]

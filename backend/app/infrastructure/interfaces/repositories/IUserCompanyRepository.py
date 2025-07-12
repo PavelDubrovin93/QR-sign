@@ -45,9 +45,13 @@ class IUserCompanyRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all_users_in_company_with_company_id(self, company_id: int) -> List[UserCompanyDTO]:
+    async def get_all_users_in_company_with_company_id(
+        self, company_id: int
+    ) -> List[UserCompanyDTO]:
         pass
 
     @abstractmethod
-    async def get_user_company_by_company_id_and_user_id(self, company_id: int, user_id: int) -> Optional[UserCompanyDTO]:
+    async def get_user_company_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> Optional[UserCompanyDTO]:
         pass
