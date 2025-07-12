@@ -1084,7 +1084,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                           }}
                         />
                         {editMode ? (
-                          <div className="flex items-center gap-2 flex-1 ml-2">
+                          <div className="flex items-center gap-2 ml-2" style={{ width: 'calc(100% - 24px)' }}>
                             <input
                               value={title}
                               disabled={task_point.locked}
@@ -1098,7 +1098,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                                   )
                                 );
                               }}
-                              className="border rounded p-1 flex-1"
+                              className="border rounded p-1"
                               placeholder={`Название задачи`}
                               style={{
                                 backgroundColor: telegramData?.themeParams.section_bg_color,
@@ -1106,7 +1106,10 @@ function TaskCard({ editMode }: TaskCardProps) {
                                 border: `1px solid ${telegramData?.themeParams.button_color}`,
                                 borderRadius: '4px',
                                 padding: '4px',
-                                opacity: task_point.locked ? 0.6 : 1
+                                opacity: task_point.locked ? 0.6 : 1,
+                                width: 'calc(100% - 60px)', // Оставляем место для кнопок
+                                minWidth: '0', // Позволяем уменьшаться
+                                textOverflow: 'ellipsis'
                               }}
                             />
                             <button
@@ -1120,37 +1123,43 @@ function TaskCard({ editMode }: TaskCardProps) {
                                   return updatedPoints;
                                 });
                               }}
-                              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                              className="p-1 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
                               style={{
                                 color: task_point.locked ? (telegramData?.themeParams.button_color || "#3B82F6") : "#6B7280",
                                 backgroundColor: 'transparent',
                                 border: 'none',
                                 cursor: 'pointer',
-                                minWidth: '24px',
-                                minHeight: '24px'
+                                width: '26px',
+                                height: '26px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
                             >
                               {task_point.locked ? (
-                                <FiLock size={16} />
+                                <FiLock size={14} />
                               ) : (
-                                <FiUnlock size={16} />
+                                <FiUnlock size={14} />
                               )}
                             </button>
                             <button
                               onClick={() => {
                                 setTaskPoints(prev => prev.filter(p => p.id !== task_point.id));
                               }}
-                              className="p-1 rounded-full hover:bg-red-50 transition-colors"
+                              className="p-1 rounded-full hover:bg-red-50 transition-colors flex-shrink-0"
                               style={{
                                 color: '#EF4444',
                                 backgroundColor: 'transparent',
                                 border: 'none',
                                 cursor: 'pointer',
-                                minWidth: '24px',
-                                minHeight: '24px'
+                                width: '26px',
+                                height: '26px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
                             >
-                              <FiTrash2 size={16} />
+                              <FiTrash2 size={14} />
                             </button>
                           </div>
                         ) : (
