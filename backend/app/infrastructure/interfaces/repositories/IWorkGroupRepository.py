@@ -4,6 +4,7 @@ from typing import List, Optional
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
 from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
 
+
 class IWorkGroupRepository(ABC):
     """
     Интерфейс репозитория для работы с рабочими группами.

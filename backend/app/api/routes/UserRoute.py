@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.infrastructure.db.session import fastapi_get_db
-from app.services.UserService import UserService
-from app.validation.responses.UserResponse import CreateUserResponse, UserResponse
-from app.infrastructure.repositories.UserRepository import UserRepository
 from starlette.status import HTTP_204_NO_CONTENT
 
-router = APIRouter()
+from app.infrastructure.db.session import fastapi_get_db
+from app.infrastructure.repositories.UserRepository import UserRepository
+from app.services.UserService import UserService
+from app.validation.responses.UserResponse import (CreateUserResponse,
+                                                   UserResponse)
 
+router = APIRouter()
 
 
 @router.get("/check/{tg_id}", response_model=dict)
@@ -17,12 +17,13 @@ async def check_user_exists(
 ) -> dict:
     user_repo = UserRepository(session)
     user = await user_repo.get_user_by_tg_id(tg_id=tg_id)
-    
+
     return {
         "exists": user is not None,
         "user_id": user.id if user else None,
-        "is_first_time": user is None
+        "is_first_time": user is None,
     }
+
 
 @router.post("", response_model=UserResponse, status_code=201)
 async def cold_register(
@@ -40,7 +41,7 @@ async def delete_user(
 ):
     service = UserService(session)
     deleted_user = await service.delete_user(user_id)
-    
+
     if not deleted_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 

@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic.networks import HttpUrl
 
 from app.validation.Entity import Entity
+
 
 class CreateCompanyResponse(Entity):
     title: str

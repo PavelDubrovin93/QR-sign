@@ -1,14 +1,17 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.validation.responses.UISettingResponse import UISettingResponse
-from app.infrastructure.interfaces.services.IUISettingsService import IUISettingsService
-from app.infrastructure.repositories.UISettingsRepository import UISettingsRepository
-from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
+from app.infrastructure.interfaces.services.IUISettingsService import \
+    IUISettingsService
+from app.infrastructure.repositories.UISettingsRepository import \
+    UISettingsRepository
+from app.infrastructure.repositories.UserCompanyRepository import \
+    UserCompanyRepository
 from app.infrastructure.repositories.UserRepository import UserRepository
 from app.models.dbEnums.RoleType import RoleType
 from app.validation.dtoModels.UISettingsDTO import UISettingsDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
+from app.validation.responses.UISettingResponse import UISettingResponse
 
 
 class UISettingsService(IUISettingsService):

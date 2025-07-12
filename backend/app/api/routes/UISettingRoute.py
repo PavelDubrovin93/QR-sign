@@ -17,7 +17,7 @@ async def get_user_settings(
 ) -> UISettingResponse:
     service = UISettingsService(session)
     settings = await service.get_user_settings(current_user)
-    
+
     return settings
 
 
@@ -29,5 +29,5 @@ async def update_user_settings(
 ) -> UISettingsDTO:
     service = UISettingsService(session)
     updated = await service.update_user_settings(updated_settings)
-    
+
     return updated

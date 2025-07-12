@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import List, Optional
 
-from app.validation.responses.InviteConformResponse import InviteConformResponse
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.dtoModels.UserCompanyDTO import UserCompanyDTO
 from app.validation.dtoModels.UserDTO import UserDTO
 from app.validation.responses.CompanyResposnse import CreateCompanyResponse
+from app.validation.responses.InviteConformResponse import \
+    InviteConformResponse
 from app.validation.responses.UserResponse import UsersInCompanyResponse
 
 
@@ -45,7 +46,7 @@ class ICompanyService(ABC):
         :return: Объект UserCompanyDTO или None
         """
         pass
-    
+
     @abstractmethod
     async def delete_user_company(self, uc_id: int) -> None:
         """
@@ -56,7 +57,9 @@ class ICompanyService(ABC):
         pass
 
     @abstractmethod
-    async def get_all_users_in_company_and_uc_id(self, company_id: int) -> List[UsersInCompanyResponse]:
+    async def get_all_users_in_company_and_uc_id(
+        self, company_id: int
+    ) -> List[UsersInCompanyResponse]:
         """
         обновить информацию по связи UserCompany.
         :param company_id: ID компании
@@ -65,7 +68,9 @@ class ICompanyService(ABC):
         pass
 
     @abstractmethod
-    async def get_all_users_in_company_and_uc_id(self, company_id: int) -> UsersInCompanyResponse:
+    async def get_all_users_in_company_and_uc_id(
+        self, company_id: int
+    ) -> UsersInCompanyResponse:
         """
         обновить информацию по связи UserCompany.
         :param company_id: ID компании

@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, DateTime, LargeBinary, String, Text
 from sqlalchemy.orm import relationship
 
@@ -20,6 +19,6 @@ class CompanyEntity(EntityDB):
         "UISettingsEntity",
         back_populates="default_company",
     )
-    
+
     work_groups = relationship("WorkGroupEntity", back_populates="company")
     task_boards = relationship("TaskBoardEntity", back_populates="company")

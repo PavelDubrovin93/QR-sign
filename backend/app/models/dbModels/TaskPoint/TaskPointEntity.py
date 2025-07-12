@@ -1,15 +1,5 @@
-from sqlalchemy import (
-    ARRAY,
-    JSON,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    LargeBinary,
-    String,
-    Text,
-)
+from sqlalchemy import (ARRAY, Column, DateTime, ForeignKey,
+                        Integer, LargeBinary, String, Text)
 from sqlalchemy.orm import relationship
 
 from app.models.dbModels.EntityDB import EntityDB

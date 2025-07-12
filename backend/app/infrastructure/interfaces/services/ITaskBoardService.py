@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse, CreateTaskBoardResponse
+from app.validation.responses.TaskBoardResponse import (
+    CreateTaskBoardResponse, TaskBoardResponse)
 
 
 class ITaskBoardService(ABC):
@@ -20,9 +21,10 @@ class ITaskBoardService(ABC):
         """
         pass
 
-
     @abstractmethod
-    async def delete_task_board_and_task_points_by_tb_id(self, taskboard_id: int) -> TaskBoardResponse:
+    async def delete_task_board_and_task_points_by_tb_id(
+        self, taskboard_id: int
+    ) -> TaskBoardResponse:
         """
         Удалить таскборд и его таскпоинты по идентификатору.
         :param taskboard_id: ID таскборда
@@ -31,7 +33,9 @@ class ITaskBoardService(ABC):
         pass
 
     @abstractmethod
-    async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse) -> TaskBoardResponse:
+    async def edit_task_board_with_task_points(
+        self, taskboard: TaskBoardResponse
+    ) -> TaskBoardResponse:
         """
         Редактировать таскборд.
         :param taskboard: объект TaskBoardResponse
@@ -40,7 +44,9 @@ class ITaskBoardService(ABC):
         pass
 
     @abstractmethod
-    async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_tg_id: int) -> list[TaskBoardResponse]:
+    async def get_task_boards_by_company_id_and_user_id(
+        self, company_id: int, user_tg_id: int
+    ) -> list[TaskBoardResponse]:
         """
         Получить список таскбордов по идентификатору компании, в которых учавствует пользователь.
         :param company_id: ID компании
@@ -48,9 +54,10 @@ class ITaskBoardService(ABC):
         """
         pass
 
-
     @abstractmethod
-    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:
+    async def create_taskboard(
+        self, taskboard_data: CreateTaskBoardResponse
+    ) -> TaskBoardResponse:
         """
         Создать таскборд.
         :param taskboard_data: объект TaskBoardResponse

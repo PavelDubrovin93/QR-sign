@@ -3,12 +3,13 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.IWorkGroupRepository import (
-    IWorkGroupRepository,
-)
-from app.models.dbModels.WorkGroup.WorkGroupEntity import WorkGroupEntity as WorkGroup
+from app.infrastructure.interfaces.repositories.IWorkGroupRepository import \
+    IWorkGroupRepository
+from app.models.dbModels.WorkGroup.WorkGroupEntity import \
+    WorkGroupEntity as WorkGroup
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
 from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
+
 
 class WorkGroupRepository(IWorkGroupRepository):
     def __init__(self, session: AsyncSession):
@@ -39,7 +40,7 @@ class WorkGroupRepository(IWorkGroupRepository):
         await self.session.commit()
         await self.session.refresh(workgroup_to_edit)
         workgroup_dto = await self.__to_dto(workgroup_to_edit)
-        
+
         return workgroup_dto
 
     async def create_work_group(self, wg_dto: CreateWorkGroupResponse) -> WorkGroupDTO:

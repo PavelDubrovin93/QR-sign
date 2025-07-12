@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from app.validation.responses.UserResponse import CreateUserResponse, UserResponse
+from app.validation.responses.UserResponse import (CreateUserResponse,
+                                                   UserResponse)
 
 
 class IUserService(ABC):

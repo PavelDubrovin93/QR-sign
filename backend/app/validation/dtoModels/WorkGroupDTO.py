@@ -1,5 +1,6 @@
-from app.validation.Entity import Entity
 from typing import Optional
+
+from app.validation.Entity import Entity
 
 
 class WorkGroupDTO(Entity):

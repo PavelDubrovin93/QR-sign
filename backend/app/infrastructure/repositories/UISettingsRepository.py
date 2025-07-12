@@ -3,9 +3,8 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.IUISettingsRepository import (
-    IUISettingsRepository,
-)
+from app.infrastructure.interfaces.repositories.IUISettingsRepository import \
+    IUISettingsRepository
 from app.models.dbModels.UISettings.UISettingsEntity import UISettingsEntity
 from app.validation.dtoModels.UISettingsDTO import UISettingsDTO
 

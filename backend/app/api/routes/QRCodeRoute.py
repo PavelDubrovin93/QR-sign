@@ -1,17 +1,15 @@
+import os
+
+import qrcode
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+from reportlab.pdfgen import canvas
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.session import fastapi_get_db
 from app.services.QRCodeService import QRCodeService
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
 from app.validation.responses.QRCodeResponse import QRCodeResponse
-
-from fastapi.responses import FileResponse
-
-from PIL import Image
-from reportlab.pdfgen import canvas
-import qrcode
-import os
 
 router = APIRouter()
 
@@ -29,9 +27,10 @@ async def get_task_point_by_qr_code(
 
 @router.post("/create_qr_code_file")
 async def create_qr_code_by_task_point_id(
-    data: QRCodeResponse, session: AsyncSession = Depends(fastapi_get_db),
+    data: QRCodeResponse,
+    session: AsyncSession = Depends(fastapi_get_db),
 ) -> FileResponse:
-    
+
     service = QRCodeService(session)
 
     pdf_path = "qr_codes.pdf"
@@ -72,4 +71,4 @@ async def create_qr_code_by_task_point_id(
 
     c.save()
 
-    return FileResponse(pdf_path, media_type='application/pdf', filename="qr_codes.pdf")
+    return FileResponse(pdf_path, media_type="application/pdf", filename="qr_codes.pdf")

@@ -3,9 +3,8 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.ICompanyRepository import (
-    ICompanyRepository,
-)
+from app.infrastructure.interfaces.repositories.ICompanyRepository import \
+    ICompanyRepository
 from app.models.dbModels.Company.CompanyEntity import CompanyEntity as Company
 from app.validation.dtoModels.CompanyDTO import CompanyDTO
 from app.validation.responses.CompanyResposnse import CreateCompanyResponse

@@ -4,7 +4,8 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.infrastructure.interfaces.repositories.IUserRepository import IUserRepository
+from app.infrastructure.interfaces.repositories.IUserRepository import \
+    IUserRepository
 from app.models.dbModels.User.UserEntity import UserEntity as User
 from app.validation.dtoModels.UserDTO import UserDTO
 

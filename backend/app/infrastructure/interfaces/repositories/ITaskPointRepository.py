@@ -101,10 +101,11 @@ class ITaskPointRepository(ABC):
         :return: Объект TaskPointDTO с информацией о задаче или None, если не найдена
         """
         pass
-    
+
     @abstractmethod
-    async def edit_task_points_by_dto_list(self, task_points: List[TaskPointDTO], task_board: int
-                                           ) -> List[TaskPointDTO]:
+    async def edit_task_points_by_dto_list(
+        self, task_points: List[TaskPointDTO], task_board: int
+    ) -> List[TaskPointDTO]:
         """
         Обновляет task_points в базе данных.
         :param task_points: список экземпляров задач
@@ -113,7 +114,9 @@ class ITaskPointRepository(ABC):
         pass
 
     @abstractmethod
-    async def edit_task_point_by_dto(self, new_task_point: TaskPointDTO) -> TaskPointDTO:
+    async def edit_task_point_by_dto(
+        self, new_task_point: TaskPointDTO
+    ) -> TaskPointDTO:
         """
         Обновляет задачу в базе данных.
         :param task_point_dto: экземпляр задачи
