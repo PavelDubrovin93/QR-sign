@@ -244,11 +244,9 @@ function App() {
 
       await createUserCompany(userCompanyData);
       
-      // Reset form
       setCompanyCode("");
       setShowApplicationModal(false);
       
-      // Refresh companies list to show new application
       const companiesResponse = await getCompaniesByClient();
       if (companiesResponse.data) {
         const notApproved = companiesResponse.data.filter(
@@ -258,7 +256,6 @@ function App() {
       }
     } catch (error) {
       console.error("Error submitting application:", error);
-      // Could add error toast here
     } finally {
       setIsSubmittingApplication(false);
     }
@@ -307,7 +304,7 @@ function App() {
             <Routes>
               <Route index path="/" element={<AdminPage />} />
               <Route path="/admin-taskboard" element={<AdminTaskboardPage />} />
-              <Route path="/admin-taskboard/:id" element={<TaskCard editMode={true} />} />
+              <Route path="/admin-taskboard/:taskboard_id" element={<TaskCard editMode={true} />} />
             </Routes>
           </AdminLayout>
         );

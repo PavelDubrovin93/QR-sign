@@ -18,7 +18,7 @@ interface ImageUploadProps {
   onFullScreenChange?: (isFullScreen: boolean) => void;
 }
 
-function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, setActivePoint, onFullScreenChange }: ImageUploadProps) {
+function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, setActivePoint, onFullScreenChange }: ImageUploadProps) {
   const telegramData = getTelegramData();
   const { id } = useParams<{ id: string }>();
 
@@ -129,11 +129,14 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
     } catch (e: any) {
       console.error("Ошибка при получении данных задачи:", e);
     }
-  }, [id]);
+  }, [id, setTaskPoints]);
 
   useEffect(() => {
-    fetchAndSetTaskData();
-  }, []);
+    // Only fetch data if we have an id parameter (editing mode)
+    if (id) {
+      fetchAndSetTaskData();
+    }
+  }, [fetchAndSetTaskData, id]);
 
   useEffect(() => {
     if (onFullScreenChange) {
@@ -913,4 +916,4 @@ function TaskCard({ editMode, image, taskPoints, setTaskPoints, activePoint, set
   );
 }
 
-export default TaskCard;
+export default ImageUpload;
