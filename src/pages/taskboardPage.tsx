@@ -3,17 +3,15 @@
 // import { getTelegramData } from '@telegram-apps/telegram-ui/dist/helpers/telegram';
 
 import TaskCardOpened from '../components/TaskCardOpened'
+// import { useParams } from 'react-router-dom';
 
 function TaskboardPage() {
-    // const [company, setCompany] = useState('');
-    // const [selectComponentColor, setSelectComponentColor] = useState('');
-
-    // const telegramData = getTelegramData();
+    // const { id } = useParams();
 
     return (
-          <>
-          <TaskCardOpened editMode={false}/>
-          </>
+        <>
+            <TaskCardOpened editMode={false} />
+        </>
     );
 }
 

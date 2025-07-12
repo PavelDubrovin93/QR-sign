@@ -15,7 +15,7 @@ import UserLayout from "./components/layouts/UserLayout.tsx";
 import MainPage from "./pages/mainPage.tsx";
 import ScanPage from "./pages/scanPage.tsx";
 import ProfilePage from "./pages/profilePage.tsx";
-import TaskboardPage from "./pages/taskboardPage.tsx";
+//import TaskboardPage from "./pages/taskboardPage.tsx";
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
@@ -316,7 +316,7 @@ function App() {
             </div>
             <Routes>
               <Route index path="/" element={<MainPage />} />
-              <Route path="/taskboard/:id" element={<TaskboardPage />} />
+              <Route path="/taskboard/:taskboard_id" element={<TaskCard editMode={false} />} />
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
