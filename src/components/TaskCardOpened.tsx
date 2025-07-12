@@ -1068,7 +1068,10 @@ function TaskCard({ editMode }: TaskCardProps) {
                   />
                 </div>  
               ) : (
-                <p className="text-base font-semibold pb-4">{task?.title}</p>
+                <div>
+                  <p className="text-base font-semibold pb-4">{task?.title}</p>
+                  <p className="text-base font-semibold pb-4">{task?.description}</p>
+                </div>
               )}
 
 
