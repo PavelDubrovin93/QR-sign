@@ -365,10 +365,9 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
       newYPercent <= 100
     ) {
       const newPoint: TaskPoint = {
-        id:
-          taskPoints.length > 0
-            ? Math.max(...taskPoints.map((p) => p.id)) + 1
-            : 1,
+        id: taskPoints.length > 0
+          ? Math.min(...taskPoints.filter(p => p.id < 0).map(p => p.id), 0) - 1
+          : -1,
         title: "",
         taskboard_id: task?.id || 0,
         thumbnails: "",

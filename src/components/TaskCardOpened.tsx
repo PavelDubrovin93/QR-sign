@@ -359,10 +359,9 @@ function TaskCard({ editMode }: TaskCardProps) {
       newYPercent <= 100
     ) {
       const newPoint: TaskPoint = {
-        id:
-          taskPoints.length > 0
-            ? Math.max(...taskPoints.map((p) => p.id)) + 1
-            : 1,
+        id: taskPoints.length > 0
+          ? Math.min(...taskPoints.filter(p => p.id < 0).map(p => p.id), 0) - 1
+          : -1,
         title: "",
         taskboard_id: task?.id || 0,
         thumbnails: "",
@@ -390,7 +389,7 @@ function TaskCard({ editMode }: TaskCardProps) {
     if (isDragging) handleDragEnd();
 
     const pointsToSend = taskPoints.map((p) => ({
-      id: p.id,
+      id: p.id < 0 ? null : p.id,
       title: p.title,
       taskboard_id: p.taskboard_id,
       thumbnails: p.thumbnails,
@@ -437,7 +436,7 @@ function TaskCard({ editMode }: TaskCardProps) {
 
     if (isDragging) handleDragEnd();
     const pointsToSend = updatedPoints.map((p) => ({
-      id: p.id,
+      id: p.id < 0 ? null : p.id,
       title: p.title,
       taskboard_id: p.taskboard_id,
       thumbnails: p.thumbnails,
@@ -812,7 +811,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                           style={{
                             color: telegramData?.themeParams.text_color || "#000000",
                             opacity: activePoint.locked ? 0.6 : 1,
-                            border: `1px solid ${telegramData?.themeParams.button_color}`,
+                            border: editMode ? `1px solid ${telegramData?.themeParams.button_color}` : 'none',
                             borderRadius: '4px',
                             padding: '4px',
                             marginRight: '4px',
@@ -942,7 +941,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                         style={{ color: telegramData?.themeParams.text_color }}
                       >
                         <Checkbox
-                          disabled={!editMode || activePoint.locked}
+                          disabled={activePoint.locked}
                           checked={activePoint.completed}
                           onChange={(e) => {
                             const newCompleted = e.target.checked;
@@ -963,6 +962,12 @@ function TaskCard({ editMode }: TaskCardProps) {
                                   (p) => p.id === activePoint.id
                                 ) || null
                               );
+
+                              // Отправляем запрос только когда не в режиме редактирования (для работника)
+                              if (!editMode) {
+                                handleEditTaskByEmployer(updatedPoints);
+                              }
+
                               return updatedPoints;
                             });
                           }}
@@ -1083,7 +1088,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                     <div className="gap-2 pb-7">
                       <div className="flex mb-2">
                         <Checkbox
-                          disabled={editMode ? (task_point.locked ? true : false) : true}
+                          disabled={task_point.locked}
                           checked={completed}
                           onChange={() => {
                             console.log("onChange for list checkbox called");
@@ -1100,7 +1105,10 @@ function TaskCard({ editMode }: TaskCardProps) {
                                   : p
                               );
 
-                              handleEditTaskByEmployer(updatedPoints);
+                              // Отправляем запрос только когда не в режиме редактирования (для работника)
+                              if (!editMode) {
+                                handleEditTaskByEmployer(updatedPoints);
+                              }
 
                               return updatedPoints;
                             });
