@@ -84,7 +84,7 @@ class TaskPointRepository(ITaskPointRepository):
 
     async def add_task_point(self, new_task_point: TaskPointDTO) -> TaskPointDTO:
 
-        new_task_point = TaskPoint(
+        task_point_entity = TaskPoint(
             title=new_task_point.title,
             taskboard_id=new_task_point.taskboard_id,
             thumbnails=new_task_point.thumbnails,
@@ -98,10 +98,11 @@ class TaskPointRepository(ITaskPointRepository):
             issued_at=new_task_point.issued_at,
             warning_at=new_task_point.warning_at,
         )
-        await self.session.add(new_task_point)
+
+        self.session.add(new_task_point)
         await self.session.commit()
         await self.session.refresh(new_task_point)
-        print("!!!!!!",new_task_point.id)
+        print("!!!!!!",new_task_point.id, 111 if new_task_point else None)
         task_point_dto = await self.__to_dto(new_task_point) if new_task_point else None
         return task_point_dto
 
