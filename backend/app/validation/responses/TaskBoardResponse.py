@@ -4,7 +4,8 @@ from typing import List, Optional, Union
 from app.validation.Entity import Entity
 
 
-class CreateTaskPointResponse(Entity):
+class TaskPointResponse(Entity):
+    id: Optional[int] = None
     title: str
     thumbnails: str
     mark_icon: str
@@ -13,14 +14,10 @@ class CreateTaskPointResponse(Entity):
     qrcode: bytes
     description: Optional[str]
     voice_message: Optional[bytes] = None
-
-
-class TaskPointResponse(CreateTaskPointResponse):
-    id: int
+    taskboard_id: Optional[int] = None
     done_at: Optional[datetime] = None
     issued_at: Optional[str] = None
     warning_at: Optional[str] = None
-    taskboard_id: Optional[int] = None
 
 
 class CreateTaskBoardResponse(Entity):
@@ -31,16 +28,12 @@ class CreateTaskBoardResponse(Entity):
     location: list
     type: str
     description: Optional[str]
-    task_points: Optional[List[CreateTaskPointResponse]] = None
+    task_points: Optional[List[TaskPointResponse]] = None
 
 
 class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
     done_at: Optional[str] = None
     task_points: Optional[
-        List[
-            Union[
-            TaskPointResponse,CreateTaskPointResponse
-            ]
-        ]
+        List[TaskPointResponse]
     ] = None

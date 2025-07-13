@@ -14,7 +14,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 
-database_host = "localhost"  # settings.DATABASE_HOST
+database_host = settings.DATABASE_HOST
 database_port = settings.DATABASE_PORT
 database_user = settings.DATABASE_USER
 database_password = settings.DATABASE_PASSWORD
