@@ -99,11 +99,10 @@ class TaskPointRepository(ITaskPointRepository):
             warning_at=new_task_point.warning_at,
         )
 
-        self.session.add(new_task_point)
+        self.session.add(task_point_entity)
         await self.session.commit()
-        await self.session.refresh(new_task_point)
-        print("!!!!!!",new_task_point.id, 111 if new_task_point else None)
-        task_point_dto = await self.__to_dto(new_task_point) if new_task_point else None
+        await self.session.refresh(task_point_entity)
+        task_point_dto = await self.__to_dto(task_point_entity) if task_point_entity else None
         return task_point_dto
 
     async def delete_task_point_by_id(self, task_point_id: int) -> None:
@@ -169,7 +168,20 @@ class TaskPointRepository(ITaskPointRepository):
         self, new_task_point: TaskPointDTO
     ) -> TaskPointDTO:
         if new_task_point.id is None:
-            real_new_task_point = await self.add_task_point(new_task_point)
+            real_new_task_point = await self.add_task_point(new_task_point=TaskPointDTO(
+                title=new_task_point.title,
+                taskboard_id=new_task_point.taskboard_id,
+                thumbnails=new_task_point.thumbnails,
+                mark_icon=new_task_point.mark_icon,
+                coordinates=new_task_point.coordinates,
+                points=new_task_point.points,
+                qrcode=new_task_point.qrcode,
+                description=new_task_point.description,
+                voice_message=new_task_point.voice_message,
+                done_at=new_task_point.done_at,
+                issued_at=new_task_point.issued_at,
+                warning_at=new_task_point.warning_at
+            ))
             return real_new_task_point
         query = select(TaskPoint).where(TaskPoint.id == new_task_point.id)
         result = await self.session.execute(query)
@@ -192,8 +204,8 @@ class TaskPointRepository(ITaskPointRepository):
         task_point.warning_at = new_task_point.warning_at
 
         await self.session.commit()
-
-        return new_task_point
+        await self.session.refresh(task_point)
+        return task_point
 
     async def edit_task_points_by_dto_list(
         self, task_points: List[TaskPointDTO], task_board: int
@@ -211,13 +223,15 @@ class TaskPointRepository(ITaskPointRepository):
             for taskpoint_id in to_delete_ids:
                 await self.delete_task_point_by_id(taskpoint_id)
             # Редактируем записи которые есть в запросе
+            task_points_to_return = []
             for task_point in task_points:
                 #  Если есть записи, которых нету в бд, они обрабатываются в edit_task_point_by_dto
-                await self.edit_task_point_by_dto(new_task_point=task_point)
+                result = await self.edit_task_point_by_dto(new_task_point=task_point)
+                task_points_to_return.append(result)
         #  Если в запросе нет записей - удаляем все записи связанные с таскбордом
         else:
             await self.delete_task_point_by_taskboard_id(task_board)
-        return task_points
+        return task_points_to_return
 
     async def __to_dto(self, taskpoint: TaskPoint) -> TaskPointDTO:
         return TaskPointDTO(
