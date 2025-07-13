@@ -38,5 +38,9 @@ class TaskBoardResponse(CreateTaskBoardResponse):
     id: int
     done_at: Optional[str] = None
     task_points: Optional[
-        Union[List[TaskPointResponse], List[CreateTaskPointResponse]]
+        List[
+            Union[
+            TaskPointResponse,CreateTaskPointResponse
+            ]
+        ]
     ] = None
