@@ -64,6 +64,8 @@ jobs:
             sudo docker-compose --env-file .env -f docker-compose.prod.yaml down
             sudo docker-compose --env-file .env -f docker-compose.prod.yaml up -d
 
+            sudo docker-compose -f docker-compose.prod.yaml exec backend poetry run alembic upgrade head
+
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
             
