@@ -305,6 +305,7 @@ function App() {
               <Route index path="/" element={<AdminPage />} />
               <Route path="/admin-taskboard" element={<AdminTaskboardPage />} />
               <Route path="/admin-taskboard/:taskboard_id" element={<TaskCard editMode={true} />} />
+              <Route path="/scan" element={<ScanPage />} />
             </Routes>
           </AdminLayout>
         );

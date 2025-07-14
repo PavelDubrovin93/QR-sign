@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate } from "react-router-dom";
@@ -8,27 +8,114 @@ import type { TaskBoard, TaskPoint } from "../@types/task";
 interface TaskCardProps {
   data: TaskBoard;
   path: string;
+  isSelected?: boolean;
+  selectionMode?: boolean;
+  onLongPress?: (taskBoardId: number) => void;
+  onSelect?: (taskBoardId: number) => void;
 }
 
-function TaskCard({ data, path }: TaskCardProps) {
+function TaskCard({ data, path, isSelected = false, selectionMode = false, onLongPress, onSelect }: TaskCardProps) {
   const telegramData = getTelegramData();
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const navigate = useNavigate();
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+  const touchStart = useRef({ x: 0, y: 0 });
+  const hasMoved = useRef(false);
 
   useEffect(() => {
     setTaskPoints(data?.task_points);
   }, [data]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isLongPress.current = false;
+    hasMoved.current = false;
+    
+    const touch = e.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    
+    pressTimer.current = setTimeout(() => {
+      if (!hasMoved.current) {
+        isLongPress.current = true;
+        onLongPress?.(data.id);
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50);
+        }
+      }
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStart.current.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.current.y);
+    
+    // Если палец сдвинулся больше чем на 10px, считаем это скроллом
+    if (deltaX > 10 || deltaY > 10) {
+      hasMoved.current = true;
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current);
+        pressTimer.current = null;
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+    
+    if (!isLongPress.current && !hasMoved.current) {
+      e.preventDefault();
+      e.stopPropagation(); // Предотвращаем всплытие события
+      console.log('Short tap detected, selectionMode:', selectionMode, 'path:', path);
+      if (selectionMode) {
+        onSelect?.(data.id);
+      } else {
+        navigate(path);
+      }
+    }
+  };
+
+
+
+  const handleTouchCancel = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+    hasMoved.current = false;
+  };
+
   return (
     <div className="p-4">
       <Card
         className="w-full"
-        style={{ backgroundColor: telegramData?.themeParams.section_bg_color }}
-        onClick={() => navigate(path)}
+        style={{ 
+          backgroundColor: telegramData?.themeParams.section_bg_color,
+          boxShadow: isSelected ? `0 0 0 3px ${telegramData?.themeParams.button_color || '#2a90ff'}` : undefined,
+          opacity: isSelected ? 0.8 : 1
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
       >
         <div className="flex flex-col justify-between h-full p-3">
           <div className="flex flex-col items-start gap-2">
             <div className="rounded-md overflow-hidden relative">
+              {isSelected && (
+                <div 
+                  className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: telegramData?.themeParams.button_color || '#2a90ff',
+                    color: telegramData?.themeParams.button_text_color || '#ffffff'
+                  }}
+                >
+                  ✓
+                </div>
+              )}
               <img
                 alt="Task image"
                 // src="test_image.jpeg"

@@ -13,7 +13,7 @@ function ScanPage() {
 
     const handleQrTextReceived = useCallback((qrData: any) => {
         webapp?.showAlert('Получен QR-код:', qrData);
-        window.location.href = "/";
+        window.location.href = qrData;
         webapp?.closeScanQrPopup()
         
         return true;

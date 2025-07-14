@@ -413,7 +413,9 @@ const adminTaskboardPage = () => {
           )}
         </div>
       </Section>
-      <AdminTasks />
+      <div style={{ paddingBottom: "80px" }}>
+        <AdminTasks />
+      </div>
       <Modal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
