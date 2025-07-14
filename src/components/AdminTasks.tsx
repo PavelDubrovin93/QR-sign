@@ -56,16 +56,19 @@ const AdminTasks = () => {
       };
       
       const blob = await createQRCodes(payload);
-      
       const url = window.URL.createObjectURL(blob);
+      
       downloadFile(url, 'qr_codes.pdf');
-      window.URL.revokeObjectURL(url);
+      
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
       
       setSelectedTaskBoards(new Set());
       setSelectionMode(false);
     } catch (error) {
       console.error('Ошибка генерации QR кодов:', error);
-      alert('Ошибка при генерации QR кодов');
+      alert(`Ошибка при генерации QR кодов: ${error}`);
     } finally {
       setIsGeneratingQR(false);
     }
