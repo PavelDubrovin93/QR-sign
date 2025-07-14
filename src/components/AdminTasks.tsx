@@ -5,7 +5,7 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import TaskCard from "../components/TaskCard";
 import type { RootState } from "../store/rootReducer";
 import { createQRCodes } from "../api/task/create-qr-codes";
-import { downloadFile } from '@telegram-apps/sdk';
+import { downloadFile, init } from '@telegram-apps/sdk';
 
 
 const AdminTasks = () => {
@@ -58,7 +58,22 @@ const AdminTasks = () => {
       const blob = await createQRCodes(payload);
       const url = window.URL.createObjectURL(blob);
       
-      downloadFile(url, 'qr_codes.pdf');
+      try {
+        // Пытаемся инициализировать SDK и использовать downloadFile
+        init();
+        downloadFile(url, 'qr_codes.pdf');
+      } catch (error) {
+        // Fallback: обычное скачивание через DOM
+        console.log('SDK downloadFile failed, using fallback:', error);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'qr_codes.pdf';
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
