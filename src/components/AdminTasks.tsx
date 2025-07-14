@@ -5,6 +5,8 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import TaskCard from "../components/TaskCard";
 import type { RootState } from "../store/rootReducer";
 import { createQRCodes } from "../api/task/create-qr-codes";
+import { downloadFile } from '@telegram-apps/sdk';
+
 
 const AdminTasks = () => {
   const telegramData = getTelegramData();
@@ -56,13 +58,8 @@ const AdminTasks = () => {
       const blob = await createQRCodes(payload);
       
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'qr_codes.pdf';
-      document.body.appendChild(a);
-      a.click();
+      downloadFile(url, 'qr_codes.pdf');
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
       
       setSelectedTaskBoards(new Set());
       setSelectionMode(false);
