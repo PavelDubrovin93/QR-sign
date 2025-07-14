@@ -56,28 +56,29 @@ const AdminTasks = () => {
       };
       
       const blob = await createQRCodes(payload);
-      const url = window.URL.createObjectURL(blob);
       
-      try {
-        // Пытаемся инициализировать SDK и использовать downloadFile
-        init();
-        downloadFile(url, 'qr_codes.pdf');
-      } catch (error) {
-        // Fallback: обычное скачивание через DOM
-        console.log('SDK downloadFile failed, using fallback:', error);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'qr_codes.pdf';
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      // const url = window.URL.createObjectURL(blob);
+      // 
+      // try {
+      //   init();
+      //   downloadFile(url, 'qr_codes.pdf');
+      // } catch (error) {
+      //   console.log('SDK downloadFile failed, using fallback:', error);
+      //   const link = document.createElement('a');
+      //   link.href = url;
+      //   link.download = 'qr_codes.pdf';
+      //   link.style.display = 'none';
+      //   
+      //   document.body.appendChild(link);
+      //   link.click();
+      //   document.body.removeChild(link);
+      // }
+      // 
+      // setTimeout(() => {
+      //   window.URL.revokeObjectURL(url);
+      // }, 1000);
       
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
+      console.log('QR codes generated successfully, blob size:', blob.size);
       
       setSelectedTaskBoards(new Set());
       setSelectionMode(false);
