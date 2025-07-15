@@ -19,7 +19,6 @@ TELEGRAM_BOT_TOKEN = "7860099344:AAGvWO6sG2l4qXwTJhGGJxKHEBvz0m0HFGk"
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 async def send_document_to_user(chat_id: int, file_path: str, caption: str = ""):
-    """Отправляет документ пользователю через Telegram бота"""
     try:
         async with aiohttp.ClientSession() as session:
             with open(file_path, 'rb') as file:
@@ -33,7 +32,7 @@ async def send_document_to_user(chat_id: int, file_path: str, caption: str = "")
                     result = await response.json()
                     return result.get('ok', False)
     except Exception as e:
-        print(f"Ошибка отправки файла: {e}")
+        print(f"Ошибка отправки файла: x{e}x")
         return False
 
 router = APIRouter()
