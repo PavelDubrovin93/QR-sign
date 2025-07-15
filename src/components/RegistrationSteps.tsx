@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Button, Input, Modal, Radio } from "@telegram-apps/telegram-ui";
+import { Button, Input, Modal } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useDispatch } from "react-redux";
 import { setUserProfile } from "../store/slices/entities/user/userSlice";
-import { registerUserCold, registerUserHot } from "../api/user/register-user";
-import { createCompany } from "../api/company/create-company";
+import { registerUserHot } from "../api/user/register-user";
+// import { createCompany } from "../api/company/create-company";
 
 interface RegistrationStepsProps {
   showModal?: boolean;
@@ -21,7 +21,10 @@ const RegistrationSteps = ({
 
 
   const [isModalOpen, setIsModalOpen] = useState(showModal);
-  const [currentStep, setCurrentStep] = useState(1);
+  // const [currentStep, setCurrentStep] = useState(1);
+  let currentStep = 1;
+  console.log("currentStep", currentStep); // shit fix
+
   const [userName, setUserName] = useState("");
   // const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("join");
   // const [companyCode, setCompanyCode] = useState("");
