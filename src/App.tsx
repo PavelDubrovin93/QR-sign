@@ -67,7 +67,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = webapp?.initDataUnsafe?.user?.id || 601732567; //webapp?.initDataUnsafe?.user?.id || 601732567;
+  const token_mock = webapp?.initDataUnsafe?.user?.id || 77777777777; //webapp?.initDataUnsafe?.user?.id || 77777777777;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -413,7 +413,7 @@ function App() {
 
               )}
 
-              <div className="w-full max-w-sm mb-4">
+              {/* <div className="w-full max-w-sm mb-4">
                 <Button
                   mode="bezeled"
                   onClick={() => setShowApplicationModal(true)}
@@ -440,7 +440,7 @@ function App() {
                 }}
               >
                 Отмена  
-              </Button>
+              </Button> */}
             </div>
           </NotApprovedLayout>
         );

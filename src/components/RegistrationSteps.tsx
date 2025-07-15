@@ -23,15 +23,15 @@ const RegistrationSteps = ({
   const [isModalOpen, setIsModalOpen] = useState(showModal);
   const [currentStep, setCurrentStep] = useState(1);
   const [userName, setUserName] = useState("");
-  const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("join");
-  const [companyCode, setCompanyCode] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  // const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("join");
+  // const [companyCode, setCompanyCode] = useState("");
+  // const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     name: false,
-    companyChoice: false,
-    companyCode: false,
-    companyName: false,
+    // companyChoice: false,
+    // companyCode: false,
+    // companyName: false,
     api: "",
   });
   
@@ -72,10 +72,10 @@ const RegistrationSteps = ({
     setIsModalOpen(showModal);
   }, [showModal]);
 
-  const handleCompanyChoiceSelect = (choice: "join" | "create") => {
-    setCompanyChoice(choice);
-    setErrors(prev => ({ ...prev, companyChoice: false, api: "" }));
-  };
+  // const handleCompanyChoiceSelect = (choice: "join" | "create") => {
+  //   setCompanyChoice(choice);
+  //   setErrors(prev => ({ ...prev, companyChoice: false, api: "" }));
+  // };
 
   const handleNextStep = async () => {
     if (currentStep === 1) {
@@ -83,33 +83,36 @@ const RegistrationSteps = ({
         setErrors(prev => ({ ...prev, name: true }));
         return;
       }
-      setCurrentStep(2);
-    } else {
+      // setCurrentStep(2);
+      // Hardcoded: automatically join company with ID = 3
       handleCompleteRegistration();
-    }
+    } 
+    // else {
+    //   handleCompleteRegistration();
+    // }
   };
 
   const handleCompleteRegistration = async () => {
-    if (companyChoice === "join" && !companyCode.trim()) {
-      setErrors(prev => ({ ...prev, companyCode: true }));
-      return;
-    }
+    // if (companyChoice === "join" && !companyCode.trim()) {
+    //   setErrors(prev => ({ ...prev, companyCode: true }));
+    //   return;
+    // }
     
-    if (companyChoice === "create" && !companyName.trim()) {
-      setErrors(prev => ({ ...prev, companyName: true }));
-      return;
-    }
+    // if (companyChoice === "create" && !companyName.trim()) {
+    //   setErrors(prev => ({ ...prev, companyName: true }));
+    //   return;
+    // }
 
-    if (!companyChoice) {
-      setErrors(prev => ({ ...prev, companyChoice: true }));
-      return;
-    }
+    // if (!companyChoice) {
+    //   setErrors(prev => ({ ...prev, companyChoice: true }));
+    //   return;
+    // }
 
     setIsLoading(true);
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 601732567;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 77777777777;
       const telegramPhotoUrl = "";
       
       if (!telegramUserId) {
@@ -124,57 +127,78 @@ const RegistrationSteps = ({
 
       let userData;
 
-      if (companyChoice === "create") {
-        const registrationResponse = await registerUserCold(registrationData);
+      // Hardcoded: always join company with ID = 3
+      const companyId = 3;
+      
+      try {
+        const hotRegistrationResponse = await registerUserHot(companyId, registrationData);
         
-        if (registrationResponse.data) {
+        if (hotRegistrationResponse.data) {
           userData = {
-            id: registrationResponse.data.id,
-            user_id: registrationResponse.data.id,
-            default_company_choice: null as number | null,
+            id: hotRegistrationResponse.data.id,
+            user_id: hotRegistrationResponse.data.id,
+            default_company_choice: companyId,
             default_color: "#2a90ff",
-            current_role: "employer",
+            current_role: "pending",
             name_for_admin: userName.trim(),
           };
-
-          const companyData = {
-            title: companyName.trim(),
-            description: `Компания создана пользователем ${userName.trim()}`,
-            subscription_type: "basic",
-            qr_code: "222",
-          };
-
-          const companyResponse = await createCompany(companyData);
-          
-          if (companyResponse.data) {
-            userData.current_role = "admin";
-            userData.default_company_choice = companyResponse.data.id as number;
-          }
         }
-      } else if (companyChoice === "join") {
-        const companyId = parseInt(companyCode.trim());
-        
-        if (isNaN(companyId)) {
-          throw new Error("Код компании должен быть числом.");
-        }
-        
-        try {
-          const hotRegistrationResponse = await registerUserHot(companyId, registrationData);
-          
-          if (hotRegistrationResponse.data) {
-            userData = {
-              id: hotRegistrationResponse.data.id,
-              user_id: hotRegistrationResponse.data.id,
-              default_company_choice: companyId,
-              default_color: "#2a90ff",
-              current_role: "pending",
-              name_for_admin: userName.trim(),
-            };
-          }
-        } catch (companyError: any) {
-          throw new Error("Компания с таким кодом не найдена. Проверьте правильность кода.");
-        }
+      } catch (companyError: any) {
+        throw new Error("Ошибка при добавлении в компанию. Попробуйте еще раз.");
       }
+
+      // Old logic for company creation and joining
+      // if (companyChoice === "create") {
+      //   const registrationResponse = await registerUserCold(registrationData);
+        
+      //   if (registrationResponse.data) {
+      //     userData = {
+      //       id: registrationResponse.data.id,
+      //       user_id: registrationResponse.data.id,
+      //       default_company_choice: null as number | null,
+      //       default_color: "#2a90ff",
+      //       current_role: "employer",
+      //       name_for_admin: userName.trim(),
+      //     };
+
+      //     const companyData = {
+      //       title: companyName.trim(),
+      //       description: `Компания создана пользователем ${userName.trim()}`,
+      //       subscription_type: "basic",
+      //       qr_code: "222",
+      //     };
+
+      //     const companyResponse = await createCompany(companyData);
+          
+      //     if (companyResponse.data) {
+      //       userData.current_role = "admin";
+      //       userData.default_company_choice = companyResponse.data.id as number;
+      //     }
+      //   }
+      // } else if (companyChoice === "join") {
+      //   const companyId = parseInt(companyCode.trim());
+        
+      //   if (isNaN(companyId)) {
+      //     throw new Error("Код компании должен быть числом.");
+      //   }
+        
+      //   try {
+      //     const hotRegistrationResponse = await registerUserHot(companyId, registrationData);
+          
+      //     if (hotRegistrationResponse.data) {
+      //       userData = {
+      //         id: hotRegistrationResponse.data.id,
+      //         user_id: hotRegistrationResponse.data.id,
+      //         default_company_choice: companyId,
+      //         default_color: "#2a90ff",
+      //         current_role: "pending",
+      //         name_for_admin: userName.trim(),
+      //       };
+      //     }
+      //   } catch (companyError: any) {
+      //     throw new Error("Компания с таким кодом не найдена. Проверьте правильность кода.");
+      //   }
+      // }
 
       if (userData) {
         dispatch(setUserProfile(userData));
@@ -193,12 +217,12 @@ const RegistrationSteps = ({
     }
   };
 
-  const handlePreviousStep = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
-      setErrors(prev => ({ ...prev, api: "" }));
-    }
-  };
+  // const handlePreviousStep = () => {
+  //   if (currentStep === 2) {
+  //     setCurrentStep(1);
+  //     setErrors(prev => ({ ...prev, api: "" }));
+  //   }
+  // };
 
   const renderStep1 = () => (
     <div>
@@ -231,114 +255,115 @@ const RegistrationSteps = ({
     </div>
   );
 
-  const renderStep2 = () => (
-    <div>
-      <h3 className="text-center text-lg font-bold mb-6">
-        Компания
-      </h3>
+  // Commented out old step 2 logic
+  // const renderStep2 = () => (
+  //   <div>
+  //     <h3 className="text-center text-lg font-bold mb-6">
+  //       Компания
+  //     </h3>
 
-      <div className="space-y-3">
-        <div
-          className={`
-              flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
-              ${errors.companyChoice && companyChoice !== "join" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
-              ${companyChoice === "join" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
-          `}
-          onClick={() => handleCompanyChoiceSelect("join")}
-        >
-          <Radio
-            name="companyChoice"
-            value="join"
-            checked={companyChoice === "join"}
-            className="mr-5"
-          />
-          <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Присоединиться к компании</p>
-            <p className="text-sm text-gray-500">Введите числовой код компании для присоединения</p>
-          </div>
-        </div>
+  //     <div className="space-y-3">
+  //       <div
+  //         className={`
+  //             flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
+  //             ${errors.companyChoice && companyChoice !== "join" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
+  //             ${companyChoice === "join" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
+  //         `}
+  //         onClick={() => handleCompanyChoiceSelect("join")}
+  //       >
+  //         <Radio
+  //           name="companyChoice"
+  //           value="join"
+  //           checked={companyChoice === "join"}
+  //           className="mr-5"
+  //         />
+  //         <div>
+  //           <p className="font-medium text-gray-900 dark:text-gray-100">Присоединиться к компании</p>
+  //           <p className="text-sm text-gray-500">Введите числовой код компании для присоединения</p>
+  //         </div>
+  //       </div>
 
-        <div
-          className={`
-              flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
-              ${errors.companyChoice && companyChoice !== "create" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
-              ${companyChoice === "create" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
-          `}
-          onClick={() => handleCompanyChoiceSelect("create")}
-        >
-          <Radio
-            name="companyChoice"
-            value="create"
-            checked={companyChoice === "create"}
-            className="mr-5"
-          />
-          <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Создать свою компанию</p>
-            <p className="text-sm text-gray-500">Создайте новую компанию и управляйте командой</p>
-          </div>
-        </div>
-      </div>
+  //       <div
+  //         className={`
+  //             flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200
+  //             ${errors.companyChoice && companyChoice !== "create" ? 'bg-red-50 ring-1 ring-red-500' : 'bg-gray-100 dark:bg-gray-700'}
+  //             ${companyChoice === "create" ? 'bg-blue-100 dark:bg-blue-900 ring-1 ring-blue-500' : ''}
+  //         `}
+  //         onClick={() => handleCompanyChoiceSelect("create")}
+  //       >
+  //         <Radio
+  //           name="companyChoice"
+  //           value="create"
+  //           checked={companyChoice === "create"}
+  //           className="mr-5"
+  //         />
+  //         <div>
+  //           <p className="font-medium text-gray-900 dark:text-gray-100">Создать свою компанию</p>
+  //           <p className="text-sm text-gray-500">Создайте новую компанию и управляйте командой</p>
+  //         </div>
+  //       </div>
+  //     </div>
 
-      {errors.companyChoice && (
-        <p className="text-red-500 text-sm mt-2 text-center">
-          Пожалуйста, выберите вариант
-        </p>
-      )}
+  //     {errors.companyChoice && (
+  //       <p className="text-red-500 text-sm mt-2 text-center">
+  //         Пожалуйста, выберите вариант
+  //       </p>
+  //     )}
 
-      {/* Company code input for joining */}
-      {companyChoice === "join" && (
-        <div className="mt-4">
-          <Input
-            placeholder="Код компании (например: 123)"
-            value={companyCode}
-            onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers, its good rn
-              setCompanyCode(value);
-              setErrors(prev => ({ ...prev, companyCode: false, api: "" }));
-            }}
-            status={errors.companyCode ? "error" : "focused"}
-            className="mb-2"
-          />
-          {errors.companyCode && (
-            <p className="text-red-500 text-sm text-center">
-              Пожалуйста, введите числовой код компании
-            </p>
-          )}
-        </div>
-      )}
+  //     {/* Company code input for joining */}
+  //     {companyChoice === "join" && (
+  //       <div className="mt-4">
+  //         <Input
+  //           placeholder="Код компании (например: 123)"
+  //           value={companyCode}
+  //           onChange={(e) => {
+  //             const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers, its good rn
+  //             setCompanyCode(value);
+  //             setErrors(prev => ({ ...prev, companyCode: false, api: "" }));
+  //           }}
+  //           status={errors.companyCode ? "error" : "focused"}
+  //           className="mb-2"
+  //         />
+  //         {errors.companyCode && (
+  //           <p className="text-red-500 text-sm text-center">
+  //             Пожалуйста, введите числовой код компании
+  //           </p>
+  //         )}
+  //       </div>
+  //     )}
 
-      {/* Company name input for creating */}
-      {companyChoice === "create" && (
-        <div className="mt-4">
-          <Input
-            placeholder="Название компании"
-            value={companyName}
-            onChange={(e) => {
-              setCompanyName(e.target.value);
-              setErrors(prev => ({ ...prev, companyName: false, api: "" }));
-            }}
-            status={errors.companyName ? "error" : "focused"}
-            className="mb-2"
-          />
-          {errors.companyName && (
-            <p className="text-red-500 text-sm text-center">
-              Пожалуйста, введите название компании
-            </p>
-          )}
-        </div>
-      )}
+  //     {/* Company name input for creating */}
+  //     {companyChoice === "create" && (
+  //       <div className="mt-4">
+  //         <Input
+  //           placeholder="Название компании"
+  //           value={companyName}
+  //           onChange={(e) => {
+  //             setCompanyName(e.target.value);
+  //             setErrors(prev => ({ ...prev, companyName: false, api: "" }));
+  //           }}
+  //           status={errors.companyName ? "error" : "focused"}
+  //           className="mb-2"
+  //         />
+  //         {errors.companyName && (
+  //           <p className="text-red-500 text-sm text-center">
+  //             Пожалуйста, введите название компании
+  //           </p>
+  //         )}
+  //       </div>
+  //     )}
 
-      {errors.api && (
-        <p className="text-red-500 text-sm mb-4 text-center">
-          {errors.api}
-        </p>
-      )}
-    </div>
-  );
+  //     {errors.api && (
+  //       <p className="text-red-500 text-sm mb-4 text-center">
+  //         {errors.api}
+  //       </p>
+  //     )}
+  //   </div>
+  // );
 
   const renderStepButtons = () => (
     <div className="flex items-center justify-between mt-6">
-      {currentStep === 2 && (
+      {/* {currentStep === 2 && (
         <Button
           mode="bezeled"
           onClick={handlePreviousStep}
@@ -347,7 +372,7 @@ const RegistrationSteps = ({
         >
           Назад
         </Button>
-      )}
+      )} */}
       
       <Button
         stretched={currentStep === 1}
@@ -355,7 +380,7 @@ const RegistrationSteps = ({
         disabled={isLoading}
         className={currentStep === 2 ? "ml-2" : ""}
       >
-        {isLoading ? "Сохранение..." : (currentStep === 1 ? "Далее" : "Завершить")}
+        {isLoading ? "Сохранение..." : "Завершить"}
       </Button>
     </div>
   );
@@ -403,7 +428,7 @@ const RegistrationSteps = ({
           className="py-6 px-4"
         >
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <div className="flex justify-center space-x-2">
             <div
               className={`w-3 h-3 rounded-full ${
@@ -419,10 +444,10 @@ const RegistrationSteps = ({
           <p className="text-center text-sm text-gray-500 mt-2">
             Шаг {currentStep} из 2
           </p>
-        </div>
+        </div> */}
 
         {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
+        {/* {currentStep === 2 && renderStep2()} */}
         {renderStepButtons()}
       </div>
     </Modal>
