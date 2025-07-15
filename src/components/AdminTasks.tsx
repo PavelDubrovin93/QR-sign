@@ -5,7 +5,6 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import TaskCard from "../components/TaskCard";
 import type { RootState } from "../store/rootReducer";
 import { createQRCodes } from "../api/task/create-qr-codes";
-import { downloadFile, init } from '@telegram-apps/sdk';
 
 
 const AdminTasks = () => {
@@ -55,30 +54,13 @@ const AdminTasks = () => {
         task_board_ids: Array.from(selectedTaskBoards)
       };
       
-      const blob = await createQRCodes(payload);
+      const response = await createQRCodes(payload);
       
-      // const url = window.URL.createObjectURL(blob);
-      // 
-      // try {
-      //   init();
-      //   downloadFile(url, 'qr_codes.pdf');
-      // } catch (error) {
-      //   console.log('SDK downloadFile failed, using fallback:', error);
-      //   const link = document.createElement('a');
-      //   link.href = url;
-      //   link.download = 'qr_codes.pdf';
-      //   link.style.display = 'none';
-      //   
-      //   document.body.appendChild(link);
-      //   link.click();
-      //   document.body.removeChild(link);
-      // }
-      // 
-      // setTimeout(() => {
-      //   window.URL.revokeObjectURL(url);
-      // }, 1000);
-      
-      console.log('QR codes generated successfully, blob size:', blob.size);
+      if (response.status === 'success') {
+        alert(`✅ ${response.message}`);
+      } else {
+        alert(`❌ ${response.message}`);
+      }
       
       setSelectedTaskBoards(new Set());
       setSelectionMode(false);

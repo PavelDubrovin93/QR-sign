@@ -5,7 +5,12 @@ interface CreateQRCodesPayload {
   task_board_ids: number[];
 }
 
-export async function createQRCodes(payload: CreateQRCodesPayload): Promise<Blob> {
+interface QRCodeResponse {
+  message: string;
+  status: string;
+}
+
+export async function createQRCodes(payload: CreateQRCodesPayload): Promise<QRCodeResponse> {
   const response = await fetch(`${config.BACKEND_URL}/${apiPrefix.api}/qr_code/create_qr_code_file`, {
     method: 'POST',
     headers: {
@@ -18,5 +23,5 @@ export async function createQRCodes(payload: CreateQRCodesPayload): Promise<Blob
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.blob();
+  return response.json();
 } 
