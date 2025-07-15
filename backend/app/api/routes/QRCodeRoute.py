@@ -14,7 +14,7 @@ from app.services.QRCodeService import QRCodeService
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
 from app.validation.responses.QRCodeResponse import QRCodeResponse
 
-# Захардкоженный токен бота (замените на ваш)
+
 TELEGRAM_BOT_TOKEN = "7860099344:AAGvWO6sG2l4qXwTJhGGJxKHEBvz0m0HFGk"
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
@@ -61,7 +61,6 @@ async def create_qr_code_by_task_point_id(
 
     service = QRCodeService(session)
 
-    # Проверяем что task_board_ids не пустой
     if not data.task_board_ids:
         raise HTTPException(status_code=400, detail="task_board_ids is required")
 
@@ -103,7 +102,6 @@ async def create_qr_code_by_task_point_id(
 
     c.save()
 
-    # Отправляем файл пользователю через Telegram бота
     try:
         success = await send_document_to_user(
             chat_id=current_user.tg_id,
@@ -111,7 +109,6 @@ async def create_qr_code_by_task_point_id(
             caption=f"QR-коды для {len(data.task_board_ids)} таскбордов"
         )
         
-        # Удаляем временный файл
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
         
@@ -121,7 +118,6 @@ async def create_qr_code_by_task_point_id(
             return {"message": "Ошибка отправки в Telegram", "status": "error"}
             
     except Exception as e:
-        # Удаляем временный файл в случае ошибки
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
         raise HTTPException(status_code=500, detail=f"Ошибка отправки файла: {str(e)}")
