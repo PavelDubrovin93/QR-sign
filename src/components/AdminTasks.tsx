@@ -56,10 +56,10 @@ const AdminTasks = () => {
       
       const response = await createQRCodes(payload);
       
-      if (response.status === 'success') {
-        alert(`✅ ${response.message}`);
+      if (response.data.status === 'success') {
+        alert(`${response.data.message}`);
       } else {
-        alert(`❌ ${response.message}`);
+        alert(`${response.data.message}`);
       }
       
       setSelectedTaskBoards(new Set());
