@@ -33,7 +33,7 @@ import type { CreateTaskPayload } from "../@types/task";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
 
 import ImageUpload from "../components/ImageUpload";
-
+import imageCompression from 'browser-image-compression'
 
 export interface WorkGroup {
   id: number;
@@ -231,18 +231,31 @@ const adminTaskboardPage = () => {
   };
 
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedImage(result);
+      const options = {
+        maxSizeMB: 1,           
+        maxWidthOrHeight: 1920, 
+        useWebWorker: true,                  
+        fileType: 'image/jpeg', 
       };
-      reader.readAsDataURL(file);
+
+      try {
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setUploadedImage(result);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error('Ошибка при сжатии изображения:', error);
+        alert('Не удалось сжать изображение. Попробуйте другое изображение, с меньшим размером.');
+        setUploadedImage(null);
+      }
     }
   };
-
 
   const handleModalCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCompanyId = event.target.value;
