@@ -21,7 +21,7 @@ def calculate_sha256(content):
     return hasher.hexdigest()
 
 
-BASE64_PATTERN = r"^data:image/(png|jpeg|gif);base64,"
+BASE64_PATTERN = r"^data:image/(png|jpeg|gif|jpg);base64,"
 
 
 class S3Service:
