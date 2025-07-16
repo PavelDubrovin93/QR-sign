@@ -23,6 +23,7 @@ async def create_taskboard(
 ) -> TaskBoardResponse:
     print(taskboard_data.image)
     if re.match(BASE64_PATTERN, taskboard_data.image):
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",taskboard_data.image)
         s3_service = S3Service()
         uploaded_url = s3_service.upload_image(taskboard_data.image)
     taskboard_data.image = uploaded_url
