@@ -21,9 +21,7 @@ async def create_taskboard(
     session: AsyncSession = Depends(fastapi_get_db),
     user=Depends(get_current_user),
 ) -> TaskBoardResponse:
-    print(taskboard_data.image)
     if re.match(BASE64_PATTERN, taskboard_data.image):
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",taskboard_data.image)
         s3_service = S3Service()
         uploaded_url = s3_service.upload_image(taskboard_data.image)
     taskboard_data.image = uploaded_url

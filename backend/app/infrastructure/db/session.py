@@ -5,7 +5,7 @@ from app.infrastructure.core import settings
 # Создание асинхронного двигателя
 async_engine = create_async_engine(
     str(settings.ASYNC_DATABASE_URI),
-    echo=True,  # Можно оставить True для отладки
+    echo=False,  # Можно оставить True для отладки
     future=True,
 )
 

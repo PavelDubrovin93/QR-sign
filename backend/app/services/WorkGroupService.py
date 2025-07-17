@@ -52,7 +52,6 @@ class WorkGroupService(IWorkGroupService):
         ret_list = []
 
         for uc in user_companies:
-            print("!!!!!", workgroup_id)
             user = await repo_users.get_user_by_id(uc.user_id)
             if user is not None:
                 ret_list.append(UserAndUC(user=user, uc=uc))
