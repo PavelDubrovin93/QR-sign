@@ -60,6 +60,7 @@ const AdminPage = () => {
   const [groupDescription, setGroupDescription] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
   const telegramData = getTelegramData();
 
@@ -187,6 +188,9 @@ const AdminPage = () => {
       return;
     }
 
+    if (isCreatingGroup) return; // Предотвращаем повторную отправку
+
+    setIsCreatingGroup(true);
     try {
       const newGroupData = {
         title: groupName,
@@ -203,6 +207,8 @@ const AdminPage = () => {
       handleCloseModal();
     } catch (e) {
       console.error("Ошибка при создании группы:", e);
+    } finally {
+      setIsCreatingGroup(false);
     }
   };
 
@@ -398,11 +404,17 @@ const AdminPage = () => {
               mode="bezeled"
               onClick={handleCloseModal}
               className="mx-2"
+              disabled={isCreatingGroup}
             >
               Отмена
             </Button>
-            <Button stretched onClick={handleAddGroup} className="mx-2">
-              Сохранить
+            <Button 
+              stretched 
+              onClick={handleAddGroup} 
+              className="mx-2"
+              disabled={isCreatingGroup}
+            >
+              {isCreatingGroup ? "Создание..." : "Сохранить"}
             </Button>
           </div>
         </div>

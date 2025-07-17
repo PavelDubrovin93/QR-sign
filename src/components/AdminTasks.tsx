@@ -57,16 +57,16 @@ const AdminTasks = () => {
       const response = await createQRCodes(payload);
       
       if (response.data.status === 'success') {
-        alert(`${response.data.message}`);
+        console.log(`${response.data.message}`);
       } else {
-        alert(`${response.data.message}`);
+        console.log(`${response.data.message}`);
       }
       
       setSelectedTaskBoards(new Set());
       setSelectionMode(false);
     } catch (error) {
       console.error('Ошибка генерации QR кодов:', error);
-      alert(`Ошибка при генерации QR кодов: ${error}`);
+      console.error(`Ошибка при генерации QR кодов: ${error}`);
     } finally {
       setIsGeneratingQR(false);
     }

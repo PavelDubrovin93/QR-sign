@@ -61,6 +61,7 @@ const AdminGroupCardItem = ({
   const [allWorkgroupData, setAllWorkgroupData] = useState<any[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingModalData, setIsLoadingModalData] = useState(false);
 
   const telegramData = getTelegramData();
 
@@ -124,6 +125,7 @@ const AdminGroupCardItem = ({
 
   const handleManageMembersClick = async () => {
     setIsManageMembersModalOpen(true);
+    setIsLoadingModalData(true);
     try {
       const [usersResponse, workgroupsResponse] = await Promise.all([
         getUsersInCompany(String(companyId)),
@@ -142,6 +144,8 @@ const AdminGroupCardItem = ({
       }
     } catch (error) {
       console.error('Error fetching company data:', error);
+    } finally {
+      setIsLoadingModalData(false);
     }
   };
 
@@ -423,8 +427,9 @@ const AdminGroupCardItem = ({
                     size="s"
                     stretched
                     onClick={handleManageMembersClick}
+                    disabled={isLoadingModalData}
                   >
-                    Редактировать
+                    {isLoadingModalData ? "Загрузка..." : "Редактировать"}
                   </Button>
                   <Button
                     mode="outline"
@@ -680,7 +685,7 @@ const AdminGroupCardItem = ({
                 disabled={isDeleting}
                 style={{ backgroundColor: '#dc2626' }}
               >
-                {isDeleting ? "Удаление..." : "Удалить"}
+                {isDeleting ? "Удаление" : "Удалить"}
               </Button>
             </div>
           </div>

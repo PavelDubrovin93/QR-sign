@@ -69,7 +69,7 @@ function AudioRecorder({
       setIsRecording(true);
     } catch (err) {
       console.error("Ошибка доступа к микрофону:", err);
-      alert("Не удалось получить доступ к микрофону. Проверьте разрешения.");
+      console.log("Не удалось получить доступ к микрофону. Проверьте разрешения.");
       setIsRecording(false);
     }
   };

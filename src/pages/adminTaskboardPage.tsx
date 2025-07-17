@@ -6,7 +6,7 @@ import {
   Select,
   Textarea,
 } from "@telegram-apps/telegram-ui";
-import { FiTrash2 } from "react-icons/fi";
+import { FiTrash2, FiLock, FiUnlock } from "react-icons/fi";
 import { MdUpload } from "react-icons/md";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
@@ -69,6 +69,7 @@ const adminTaskboardPage = () => {
   const [isImageFullScreen, setIsImageFullScreen] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   console.log(isImageFullScreen); //shit fix
   console.log(isKeyboardOpen); //shit fix
 
@@ -122,7 +123,7 @@ const adminTaskboardPage = () => {
   const fetchCompanies = useCallback(async () => {
     dispatch(setIsLoadingCompanies(true));
     try {
-      const res = await getCompaniesByClient();
+      const res = await retryApiCall(() => getCompaniesByClient());
       if (res.data) {
         dispatch(setUserCompanies(res.data));
         
@@ -143,6 +144,15 @@ const adminTaskboardPage = () => {
       }
     } catch (e: any) {
       console.error("Ошибка загрузки компаний:", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось загрузить компании после нескольких попыток. Проблемы с подключением к серверу.");
+      }
     } finally {
       dispatch(setIsLoadingCompanies(false));
     }
@@ -157,7 +167,7 @@ const adminTaskboardPage = () => {
 
     setIsLoadingWorkGroups(true);
     try {
-      const res = await getWorkGroupsSelect(String(companyId));
+      const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
       if (res.data) {
         setWorkGroups(res.data);
         if (res.data.length > 0) {
@@ -171,6 +181,16 @@ const adminTaskboardPage = () => {
         `Ошибка загрузки рабочих групп для компании ${companyId}:`,
         e
       );
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось загрузить рабочие группы после нескольких попыток. Проблемы с подключением к серверу.");
+      }
+      
       setWorkGroups([]);
       setModalSelectedWorkGroupId("");
     } finally {
@@ -185,12 +205,21 @@ const adminTaskboardPage = () => {
     }
     dispatch(setIsLoadingTasksBoard(true));
     try {
-      const res = await getTasksByCompany(String(companyId));
+      const res = await retryApiCall(() => getTasksByCompany(String(companyId)));
       if (res.data) {
         dispatch(setTasksBoardByCompany(res.data));
       }
     } catch (e: any) {
       console.error("Ошибка загрузки задач:", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось загрузить задачи после нескольких попыток. Проблемы с подключением к серверу.");
+      }
     } finally {
       dispatch(setIsLoadingTasksBoard(false));
     }
@@ -251,7 +280,7 @@ const adminTaskboardPage = () => {
         reader.readAsDataURL(compressedFile);
       } catch (error) {
         console.error('Ошибка при сжатии изображения:', error);
-        alert('Не удалось сжать изображение. Попробуйте другое изображение, с меньшим размером.');
+        console.log('Не удалось сжать изображение. Попробуйте другое изображение, с меньшим размером.');
         setUploadedImage(null);
       }
     }
@@ -267,21 +296,60 @@ const adminTaskboardPage = () => {
     setModalSelectedWorkGroupId(event.target.value);
   };
 
-  const handleSave = async () => {
-    if (!taskName || !taskDescription) {
-      alert("Заполните все обязательные поля.");
-      return;
+  // Функция для повторных попыток при ошибках соединения с БД
+  const retryApiCall = async <T,>(
+    apiCall: () => Promise<T>, 
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<T> => {
+    let lastError: any;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await apiCall();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Проверяем, является ли это ошибкой соединения с БД
+        const isConnectionError = 
+          error?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+          error?.response?.data?.message?.includes('connection was closed') ||
+          error?.response?.data?.error === 'Internal Server Error';
+        
+        // Если это не ошибка соединения или это последняя попытка, выбрасываем ошибку
+        if (!isConnectionError || attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Ждем перед следующей попыткой
+        console.log(`Попытка ${attempt} не удалась, пробуем еще раз через ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Увеличиваем задержку для следующей попытки
+        delay *= 1.5;
+      }
     }
+    
+    throw lastError;
+  };
+
+  const handleSave = async () => {
+    if (isSaving) return; // Предотвращаем повторную отправку
+    
+    // if (!taskName || !taskDescription) {
+    //   alert("Заполните все обязательные поля.");
+    //   return;
+    // }
 
     if (!modalSelectedCompanyId || !modalSelectedWorkGroupId) {
-      alert("Выберите компанию и рабочую группу.");
+      console.log("Выберите компанию и рабочую группу.");
       return;
     }
 
     if (taskPoints.length > 0) {
       const invalidPoints = taskPoints.filter(point => !point.title.trim());
       if (invalidPoints.length > 0) {
-        alert("Все точки задачи должны иметь название.");
+        console.log("Все точки задачи должны иметь название.");
         return;
       }
     }
@@ -318,16 +386,31 @@ const adminTaskboardPage = () => {
     console.log(payload.type);
     console.log(payload.task_points);
 
+    setIsSaving(true);
+    
     try {
-      const res = await createTask(payload);
+      const res = await retryApiCall(() => createTask(payload));
       if (res.data) {
-        alert("Задача успешно создана!");
+        console.log("Задача успешно создана!");
         handleCloseModal();
         fetchTasks(selectedValue);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка создания задачи:", error);
-      alert("Ошибка при создании задачи");
+      
+      // Показываем более информативное сообщение об ошибке
+      const isConnectionError = 
+        error?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        error?.response?.data?.message?.includes('connection was closed') ||
+        error?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось создать задачу после нескольких попыток. Проблемы с подключением к серверу. Попробуйте еще раз.");
+      } else {
+        console.error("Ошибка при создании задачи");
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -373,6 +456,21 @@ const adminTaskboardPage = () => {
           flex: 1;
           overflow-y: auto;
           padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        /* Анимация спиннера для кнопки загрузки */
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid transparent;
+          border-top: 2px solid currentColor;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
       <div className="flex w-full justify-center px-5">
@@ -517,7 +615,44 @@ const adminTaskboardPage = () => {
 
             {/* Form Fields */}
             <div className="space-y-4">
+
+            <div>
+                <Select
+                  value={String(modalSelectedCompanyId || "")}
+                  onChange={handleModalCompanyChange}
+                  status="focused"
+                  className="w-full"
+                  header="Компания"
+                >
+                  <option value="">Выберите компанию</option>
+                  {dataCompanies?.map((company: UserCompanies) => (
+                    <option key={company.company_id} value={company.company_id || ""}>
+                      {company.company_name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+
               <div>
+                <Select
+                  value={String(modalSelectedWorkGroupId)}
+                  onChange={handleModalWorkGroupChange}
+                  className="w-full"
+                  status="focused"
+                  header="Рабочая группа"
+                  disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
+                >
+                  <option value="">Выберите рабочую группу</option>
+                  {workGroups.map((group: WorkGroup) => (
+                    <option key={group.id} value={group.id}>
+                      {group.title}
+                    </option>
+                  ))}
+                </Select>
+              </div>      
+
+              {/* <div>
                 <Input
                   value={taskName}
                   status="focused"
@@ -535,7 +670,7 @@ const adminTaskboardPage = () => {
                   placeholder="Описание задачи"
                   className="w-full"
                 />
-              </div>
+              </div> */}
 
               {/* Task Points List */}
               {taskPoints.length > 0 && (
@@ -558,73 +693,77 @@ const adminTaskboardPage = () => {
                               ));
                             }}
                             placeholder="Название точки"
-                            style={{flexGrow: 1, marginRight: "10px"}}
+                            style={{
+                              flexGrow: 1, 
+                              marginRight: "10px",
+                              opacity: point.locked ? 0.6 : 1
+                            }}
+                            disabled={point.locked}
                           />
                           <Button
                             mode="plain"
                             size="s"
                             onClick={() => {
+                              setTaskPoints(prev => prev.map(p => 
+                                p.id === point.id ? { ...p, locked: !p.locked } : p
+                              ));
+                            }}
+                            className="pr-2"
+                            style={{
+                              color: point.locked ? (telegramData?.themeParams.button_color || "#3B82F6") : "#6B7280"
+                            }}
+                          >
+                            {point.locked ? (
+                              <FiLock size={20} />
+                            ) : (
+                              <FiUnlock size={20} />
+                            )}
+                          </Button>
+                          <Button
+                            mode="plain"
+                            size="s"
+                            onClick={() => {
+                              if (point.locked) return;
                               setTaskPoints(prev => prev.filter(p => p.id !== point.id));
                               if (activePoint?.id === point.id) {
                                 setActivePoint(null);
                               }
                             }}
                             className="text-red-500 pr-2"
+                            style={{
+                              opacity: point.locked ? 0.4 : 1,
+                              cursor: point.locked ? 'not-allowed' : 'pointer'
+                            }}
+                            disabled={point.locked}
                           >
-                            <FiTrash2 color="red" size={20} />
+                            <FiTrash2 color={point.locked ? "#9CA3AF" : "red"} size={20} />
                           </Button>
                         </div>
-                      
-                        <Textarea
-                          value={point.description || ""}
-                          status="focused"
-                          onChange={(e) => {
-                            const newDescription = e.target.value;
-                            setTaskPoints(prev => prev.map(p => 
-                              p.id === point.id ? { ...p, description: newDescription } : p
-                            ));
+                        
+                        <div
+                          style={{
+                            opacity: point.locked ? 0.6 : 1
                           }}
-                          placeholder="Описание точки"
-                          className="w-full"
-                        />
+                        >
+                          <Textarea
+                            value={point.description || ""}
+                            status="focused"
+                            onChange={(e) => {
+                              const newDescription = e.target.value;
+                              setTaskPoints(prev => prev.map(p => 
+                                p.id === point.id ? { ...p, description: newDescription } : p
+                              ));
+                            }}
+                            placeholder="Описание точки"
+                            className="w-full"
+                            disabled={point.locked}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-
-              <div>
-                <Select
-                  value={String(modalSelectedCompanyId || "")}
-                  onChange={handleModalCompanyChange}
-                  status="focused"
-                  className="w-full"
-                >
-                  <option value="">Выберите компанию</option>
-                  {dataCompanies?.map((company: UserCompanies) => (
-                    <option key={company.company_id} value={company.company_id || ""}>
-                      {company.company_name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <Select
-                  value={String(modalSelectedWorkGroupId)}
-                  onChange={handleModalWorkGroupChange}
-                  className="w-full"
-                  status="focused"
-                  disabled={!modalSelectedCompanyId || isLoadingWorkGroups}
-                >
-                  <option value="">Выберите рабочую группу</option>
-                  {workGroups.map((group: WorkGroup) => (
-                    <option key={group.id} value={group.id}>
-                      {group.title}
-                    </option>
-                  ))}
-                </Select>
-              </div>
             </div>
           </div>
 
@@ -632,8 +771,25 @@ const adminTaskboardPage = () => {
             <Button stretched mode="bezeled" onClick={handleCloseModal} className="mx-2">
               Отмена
             </Button>
-            <Button stretched mode="filled" onClick={handleSave} className="mx-2">
-              Сохранить
+            <Button 
+              stretched 
+              mode="filled" 
+              onClick={handleSave} 
+              className="mx-2"
+              disabled={isSaving}
+              style={{
+                opacity: isSaving ? 0.7 : 1,
+                cursor: isSaving ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isSaving ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="spinner"></div>
+                  Сохранение...
+                </div>
+              ) : (
+                'Сохранить'
+              )}
             </Button>
           </div>
         </div>

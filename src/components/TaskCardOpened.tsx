@@ -3,25 +3,30 @@ import { Button, Card, Checkbox, CompactPagination } from "@telegram-apps/telegr
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft } from "react-icons/sl";
-import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi";
+import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight } from "react-icons/fi"; //FiChevronDown
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
-import AudioMessageComposer from "./AudioMessageComposer";
-import Waveform from "./Waveform";
+// import AudioMessageComposer from "./AudioMessageComposer";
+// import Waveform from "./Waveform";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { editTask } from "../api/task/edit-task";
 import { deleteTask } from "../api/task/delete-task";
+import { useDispatch } from "react-redux";
+import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
+import { getTasksByCompany } from "../api/task/get-tasksByCompany";
+import { getSelectedCompany } from "../utils/selectedCompany";
 
 interface TaskCardProps {
   editMode: boolean;
 }
 
 function TaskCard({ editMode }: TaskCardProps) {
-  const mockAudioUrl =
-    "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
+  // const mockAudioUrl =
+  //   "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
   const telegramData = getTelegramData();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { taskboard_id } = useParams<{ taskboard_id: string }>();
 
   const [task, setTask] = useState<Task | null>(null);
@@ -44,6 +49,9 @@ function TaskCard({ editMode }: TaskCardProps) {
   const [modalBottomOffset, setModalBottomOffset] = useState(16);
   const [isPointPanelVisible, setIsPointPanelVisible] = useState(false);
   const [isPointPanelAnimating, setIsPointPanelAnimating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // отступ для пагинации
   const calculatePaginationOffset = useCallback(() => {
@@ -54,6 +62,60 @@ function TaskCard({ editMode }: TaskCardProps) {
     const paginationHeight = 28 + (rows * 18) + ((rows - 1) * 4); 
     return paginationHeight;
   }, [taskPoints.length]);
+
+  // Функция для повторных попыток при ошибках соединения с БД
+  const retryApiCall = async <T,>(
+    apiCall: () => Promise<T>, 
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<T> => {
+    let lastError: any;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await apiCall();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Проверяем, является ли это ошибкой соединения с БД
+        const isConnectionError = 
+          error?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+          error?.response?.data?.message?.includes('connection was closed') ||
+          error?.response?.data?.error === 'Internal Server Error';
+        
+        // Если это не ошибка соединения или это последняя попытка, выбрасываем ошибку
+        if (!isConnectionError || attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Ждем перед следующей попыткой
+        console.log(`Попытка ${attempt} не удалась, пробуем еще раз через ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Увеличиваем задержку для следующей попытки
+        delay *= 1.5;
+      }
+    }
+    
+    throw lastError;
+  };
+
+  // Функция для обновления списка задач при навигации назад
+  const refreshTasksAndNavigateBack = useCallback(async () => {
+    try {
+      const selectedCompanyId = getSelectedCompany();
+      if (selectedCompanyId) {
+        const res = await retryApiCall(() => getTasksByCompany(selectedCompanyId));
+        if (res.data) {
+          dispatch(setTasksBoardByCompany(res.data));
+        }
+      }
+    } catch (e: any) {
+      console.error("Ошибка при обновлении списка задач:", e);
+    } finally {
+      navigate(-1);
+    }
+  }, [dispatch, navigate]);
 
   // Управление видимостью панели с анимацией
   useEffect(() => {
@@ -115,8 +177,9 @@ function TaskCard({ editMode }: TaskCardProps) {
   const fetchAndSetTaskData = useCallback(async () => {
     if (!taskboard_id) return;
 
+    setIsLoading(true);
     try {
-      const res = await getTaskById(taskboard_id);
+      const res = await retryApiCall(() => getTaskById(taskboard_id));
       if (res.data) {
         const mappedTaskPoints: TaskPoint[] = res.data.task_points.map(
           (point: any) => ({
@@ -131,6 +194,17 @@ function TaskCard({ editMode }: TaskCardProps) {
       }
     } catch (e: any) {
       console.error("Ошибка при получении данных задачи:", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось загрузить данные задачи после нескольких попыток. Проблемы с подключением к серверу.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   }, [taskboard_id]);
 
@@ -384,7 +458,7 @@ function TaskCard({ editMode }: TaskCardProps) {
   };
 
   const handleEditTask = async () => {
-    if (!task) return;
+    if (!task || isSaving) return;
 
     if (isDragging) handleDragEnd();
 
@@ -412,19 +486,32 @@ function TaskCard({ editMode }: TaskCardProps) {
 
     console.log("Отправляем данные задачи на редактирование:", taskDataToSend);
 
+    setIsSaving(true);
     try {
-      const res = await editTask(taskDataToSend);
+      const res = await retryApiCall(() => editTask(taskDataToSend));
       if (res.status === 200 || res.status === 201) {
-        alert("Изменения успешно сохранены!");
+        console.log("Изменения успешно сохранены!");
         setIsFullScreen(false);
         await fetchAndSetTaskData();
       } else {
-        alert("Ошибка при сохранении изменений.");
+        console.log("Ошибка при сохранении изменений.");
         console.error("API response error:", res);
       }
     } catch (e: any) {
-      alert("Произошла ошибка при отправке данных.");
       console.error("Ошибка при редактировании задачи:", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось сохранить изменения после нескольких попыток. Проблемы с подключением к серверу. Попробуйте еще раз.");
+      } else {
+        console.log("Произошла ошибка при отправке данных.");
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -463,23 +550,33 @@ function TaskCard({ editMode }: TaskCardProps) {
     );
 
     try {
-      const res = await editTask(taskDataToSend);
+      const res = await retryApiCall(() => editTask(taskDataToSend));
       if (res.status === 200 || res.status === 201) {
         console.log("Изменения успешно сохранены (по клику работодателя).");
         await fetchAndSetTaskData();
       } else {
-        alert("Ошибка при сохранении изменений по клику работодателя.");
+        console.log("Ошибка при сохранении изменений по клику работодателя.");
         console.error("API response error (employer click):", res);
       }
     } catch (e: any) {
-      alert("Произошла ошибка при отправке данных по клику работодателя.");
       console.error("Ошибка при редактировании задачи (employer click):", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        console.log("Не удалось сохранить изменения после нескольких попыток. Проблемы с подключением к серверу.");
+      } else {
+        console.log("Произошла ошибка при отправке данных по клику работодателя.");
+      }
     }
   };
 
   const handleDeleteTask = async () => {
-    if (!task?.id) {
-      console.warn("Попытка удалить задачу без ID.");
+    if (!task?.id || isDeleting) {
+      console.warn("Попытка удалить задачу без ID или удаление уже в процессе.");
       return;
     }
 
@@ -489,24 +586,73 @@ function TaskCard({ editMode }: TaskCardProps) {
 
     if (!confirmDelete) return;
 
+    setIsDeleting(true);
     try {
-      const res = await deleteTask(task.id);
+      const res = await retryApiCall(() => deleteTask(task.id));
       if (res.status === 200 || res.status === 204) {
-        alert("Задача успешно удалена!");
-        navigate(-1);
+        await refreshTasksAndNavigateBack();
       } else {
         alert("Ошибка при удалении задачи.");
         console.error("API response error:", res);
       }
     } catch (e: any) {
-      alert("Произошла ошибка при удалении задачи.");
       console.error("Ошибка при удалении задачи:", e);
+      
+      const isConnectionError = 
+        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
+        e?.response?.data?.message?.includes('connection was closed') ||
+        e?.response?.data?.error === 'Internal Server Error';
+      
+      if (isConnectionError) {
+        alert("Не удалось удалить задачу после нескольких попыток. Проблемы с подключением к серверу. Попробуйте еще раз.");
+      } else {
+        alert("Произошла ошибка при удалении задачи.");
+      }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <div className="p-4 pt-0">
-      {/* Модалка с изображением */}
+    <>
+      <style>{`
+        /* Анимация спиннера для кнопок загрузки */
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid transparent;
+          border-top: 2px solid currentColor;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          display: inline-block;
+          margin-right: 8px;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div className="p-4 pt-0">
+        {/* Индикатор загрузки */}
+        {isLoading && (
+          <Card style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '20px',
+            backgroundColor: 'var(--tgui--secondary_bg_color)',
+            borderRadius: '8px',
+            marginBottom: '16px'
+          }}>
+            <div className="spinner"></div>
+            <span style={{ marginLeft: '8px', color: 'var(--tgui--text_color)' }}>
+              Загрузка данных задачи
+            </span>
+          </Card>
+        )}
+        
+        {/* Модалка с изображением */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
           
@@ -783,7 +929,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                   }}
                 >
                   {/* Section 1: Name */}
-                  <div className="p-2  ">
+                  {/* <div className="p-2  ">
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
                             {activePoint.id}
@@ -890,10 +1036,10 @@ function TaskCard({ editMode }: TaskCardProps) {
 
                       </div>
                       
-                  </div>
+                  </div> */}
 
                   {/* Section 2: Description */}
-                  <div className="p-2  ">
+                  {/* <div className="p-2  ">
                     {editMode ? (
                       <textarea
                         disabled={!editMode || activePoint.locked}
@@ -931,7 +1077,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                         {activePoint.description || "Описание отсутствует"}
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Section 3: Bottom Controls */}
                   <div className="px-2 pb-0">
@@ -986,6 +1132,7 @@ function TaskCard({ editMode }: TaskCardProps) {
       )}
 
       {/* Основной контент */}
+      {!isLoading && (
       <Card
         className="w-full"
         style={{ backgroundColor: telegramData?.themeParams.section_bg_color }}
@@ -1032,7 +1179,7 @@ function TaskCard({ editMode }: TaskCardProps) {
 
             {/* Описание задач */}
             <div className="flex flex-col justify-left pl-2 pr-2 w-full">
-              {editMode ? (
+              {/* {editMode ? (
                 <div>
                 <input
                   value={task?.title || ""}
@@ -1077,12 +1224,14 @@ function TaskCard({ editMode }: TaskCardProps) {
                   <p className="text-base font-semibold pb-4">{task?.title}</p>
                   <p className="text-base font-semibold pb-4">{task?.description}</p>
                 </div>
-              )}
+              )} */}
 
 
               {taskPoints.map((task_point: TaskPoint, index: number) => {
-                const { title, description, voice_message, completed } =
+                const { title, description, completed } =
                   task_point;
+                // const { title, description, voice_message, completed } =
+                //   task_point;
                 return (
                   <div key={task_point.id}>
                     <div className="gap-2 pb-7">
@@ -1232,11 +1381,11 @@ function TaskCard({ editMode }: TaskCardProps) {
                         <div className="pb-2">{description}</div>
                       )}
                       <div>
-                        {editMode ? (
+                        {/* {editMode ? (
                           <AudioMessageComposer />
                         ) : (
                           <Waveform audioUrl={voice_message || mockAudioUrl} />
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
@@ -1252,27 +1401,47 @@ function TaskCard({ editMode }: TaskCardProps) {
                   style={{
                     width: "100%",
                     backgroundColor: telegramData?.themeParams.button_color || "#3B82F6",
-                    color: "white"
+                    color: "white",
+                    opacity: isSaving ? 0.7 : 1,
+                    cursor: isSaving ? 'not-allowed' : 'pointer'
                   }}
                   onClick={handleEditTask}
+                  disabled={isSaving}
                 >
-                  Сохранить изменения
+                  {isSaving ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className="spinner"></div>
+                      Сохранение...
+                    </div>
+                  ) : (
+                    "Сохранить изменения"
+                  )}
                 </Button>
                 <Button
                   style={{
                     width: "100%",
                     backgroundColor: "#ef4444",
-                    color: "white"
+                    color: "white",
+                    opacity: isDeleting ? 0.7 : 1,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer'
                   }}
                   onClick={handleDeleteTask}
+                  disabled={isDeleting}
                 >
-                  Удалить
+                  {isDeleting ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className="spinner"></div>
+                      Удаление...
+                    </div>
+                  ) : (
+                    "Удалить"
+                  )}
                 </Button>
               </>
             )}
             <div className="flex justify-end">
               <button
-                onClick={() => navigate(-1)}
+                onClick={refreshTasksAndNavigateBack}
                 className="p-2 text-gray-500 hover:text-black dark:hover:text-white rounded-full hover:bg-gray-200 transition-colors"
                 aria-label="Назад"
               >
@@ -1285,8 +1454,10 @@ function TaskCard({ editMode }: TaskCardProps) {
           </div>
         </div>
       </Card>
+      )}
       <div className="h-20"></div>
     </div>
+    </>
   );
 }
 

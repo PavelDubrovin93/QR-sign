@@ -29,6 +29,7 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] =
     useState<UsersInCompany | null>(null);
+  const [isAddingUser, setIsAddingUser] = useState(false);
 
   const [userNameInModal, setUserNameInModal] = useState<string>("");
   const [modalSelectedCompanyId, setModalSelectedCompanyId] = useState<
@@ -105,34 +106,44 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
 
   const handleAddUserToGroup = async () => {
     if (!modalSelectedCompanyId || !selectedGroup) {
-      alert("Пожалуйста, выберите компанию и группу!");
+      console.log("Пожалуйста, выберите компанию и группу!");
       return;
     }
-    const sendData = {
-      id: currentUserToEdit?.id,
-      user_id: currentUserToEdit?.id,
-      company_id: modalSelectedCompanyId,
-      workgroup_id: selectedGroup,
-      // role: "not_approved",
-    };
 
-    await addUserToGroup(sendData, modalSelectedCompanyId.toString());
+    if (isAddingUser) return; // Предотвращаем повторную отправку
 
-    console.log(
-      `Пользователь ${currentUserToEdit?.name} (ID: ${currentUserToEdit?.id}) будет добавлен в группу с ID: ${selectedGroup} в компании ID: ${modalSelectedCompanyId}`
-    );
-    alert(
-      `Пользователь "${currentUserToEdit?.name}" будет добавлен в группу "${
-        groups.find((g) => g.id === selectedGroup)?.title || selectedGroup
-      }" компании "${
-        dataCompanies?.find((c) => c.company_id === modalSelectedCompanyId)
-          ?.company_name || modalSelectedCompanyId
-      }"`
-    );
-    handleCloseEditModal();
-    const res = await getWorkGroupsByCompanyId(selectedValue);
-    if(res.data) {
-      dispatch(setTasksBoardByCompany(res.data));
+    setIsAddingUser(true);
+    try {
+      const sendData = {
+        id: currentUserToEdit?.id,
+        user_id: currentUserToEdit?.id,
+        company_id: modalSelectedCompanyId,
+        workgroup_id: selectedGroup,
+      };
+
+      await addUserToGroup(sendData, modalSelectedCompanyId.toString());
+
+      console.log(
+        `Пользователь ${currentUserToEdit?.name} (ID: ${currentUserToEdit?.id}) будет добавлен в группу с ID: ${selectedGroup} в компании ID: ${modalSelectedCompanyId}`
+      );
+      console.log(
+        `Пользователь "${currentUserToEdit?.name}" добавлен в группу "${
+          groups.find((g) => g.id === selectedGroup)?.title || selectedGroup
+        }" компании "${
+          dataCompanies?.find((c) => c.company_id === modalSelectedCompanyId)
+            ?.company_name || modalSelectedCompanyId
+        }"`
+      );
+      
+      handleCloseEditModal();
+      const res = await getWorkGroupsByCompanyId(selectedValue);
+      if(res.data) {
+        dispatch(setTasksBoardByCompany(res.data));
+      }
+    } catch (error) {
+      console.error("Ошибка при добавлении пользователя в группу:", error);
+    } finally {
+      setIsAddingUser(false);
     }
   };
 
@@ -328,6 +339,7 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
                   mode="bezeled"
                   onClick={handleCloseEditModal}
                   className="mr-2"
+                  disabled={isAddingUser}
                 >
                   Отмена
                 </Button>
@@ -335,9 +347,9 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
                   stretched
                   onClick={handleAddUserToGroup}
                   className="ml-2"
-                  disabled={!modalSelectedCompanyId || !selectedGroup}
+                  disabled={!modalSelectedCompanyId || !selectedGroup || isAddingUser}
                 >
-                  Сохранить
+                  {isAddingUser ? "Добавление..." : "Сохранить"}
                 </Button>
               </div>
             </div>
