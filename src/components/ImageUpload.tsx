@@ -388,6 +388,13 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
       setActivePoint(newPoint);
     }
   };
+
+  // Функция для получения порядкового номера точки
+  const getPointDisplayNumber = useCallback((point: TaskPoint) => {
+    const index = taskPoints.findIndex(p => p.id === point.id);
+    return index !== -1 ? index + 1 : 1;
+  }, [taskPoints]);
+
   return (
     <div className="p-4 pt-0">
       {/* Модалка с изображением */}
@@ -413,9 +420,9 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
                 resetImageTransform();
                 if (isDragging) handleDragEnd();
               }}
-                title="Свернуть"
+                title="Сохранить"
               >
-                <span className="text-sm">Свернуть</span>
+                <span className="text-sm">Сохранить</span>
               </button>
 
             
@@ -536,7 +543,7 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
                           border: point.locked ? '2px solid #DC2626' : 'none'
                         }}
                       >
-                        {point.id}
+                        {getPointDisplayNumber(point)}
                       </div>
                     </div>
                   ))}
@@ -608,7 +615,7 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
                               centerOnPoint(point);
                             }}
                           >
-                            {point.id}
+                            {getPointDisplayNumber(point)}
                           </CompactPagination.Item>
                         ))}
                       </CompactPagination>
@@ -674,7 +681,7 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
                   <div className="p-2  ">
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
-                            {activePoint.id}
+                            {getPointDisplayNumber(activePoint)}
                         </span>
                         <input
                           disabled={!editMode || activePoint.locked}
@@ -904,7 +911,7 @@ function ImageUpload({ editMode, image, taskPoints, setTaskPoints, activePoint, 
                       border: point.locked ? '2px solid #DC2626' : 'none'
                     }}
                   >
-                    {point.id}
+                    {getPointDisplayNumber(point)}
                   </div>
                 </div>
               ))}

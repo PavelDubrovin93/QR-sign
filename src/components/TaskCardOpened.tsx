@@ -3,7 +3,7 @@ import { Button, Card, Checkbox, CompactPagination } from "@telegram-apps/telegr
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft } from "react-icons/sl";
-import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight } from "react-icons/fi"; //FiChevronDown
+import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi"; //FiChevronDown
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 // import AudioMessageComposer from "./AudioMessageComposer";
@@ -493,6 +493,7 @@ function TaskCard({ editMode }: TaskCardProps) {
         console.log("Изменения успешно сохранены!");
         setIsFullScreen(false);
         await fetchAndSetTaskData();
+        navigate(-1);
       } else {
         console.log("Ошибка при сохранении изменений.");
         console.error("API response error:", res);
@@ -554,6 +555,7 @@ function TaskCard({ editMode }: TaskCardProps) {
       if (res.status === 200 || res.status === 201) {
         console.log("Изменения успешно сохранены (по клику работодателя).");
         await fetchAndSetTaskData();
+        navigate(-1);
       } else {
         console.log("Ошибка при сохранении изменений по клику работодателя.");
         console.error("API response error (employer click):", res);
@@ -613,6 +615,12 @@ function TaskCard({ editMode }: TaskCardProps) {
     }
   };
 
+  // Функция для получения порядкового номера точки
+  const getPointDisplayNumber = useCallback((point: TaskPoint) => {
+    const index = taskPoints.findIndex(p => p.id === point.id);
+    return index !== -1 ? index + 1 : 1;
+  }, [taskPoints]);
+
   return (
     <>
       <style>{`
@@ -656,6 +664,8 @@ function TaskCard({ editMode }: TaskCardProps) {
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
           
+
+          
           <div className="absolute top-4 right-4 z-50 flex gap-2">
             {currentScale > 1 && (
               <button
@@ -674,9 +684,9 @@ function TaskCard({ editMode }: TaskCardProps) {
                 resetImageTransform();
                 if (isDragging) handleDragEnd();
               }}
-              title="Свернуть"
+              title="Сохранить"
             >
-              Свернуть
+              Сохранить
             </button>
           </div>
 
@@ -794,7 +804,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                           border: point.locked ? '2px solid #DC2626' : 'none'
                         }}
                       >
-                        {point.id}
+                        {getPointDisplayNumber(point)}
                       </div>
                     </div>
                   ))}
@@ -866,7 +876,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                               centerOnPoint(point);
                             }}
                           >
-                            {point.id}
+                            {getPointDisplayNumber(point)}
                           </CompactPagination.Item>
                         ))}
                       </CompactPagination>
@@ -929,10 +939,10 @@ function TaskCard({ editMode }: TaskCardProps) {
                   }}
                 >
                   {/* Section 1: Name */}
-                  {/* <div className="p-2  ">
+                  <div className="p-2  ">
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
-                            {activePoint.id}
+                            {getPointDisplayNumber(activePoint)}
                         </span>
                         <input
                           disabled={!editMode || activePoint.locked}
@@ -1036,10 +1046,10 @@ function TaskCard({ editMode }: TaskCardProps) {
 
                       </div>
                       
-                  </div> */}
+                  </div>
 
                   {/* Section 2: Description */}
-                  {/* <div className="p-2  ">
+                  <div className="p-2  ">
                     {editMode ? (
                       <textarea
                         disabled={!editMode || activePoint.locked}
@@ -1077,7 +1087,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                         {activePoint.description || "Описание отсутствует"}
                       </p>
                     )}
-                  </div> */}
+                  </div>
 
                   {/* Section 3: Bottom Controls */}
                   <div className="px-2 pb-0">
@@ -1171,7 +1181,7 @@ function TaskCard({ editMode }: TaskCardProps) {
                       border: point.locked ? '2px solid #DC2626' : 'none'
                     }}
                   >
-                    {point.id}
+                    {getPointDisplayNumber(point)}
                   </div>
                 </div>
               ))}

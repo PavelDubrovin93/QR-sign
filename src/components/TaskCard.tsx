@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, Checkbox } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +18,20 @@ function TaskCard({ data, path, isSelected = false, selectionMode = false, onLon
   const telegramData = getTelegramData();
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const navigate = useNavigate();
+
+  // Функция для получения порядкового номера точки
+  const getPointDisplayNumber = useCallback((point: any, index: number) => {
+    console.log(point);
+    return index + 1;
+  }, []);
+
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
   const touchStart = useRef({ x: 0, y: 0 });
   const hasMoved = useRef(false);
 
   useEffect(() => {
-    setTaskPoints(data?.task_points);
+    setTaskPoints(data?.task_points || []);
   }, [data]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -124,7 +131,7 @@ function TaskCard({ data, path, isSelected = false, selectionMode = false, onLon
               />
 
               {/* Точки поверх изображения */}
-              {taskPoints?.map((point) => {
+              {taskPoints?.map((point, index) => {
                 return (
                   <div
                     key={point.id}
@@ -143,7 +150,7 @@ function TaskCard({ data, path, isSelected = false, selectionMode = false, onLon
                           : telegramData?.themeParams.button_color || "#3B82F6",
                       }}
                     >
-                      {point.id}
+                      {getPointDisplayNumber(point, index)}
                     </div>
                   </div>
                 );
