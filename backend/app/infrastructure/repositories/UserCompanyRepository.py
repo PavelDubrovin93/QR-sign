@@ -122,7 +122,6 @@ class UserCompanyRepository(IUserCompanyRepository):
         usercompany = result.scalars().first()
 
         usercompany_dto = await self.__to_dto(usercompany) if usercompany else None
-        print(123123, company_id, user_id, usercompany_dto)
         return usercompany_dto
 
     async def __to_dto(self, usercompany: UserCompany) -> UserCompanyDTO:
