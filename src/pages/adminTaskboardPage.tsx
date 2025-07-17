@@ -235,7 +235,7 @@ const adminTaskboardPage = () => {
     const file = event.target.files?.[0];
     if (file) {
       const options = {
-        maxSizeMB: 1,           
+        maxSizeMB: 0.5,           
         maxWidthOrHeight: 1920, 
         useWebWorker: true,                  
         fileType: 'image/jpeg', 
