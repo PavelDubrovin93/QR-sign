@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Checkbox, CompactPagination } from "@telegram-apps/telegram-ui";
+import { Button, Card, Checkbox, CompactPagination, Select } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft } from "react-icons/sl";
@@ -16,6 +16,8 @@ import { useDispatch } from "react-redux";
 import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import { getSelectedCompany } from "../utils/selectedCompany";
+import type { WorkGroup } from "../@types/group";
+import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 
 interface TaskCardProps {
   editMode: boolean;
@@ -31,6 +33,7 @@ function TaskCard({ editMode }: TaskCardProps) {
 
   const [task, setTask] = useState<Task | null>(null);
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
+  const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const [currentScale, setCurrentScale] = useState(1);
@@ -174,6 +177,23 @@ function TaskCard({ editMode }: TaskCardProps) {
     };
   }, [activePoint]);
 
+  const fetchWorkGroups = useCallback(async (companyId: number) => {
+    try {
+      const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
+      if (res.data) {
+        setWorkGroups(res.data);
+      }
+    } catch (e: any) {
+      console.error("Ошибка при получении workgroups:", e);
+    }
+  }, []);
+
+  // Функция для получения названия workgroup
+  const getWorkGroupName = useCallback((workGroupId: number) => {
+    const workGroup = workGroups.find(wg => wg.id === workGroupId);
+    return workGroup?.title || '';
+  }, [workGroups]);
+
   const fetchAndSetTaskData = useCallback(async () => {
     if (!taskboard_id) return;
 
@@ -191,6 +211,11 @@ function TaskCard({ editMode }: TaskCardProps) {
         );
         setTask({ ...res.data, task_points: mappedTaskPoints });
         setTaskPoints(mappedTaskPoints);
+        
+        // Загружаем workgroups для компании
+        if (res.data.company_id) {
+          await fetchWorkGroups(res.data.company_id);
+        }
       }
     } catch (e: any) {
       console.error("Ошибка при получении данных задачи:", e);
@@ -206,7 +231,7 @@ function TaskCard({ editMode }: TaskCardProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [taskboard_id]);
+  }, [taskboard_id, fetchWorkGroups]);
 
   useEffect(() => {
     fetchAndSetTaskData();
@@ -1149,6 +1174,17 @@ function TaskCard({ editMode }: TaskCardProps) {
       >
         <div className="flex flex-col justify-between h-full p-3">
           <div className="flex flex-col items-start gap-2">
+            {/* Заголовок с названием задачи и workgroup */}
+            {(task?.title || task?.work_group_id) && (
+              <div className="w-full pb-2">
+                {task?.title && (
+                  <h2 className="text-lg font-semibold text-gray-900" style={{ color: telegramData?.themeParams.text_color }}>
+                    {task.title}
+                  </h2>
+                )}
+                
+              </div>
+            )}
             {/* Блок с изображением */}
             <div
               className="rounded-md overflow-hidden relative cursor-pointer"
@@ -1189,9 +1225,11 @@ function TaskCard({ editMode }: TaskCardProps) {
 
             {/* Описание задач */}
             <div className="flex flex-col justify-left pl-2 pr-2 w-full">
-              {/* {editMode ? (
+                
+
+              {editMode ? (
                 <div>
-                <input
+                {/* <input
                   value={task?.title || ""}
                   onChange={(e) => {
                     if (task) {
@@ -1227,14 +1265,44 @@ function TaskCard({ editMode }: TaskCardProps) {
                     padding: '4px',
                     marginRight: '4px',
                   }}
-                  />
+                /> */}
+
+                <Select
+                  value={task?.work_group_id || ""}
+                  header="Группа"
+                  status="focused"
+                  onChange={(e) => {
+                    if (task) {
+                      setTask({ ...task, work_group_id: Number(e.target.value) });
+                    }
+                  }}
+                  className="w-full mb-2"
+                  style={{
+                    backgroundColor: telegramData?.themeParams.section_bg_color,
+                    color: telegramData?.themeParams.text_color,
+                    border: `1px solid ${telegramData?.themeParams.button_color}`,
+                    borderRadius: '4px',
+
+                  }}
+                >
+                  {workGroups.map((workGroup) => (
+                    <option key={workGroup.id} value={workGroup.id}>
+                      {workGroup.title}
+                    </option>
+                  ))}
+                </Select>
                 </div>  
               ) : (
                 <div>
                   <p className="text-base font-semibold pb-4">{task?.title}</p>
                   <p className="text-base font-semibold pb-4">{task?.description}</p>
+                  {task?.work_group_id && (
+                    <p className="text-sm pb-4" style={{ color: telegramData?.themeParams.button_color || "#3B82F6" }}>
+                      Группа: {getWorkGroupName(task.work_group_id)}
+                    </p>
+                  )}
                 </div>
-              )} */}
+              )}
 
 
               {taskPoints.map((task_point: TaskPoint, index: number) => {

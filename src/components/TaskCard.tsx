@@ -4,20 +4,30 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import { useNavigate } from "react-router-dom";
 import { SlArrowRight } from "react-icons/sl";
 import type { TaskBoard, TaskPoint } from "../@types/task";
+import type { WorkGroup } from "../@types/group";
 
 interface TaskCardProps {
   data: TaskBoard;
   path: string;
+  workGroups?: WorkGroup[];
   isSelected?: boolean;
   selectionMode?: boolean;
   onLongPress?: (taskBoardId: number) => void;
   onSelect?: (taskBoardId: number) => void;
 }
 
-function TaskCard({ data, path, isSelected = false, selectionMode = false, onLongPress, onSelect }: TaskCardProps) {
+function TaskCard({ data, path, workGroups = [], isSelected = false, selectionMode = false, onLongPress, onSelect }: TaskCardProps) {
   const telegramData = getTelegramData();
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
   const navigate = useNavigate();
+
+  // Функция для получения названия workgroup
+  const getWorkGroupName = useCallback((workGroupId: number) => {
+    console.log("🔍 getWorkGroupName вызвана с:", workGroupId, "workGroups:", workGroups);
+    const workGroup = workGroups.find(wg => wg.id === workGroupId);
+    console.log("🎯 Найденная группа:", workGroup);
+    return workGroup?.title || '';
+  }, [workGroups]);
 
   // Функция для получения порядкового номера точки
   const getPointDisplayNumber = useCallback((point: any, index: number) => {
@@ -158,7 +168,12 @@ function TaskCard({ data, path, isSelected = false, selectionMode = false, onLon
             </div>
 
             <div className="flex flex-col justify-left pl-2 pr-2 relative  w-full">
-              <p className="text-base font-semibold pb-2">{data?.title}</p>
+              <p className="text-base font-semibold pb-1">{data?.title}</p>
+              {data?.work_group_id && (
+                <p className="text-xs pb-2" style={{ color: telegramData?.themeParams.button_color || "#3B82F6" }}>
+                  Группа: {getWorkGroupName(data.work_group_id)}
+                </p>
+              )}
               {taskPoints?.map((point) => {
                 return (
                   <div key={point.id} className="flex items-start gap-2 pb-2">

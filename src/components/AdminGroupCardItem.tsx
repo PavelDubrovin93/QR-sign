@@ -314,9 +314,14 @@ const AdminGroupCardItem = ({
               <div key={task.id}>
                 <div className="mt-3 text-sm">
                   <div className="flex justify-between">
-                    <p className="text-base font-semibold pb-2">
-                      {task.title}
-                    </p>
+                    <div>
+                      <p className="text-base font-semibold pb-1">
+                        {task.title}
+                      </p>
+                      <p className="text-xs pb-1" style={{ color: telegramData?.themeParams.button_color || "#3B82F6" }}>
+                        Группа: {workgroup.title}
+                      </p>
+                    </div>
                     <p className="text-base font-semibold pb-2">{task.created_at}</p>
                   </div>
                   <div className="list-disc list-inside">

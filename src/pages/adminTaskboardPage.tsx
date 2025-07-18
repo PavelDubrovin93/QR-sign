@@ -159,7 +159,9 @@ const adminTaskboardPage = () => {
   }, []);
 
   const fetchWorkGroups = useCallback(async (companyId: string | number) => {
+    console.log("📡 fetchWorkGroups вызвана для компании:", companyId);
     if (!companyId) {
+      console.log("❌ companyId пустой, очищаем workGroups");
       setWorkGroups([]);
       setModalSelectedWorkGroupId("");
       return;
@@ -167,14 +169,20 @@ const adminTaskboardPage = () => {
 
     setIsLoadingWorkGroups(true);
     try {
+      console.log("🌐 Отправляем запрос getWorkGroupsSelect для:", companyId);
       const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
+      console.log("📨 Ответ от API:", res);
       if (res.data) {
+        console.log("✅ WorkGroups загружены в adminTaskboardPage:", res.data);
         setWorkGroups(res.data);
         if (res.data.length > 0) {
           setModalSelectedWorkGroupId(res.data[0].id || "");
         } else {
           setModalSelectedWorkGroupId("");
         }
+      } else {
+        console.log("⚠️ res.data пустой");
+        setWorkGroups([]);
       }
     } catch (e: any) {
       console.error(
@@ -232,12 +240,17 @@ const adminTaskboardPage = () => {
 
 
   useEffect(() => {
+    console.log("🔄 adminTaskboardPage: selectedValue изменился на:", selectedValue);
     if (selectedValue !== "") {
+      console.log("✅ Загружаем tasks и workGroups для компании:", selectedValue);
       fetchTasks(selectedValue);
+      fetchWorkGroups(selectedValue);
     } else {
+      console.log("❌ selectedValue пустой, очищаем данные");
       dispatch(setTasksBoardByCompany([]));
+      setWorkGroups([]);
     }
-  }, [selectedValue]);
+  }, [selectedValue, fetchTasks, fetchWorkGroups]);
 
 
 
@@ -525,7 +538,7 @@ const adminTaskboardPage = () => {
         </div>
       </Section>
       <div style={{ paddingBottom: "80px" }}>
-        <AdminTasks />
+        <AdminTasks workGroups={workGroups} />
       </div>
       <Modal
         open={isModalOpen}

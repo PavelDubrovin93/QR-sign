@@ -1,21 +1,37 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { Button } from "@telegram-apps/telegram-ui";
+import { Button, Select } from "@telegram-apps/telegram-ui";
 import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import TaskCard from "../components/TaskCard";
 import type { RootState } from "../store/rootReducer";
 import { createQRCodes } from "../api/task/create-qr-codes";
+import type { WorkGroup } from "../@types/group";
 
+interface AdminTasksProps {
+  workGroups?: WorkGroup[];
+}
 
-const AdminTasks = () => {
+const AdminTasks = ({ workGroups = [] }: AdminTasksProps) => {
   const telegramData = getTelegramData();
   const [selectedTaskBoards, setSelectedTaskBoards] = useState<Set<number>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [selectedWorkGroup, setSelectedWorkGroup] = useState<string | number>("");
 
   const { data: dataTasks, isLoading: _ } = useSelector(
     (state: RootState) => state.entities.tasksBoard
   );
+
+  const handleWorkGroupSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedWorkGroup(event.target.value);
+    setSelectedTaskBoards(new Set()); // Сбрасываем выделение при смене фильтра
+    setSelectionMode(false); // Выходим из режима выделения
+  };
+
+  // Фильтрация задач по выбранной workgroup
+  const filteredTasks = selectedWorkGroup === "" || selectedWorkGroup === "all" 
+    ? dataTasks 
+    : dataTasks?.filter((task: any) => String(task.work_group_id) === String(selectedWorkGroup)) || [];
 
   const handleLongPress = (taskBoardId: number) => {
     setSelectionMode(true);
@@ -86,12 +102,30 @@ const AdminTasks = () => {
   //   }
   return (
     <div onClick={selectionMode ? handleCancelSelection : undefined}>
-      {dataTasks?.map((task) => {
+      {/* Фильтр по рабочим группам */}
+      <div>
+        <Select
+          status="focused"
+          value={selectedWorkGroup}
+          onChange={handleWorkGroupSelectChange}
+          style={{ width: "100%" }}
+        >
+          <option value="">Все группы</option>
+          {workGroups.map((workGroup: WorkGroup) => (
+            <option key={workGroup.id} value={workGroup.id}>
+              {workGroup.title}
+            </option>
+          ))}
+        </Select>
+      </div>
+      
+      {filteredTasks?.map((task, index) => {
         return (
           <TaskCard 
-            key={task.id} 
+            key={task.id || `task-${index}`} 
             data={task} 
             path={`/admin-taskboard/${task.id}`}
+            workGroups={workGroups}
             isSelected={selectedTaskBoards.has(task.id)}
             selectionMode={selectionMode}
             onLongPress={handleLongPress}
