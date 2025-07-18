@@ -33,7 +33,6 @@ import type { CreateTaskPayload } from "../@types/task";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
 
 import ImageUpload from "../components/ImageUpload";
-import imageCompression from 'browser-image-compression'
 
 export interface WorkGroup {
   id: number;
@@ -278,28 +277,22 @@ const adminTaskboardPage = () => {
     const file = event.target.files?.[0];
     if (file) {
       setIsUploadingImage(true);
-      const options = {
-        maxSizeMB: 100,           
-        maxWidthOrHeight: 1000000, 
-        useWebWorker: true,                  
-        fileType: 'image/jpeg', 
+      
+      // Загружаем файл напрямую без сжатия
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setUploadedImage(result);
+        setIsUploadingImage(false);
       };
-
-      try {
-        const compressedFile = await imageCompression(file, options);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          setUploadedImage(result);
-          setIsUploadingImage(false);
-        };
-        reader.readAsDataURL(compressedFile);
-      } catch (error) {
-        console.error('Ошибка при сжатии изображения:', error);
-        console.log('Не удалось сжать изображение. Попробуйте другое изображение, с меньшим размером.');
+      
+      reader.onerror = () => {
+        console.error('Ошибка при загрузке файла');
         setUploadedImage(null);
         setIsUploadingImage(false);
-      }
+      };
+      
+      reader.readAsDataURL(file);
     }
   };
 
@@ -617,18 +610,18 @@ const adminTaskboardPage = () => {
                         className="animate-spin rounded-full h-12 w-12 border-b-2 mb-3"
                         style={{ borderColor: telegramData?.themeParams.button_color || "#3b82f6" }}
                       ></div>
-                      <p 
-                        className="text-sm font-medium text-center"
-                        style={{ color: telegramData?.themeParams.text_color || "#374151" }}
-                      >
-                        Загрузка и сжатие изображения...
-                      </p>
-                      <p 
-                        className="text-xs text-center mt-1"
-                        style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
-                      >
-                        Пожалуйста, подождите
-                      </p>
+                                             <p 
+                         className="text-sm font-medium text-center"
+                         style={{ color: telegramData?.themeParams.text_color || "#374151" }}
+                       >
+                         Загрузка изображения...
+                       </p>
+                       <p 
+                         className="text-xs text-center mt-1"
+                         style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
+                       >
+                         Пожалуйста, подождите
+                       </p>
                     </>
                   ) : (
                     <>
@@ -647,7 +640,7 @@ const adminTaskboardPage = () => {
                         className="text-xs text-center mt-1"
                         style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
                       >
-                        JPG, PNG до 10MB
+                        JPG, PNG любого размера
                       </p>
                     </>
                   )}
