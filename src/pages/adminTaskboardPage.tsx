@@ -279,8 +279,8 @@ const adminTaskboardPage = () => {
     if (file) {
       setIsUploadingImage(true);
       const options = {
-        maxSizeMB: 0.5,           
-        maxWidthOrHeight: 1920, 
+        maxSizeMB: 100,           
+        maxWidthOrHeight: 1000000, 
         useWebWorker: true,                  
         fileType: 'image/jpeg', 
       };
