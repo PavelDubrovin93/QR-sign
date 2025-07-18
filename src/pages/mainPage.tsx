@@ -22,7 +22,7 @@ function HomePage() {
   const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
   const [selectedWorkGroup, setSelectedWorkGroup] = useState<string | number>("");
 
-  console.log("🎯 СОСТОЯНИЕ: selectedValue =", selectedValue, "workGroups.length =", workGroups.length);
+  console.log("СОСТОЯНИЕ: selectedValue =", selectedValue, "workGroups.length =", workGroups.length);
 
   const dataCompanies: UserCompanies[] = useSelector(
     (state: any) => state.entities.user_companies.data
@@ -33,27 +33,27 @@ function HomePage() {
   );
 
   console.log(tasksRedux, 'tasksRedux')
-  console.log("🎨 Рендер mainPage: workGroups =", workGroups, "selectedValue =", selectedValue);
+  console.log("Рендер mainPage: workGroups =", workGroups, "selectedValue =", selectedValue);
   const telegramData = getTelegramData();
 
   useEffect(() => {
-    console.log("🚀 Запуск первого useEffect (загрузка компаний)");
+    console.log("апуск первого useEffect (загрузка компаний)");
     const fetchCompanies = async () => {
       setIsLoadingCompanies(true);
       try {
         const res = await getCompaniesByClient();
         if (res.data) {
-          console.log("📊 Компании загружены:", res.data);
+          console.log("Компании загружены:", res.data);
           dispatch(setUserCompanies(res.data));
           if (res.data.length > 0) {
             const companyId = res.data[0].company_id || "";
-            console.log("🏢 Устанавливаем selectedValue =", companyId, "тип:", typeof companyId);
+            console.log("Устанавливаем selectedValue =", companyId, "тип:", typeof companyId);
             setSelectedValue(companyId);
           } else {
-            console.log("⚠️ Нет компаний в res.data");
+            console.log("Нет компаний в res.data");
           }
         } else {
-          console.log("⚠️ res.data пустой");
+          console.log("res.data пустой");
         }
       } catch (e: any) {
         console.error("Ошибка загрузки компаний:", e);
@@ -66,30 +66,30 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    console.log("🔄 useEffect: selectedValue изменился на:", selectedValue);
+    console.log("seEffect: selectedValue изменился на:", selectedValue);
     if (
       selectedValue !== "" &&
       selectedValue !== null &&
       selectedValue !== undefined
     ) {
-      console.log("✅ Условие выполнено, загружаем данные для компании:", selectedValue);
+      console.log("Условие выполнено, загружаем данные для компании:", selectedValue);
       const fetchTasksAndWorkGroups = async () => {
         setIsLoadingTasks(true);
         try {
-          console.log("📡 Отправляем запросы для компании:", selectedValue);
+          console.log("Отправляем запросы для компании:", selectedValue);
           const [tasksResponse, workGroupsResponse] = await Promise.allSettled([
             getTasksByCompany(String(selectedValue)),
             getWorkGroupsSelect(String(selectedValue))
           ]);
           
-          console.log("📨 Получены ответы:", { tasksResponse, workGroupsResponse });
+          console.log("Получены ответы:", { tasksResponse, workGroupsResponse });
 
           if (tasksResponse.status === "fulfilled" && tasksResponse.value.data) {
             dispatch(setTasksBoardByCompany(tasksResponse.value.data));
           }
 
                     if (workGroupsResponse.status === "fulfilled" && workGroupsResponse.value.data) {
-            console.log("✅ WorkGroups загружены:", workGroupsResponse.value.data);
+            console.log("WorkGroups загружены:", workGroupsResponse.value.data);
             setWorkGroups(workGroupsResponse.value.data);
           } else {
             console.log("❌ Ошибка загрузки workGroups:", workGroupsResponse);
@@ -196,7 +196,7 @@ function HomePage() {
           >
             <option value="">Все группы</option>
             {workGroups.map((workGroup: WorkGroup) => {
-              console.log("🎯 Рендерим option для группы:", workGroup);
+              console.log("Рендерим option для группы:", workGroup);
               return (
                 <option key={workGroup.id} value={workGroup.id}>
                   {workGroup.title}
@@ -239,7 +239,7 @@ function HomePage() {
           <>
             {filteredTasks.length > 0 ? (
               filteredTasks?.map((elm: Task, index: number) => {
-                console.log("📋 Рендерим TaskCard для задачи:", elm.title, "work_group_id:", elm.work_group_id, "workGroups:", workGroups);
+                console.log("Рендерим TaskCard для задачи:", elm.title, "work_group_id:", elm.work_group_id, "workGroups:", workGroups);
                 //@ts-ignore
                 return <TaskCard data={elm} key={elm.id || `task-${index}`} path={`/taskboard/${elm.id}`} workGroups={workGroups} />;
               })

@@ -70,6 +70,7 @@ const adminTaskboardPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   console.log(isImageFullScreen); //shit fix
   console.log(isKeyboardOpen); //shit fix
 
@@ -159,9 +160,9 @@ const adminTaskboardPage = () => {
   }, []);
 
   const fetchWorkGroups = useCallback(async (companyId: string | number) => {
-    console.log("📡 fetchWorkGroups вызвана для компании:", companyId);
+
     if (!companyId) {
-      console.log("❌ companyId пустой, очищаем workGroups");
+
       setWorkGroups([]);
       setModalSelectedWorkGroupId("");
       return;
@@ -169,11 +170,10 @@ const adminTaskboardPage = () => {
 
     setIsLoadingWorkGroups(true);
     try {
-      console.log("🌐 Отправляем запрос getWorkGroupsSelect для:", companyId);
+
       const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
-      console.log("📨 Ответ от API:", res);
       if (res.data) {
-        console.log("✅ WorkGroups загружены в adminTaskboardPage:", res.data);
+
         setWorkGroups(res.data);
         if (res.data.length > 0) {
           setModalSelectedWorkGroupId(res.data[0].id || "");
@@ -181,7 +181,7 @@ const adminTaskboardPage = () => {
           setModalSelectedWorkGroupId("");
         }
       } else {
-        console.log("⚠️ res.data пустой");
+
         setWorkGroups([]);
       }
     } catch (e: any) {
@@ -240,13 +240,13 @@ const adminTaskboardPage = () => {
 
 
   useEffect(() => {
-    console.log("🔄 adminTaskboardPage: selectedValue изменился на:", selectedValue);
+
     if (selectedValue !== "") {
-      console.log("✅ Загружаем tasks и workGroups для компании:", selectedValue);
+
       fetchTasks(selectedValue);
       fetchWorkGroups(selectedValue);
     } else {
-      console.log("❌ selectedValue пустой, очищаем данные");
+
       dispatch(setTasksBoardByCompany([]));
       setWorkGroups([]);
     }
@@ -270,12 +270,14 @@ const adminTaskboardPage = () => {
     setTaskDescription("");
     setModalSelectedCompanyId("");
     setModalSelectedWorkGroupId("");
+    setIsUploadingImage(false);
   };
 
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setIsUploadingImage(true);
       const options = {
         maxSizeMB: 0.5,           
         maxWidthOrHeight: 1920, 
@@ -289,12 +291,14 @@ const adminTaskboardPage = () => {
         reader.onload = (e) => {
           const result = e.target?.result as string;
           setUploadedImage(result);
+          setIsUploadingImage(false);
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
         console.error('Ошибка при сжатии изображения:', error);
         console.log('Не удалось сжать изображение. Попробуйте другое изображение, с меньшим размером.');
         setUploadedImage(null);
+        setIsUploadingImage(false);
       }
     }
   };
@@ -596,32 +600,57 @@ const adminTaskboardPage = () => {
               ) : (
                 <div
                   className="flex flex-col items-center justify-center p-8 border-4 border-dashed border-blue-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 bg-gray-50"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => !isUploadingImage && fileInputRef.current?.click()}
                   style={{
                     minHeight: "150px",
                     backgroundColor: telegramData?.colorScheme === "dark" ? "#2a2a2a" : "#f8fafc",
                     borderColor: telegramData?.colorScheme === "dark" ? "#4a5568" : "#3b82f6",
                     marginLeft: "1.5rem",
                     marginRight: "1.5rem",
+                    opacity: isUploadingImage ? 0.7 : 1,
+                    cursor: isUploadingImage ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  <MdUpload 
-                    size={48} 
-                    className="mb-3"
-                    style={{ color: telegramData?.themeParams.button_color || "#3b82f6" }}
-                  />
-                  <p 
-                    className="text-sm font-medium text-center"
-                    style={{ color: telegramData?.themeParams.text_color || "#374151" }}
-                  >
-                    Загрузите изображение задачи
-                  </p>
-                  <p 
-                    className="text-xs text-center mt-1"
-                    style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
-                  >
-                    JPG, PNG до 10MB
-                  </p>
+                  {isUploadingImage ? (
+                    <>
+                      <div 
+                        className="animate-spin rounded-full h-12 w-12 border-b-2 mb-3"
+                        style={{ borderColor: telegramData?.themeParams.button_color || "#3b82f6" }}
+                      ></div>
+                      <p 
+                        className="text-sm font-medium text-center"
+                        style={{ color: telegramData?.themeParams.text_color || "#374151" }}
+                      >
+                        Загрузка и сжатие изображения...
+                      </p>
+                      <p 
+                        className="text-xs text-center mt-1"
+                        style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
+                      >
+                        Пожалуйста, подождите
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <MdUpload 
+                        size={48} 
+                        className="mb-3"
+                        style={{ color: telegramData?.themeParams.button_color || "#3b82f6" }}
+                      />
+                      <p 
+                        className="text-sm font-medium text-center"
+                        style={{ color: telegramData?.themeParams.text_color || "#374151" }}
+                      >
+                        Загрузите изображение задачи
+                      </p>
+                      <p 
+                        className="text-xs text-center mt-1"
+                        style={{ color: telegramData?.themeParams.hint_color || "#9ca3af" }}
+                      >
+                        JPG, PNG до 10MB
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

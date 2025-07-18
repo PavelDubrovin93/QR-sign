@@ -23,9 +23,7 @@ function TaskCard({ data, path, workGroups = [], isSelected = false, selectionMo
 
   // Функция для получения названия workgroup
   const getWorkGroupName = useCallback((workGroupId: number) => {
-    console.log("🔍 getWorkGroupName вызвана с:", workGroupId, "workGroups:", workGroups);
     const workGroup = workGroups.find(wg => wg.id === workGroupId);
-    console.log("🎯 Найденная группа:", workGroup);
     return workGroup?.title || '';
   }, [workGroups]);
 
