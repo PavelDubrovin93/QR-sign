@@ -16,6 +16,5 @@ class TaskPointDTO(Entity):
     description: Optional[str]
     voice_message: Optional[bytes]
     done_at: Optional[Union[datetime, str]] = None
-    # done_at: Optional[Union[datetime, str]] = None
     issued_at: Optional[str] = None
     warning_at: Optional[str] = None

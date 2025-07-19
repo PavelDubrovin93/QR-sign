@@ -10,7 +10,7 @@ from app.infrastructure.repositories.TaskBoardRepository import \
 from app.infrastructure.repositories.TaskPointRepository import \
     TaskPointRepository
 from app.validation.responses.TaskBoardResponse import (
-    TaskPointResponse)
+    TaskPointDTO)
 
 
 class TaskPointService(ITaskPointService):
@@ -21,7 +21,7 @@ class TaskPointService(ITaskPointService):
 
     async def get_taskpoints_by_taskboard_id(
         self, taskboard_id: int
-    ) -> List[TaskPointResponse]:
+    ) -> List[TaskPointDTO]:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
         if not taskboard:
             raise HTTPException(

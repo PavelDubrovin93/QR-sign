@@ -2,14 +2,17 @@ from fastapi import HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.validation.responses.TaskBoardResponse import TaskBoardResponse, TaskPointResponse
+from app.validation.responses.TaskBoardResponse import TaskBoardResponse, TaskPointDTO
 from app.infrastructure.interfaces.services.ITaskBoardService import ITaskBoardService
 from app.infrastructure.repositories.TaskBoardRepository import TaskBoardRepository
 from app.infrastructure.repositories.TaskPointRepository import TaskPointRepository
+from app.infrastructure.repositories.UserRepository import UserRepository
+from app.services.UserDataService import UserDataService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.dtoModels.TaskPointDTO import TaskPointDTO
+from app.validation.dtoModels.UserDTO import UserDTO
+from app.models.dbEnums.RoleType import RoleType
 from app.validation.responses.TaskBoardResponse import (
-    CreateTaskBoardResponse,
     TaskBoardResponse
 )
 from typing import List
@@ -20,6 +23,7 @@ class TaskBoardService(ITaskBoardService):
         self.session = session
         self.tb_repo = TaskBoardRepository(self.session)
         self.tp_repo = TaskPointRepository(self.session)
+        self.user_repo = UserRepository(self.session)
     
     async def get_task_board_by_id(self, taskboard_id: int) -> TaskBoardResponse:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
@@ -28,23 +32,6 @@ class TaskBoardService(ITaskBoardService):
             raise HTTPException(status_code=404, detail="Task Board not found")
 
         taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard_id)
-        taskpoints_to_response = []
-        for taskpoint in taskpoints:
-            taskpoints_to_response.append(TaskPointResponse(
-            id=taskpoint.id,
-            title=taskpoint.title,
-            taskboard_id=taskpoint.taskboard_id,
-            thumbnails=taskpoint.thumbnails,
-            mark_icon=taskpoint.mark_icon,
-            coordinates=taskpoint.coordinates,
-            points=taskpoint.points,
-            qrcode=taskpoint.qrcode,
-            description=taskpoint.description,
-            voice_message=taskpoint.voice_message,
-            done_at=taskpoint.done_at,
-            issued_at=taskpoint.issued_at,
-            warning_at=taskpoint.warning_at
-        ))
         taskboard_response = TaskBoardResponse(
             id=taskboard.id,
             title=taskboard.title,
@@ -55,19 +42,32 @@ class TaskBoardService(ITaskBoardService):
             type=taskboard.type,
             description=taskboard.description or "",
             done_at=taskboard.done_at,
-            task_points=taskpoints_to_response
+            created_by=taskboard.created_by,
+            admin_id=taskboard.admin_id,
+            task_points=taskpoints
         )
 
         return taskboard_response
 
-    async def delete_task_board_and_task_points_by_tb_id(self, taskboard_id: int) -> TaskBoardResponse:
-        task_points = await self.tp_repo.delete_task_point_by_taskboard_id(taskboard_id)
-        taskboard = await self.tb_repo.delete_task_board_by_id(taskboard_id)
-        
-        taskboard.task_points = task_points
-        
-        return taskboard
-    
+    async def delete_task_board_and_task_points_by_tb_id(self, taskboard_id: int, user: UserDTO) -> TaskBoardResponse:
+
+        async def conform_delete(taskboard_id):
+            task_points = await self.tp_repo.delete_task_point_by_taskboard_id(taskboard_id)
+            taskboard = await self.tb_repo.delete_task_board_by_id(taskboard_id)
+            taskboard.task_points = task_points
+            return taskboard          
+
+        taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
+        user_role = await UserDataService.get_user_role(user_id=user.id, company_id=taskboard.company_id)
+        creator_role = await UserDataService.get_user_role(user_id=taskboard.created_by, company_id=taskboard.company_id)
+        if creator_role == RoleType.OWNER and creator_role == user_role:
+            await conform_delete(taskboard_id)
+        elif creator_role == RoleType.OWNER:
+            return None
+        else:
+            await conform_delete(taskboard_id)
+
+
     async def edit_task_board_with_task_points(self, taskboard: TaskBoardResponse):
         new_task_board = await self.tb_repo.edit_task_board(
             taskboard=TaskBoardDTO(
@@ -79,30 +79,15 @@ class TaskBoardService(ITaskBoardService):
                 location=taskboard.location,
                 type=taskboard.type,
                 description=taskboard.description or "",
+                created_by=taskboard.created_by,
+                admin_id=taskboard.admin_id,
                 done_at=taskboard.done_at
-        ))
-
+            )
+        )
         new_task_points = await self.tp_repo.edit_task_points_by_dto_list(
             task_points=taskboard.task_points,
             task_board=taskboard.id
         )
-        taskpoints_to_response = []
-        for taskpoint in new_task_points:
-            taskpoints_to_response.append(TaskPointResponse(
-            id=taskpoint.id,
-            title=taskpoint.title,
-            taskboard_id=taskpoint.taskboard_id,
-            thumbnails=taskpoint.thumbnails,
-            mark_icon=taskpoint.mark_icon,
-            coordinates=taskpoint.coordinates,
-            points=taskpoint.points,
-            qrcode=taskpoint.qrcode,
-            description=taskpoint.description,
-            voice_message=taskpoint.voice_message,
-            done_at=taskpoint.done_at,
-            issued_at=taskpoint.issued_at,
-            warning_at=taskpoint.warning_at
-        ))
         return TaskBoardResponse(
             id=new_task_board.id,
             title=new_task_board.title,
@@ -112,8 +97,10 @@ class TaskBoardService(ITaskBoardService):
             location=new_task_board.location,
             type=new_task_board.type,
             description=new_task_board.description or "",
+            created_by=new_task_board.created_by,
+            admin_id=new_task_board.admin_id,
             done_at=new_task_board.done_at,
-            task_points=taskpoints_to_response
+            task_points=new_task_points
         )
     
     async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
@@ -121,23 +108,7 @@ class TaskBoardService(ITaskBoardService):
         taskboards_to_response = []
         for taskboard in taskboards:
             taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard.id)
-            taskpoints_to_response = []
-            for taskpoint in taskpoints:
-                taskpoints_to_response.append(TaskPointResponse(
-                id=taskpoint.id,
-                title=taskpoint.title,
-                taskboard_id=taskpoint.taskboard_id,
-                thumbnails=taskpoint.thumbnails,
-                mark_icon=taskpoint.mark_icon,
-                coordinates=taskpoint.coordinates,
-                points=taskpoint.points,
-                qrcode=taskpoint.qrcode,
-                description=taskpoint.description,
-                voice_message=taskpoint.voice_message,
-                done_at=taskpoint.done_at,
-                issued_at=taskpoint.issued_at,
-                warning_at=taskpoint.warning_at
-            ))
+
             taskboards_to_response.append(TaskBoardResponse(
             id=taskboard.id,
             title=taskboard.title,
@@ -147,11 +118,11 @@ class TaskBoardService(ITaskBoardService):
             location=taskboard.location,
             type=taskboard.type,
             description=taskboard.description or "",
-            task_points=taskpoints_to_response
+            task_points=taskpoints
             ))
         return taskboards_to_response
     
-    async def create_taskboard(self, taskboard_data: CreateTaskBoardResponse) -> TaskBoardResponse:
+    async def create_taskboard(self, taskboard_data: TaskBoardResponse, creator: UserDTO) -> TaskBoardResponse:
         new_taskboard = await self.tb_repo.add_task_board(
             new_task_board=TaskBoardDTO(
                 title=taskboard_data.title,
@@ -160,14 +131,13 @@ class TaskBoardService(ITaskBoardService):
                 image=taskboard_data.image,
                 location=taskboard_data.location,
                 type=taskboard_data.type,
+                created_by=creator.id,
+                admin_id=taskboard_data.admin_id,
                 description=taskboard_data.description or "",
             )
         )
-
         task_point_to_return = []
-
         for task_point in taskboard_data.task_points:
-
             new_taskpoint = await self.tp_repo.add_task_point(new_task_point=TaskPointDTO(
                 title=task_point.title,
                 taskboard_id=new_taskboard.id,
@@ -180,21 +150,7 @@ class TaskBoardService(ITaskBoardService):
                 voice_message=task_point.voice_message,
                 )
             )
-            task_point_to_return.append(TaskPointResponse(
-                id=new_taskpoint.id,
-                title=new_taskpoint.title,
-                taskboard_id=new_taskpoint.taskboard_id,
-                thumbnails=new_taskpoint.thumbnails,
-                mark_icon=new_taskpoint.mark_icon,
-                coordinates=new_taskpoint.coordinates,
-                points=new_taskpoint.points,
-                qrcode=new_taskpoint.qrcode,
-                description=new_taskpoint.description,
-                voice_message=new_taskpoint.voice_message,
-                done_at=new_taskpoint.done_at,
-                issued_at=new_taskpoint.issued_at,
-                warning_at=new_taskpoint.warning_at
-            ))
+            task_point_to_return.append(new_taskpoint)
 
 
         new_taskboard_to_return = TaskBoardResponse(

@@ -17,6 +17,9 @@ class TaskBoardEntity(EntityDB):
     description = Column(Text, nullable=True)
     done_at = Column(DateTime, nullable=True)
 
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     company = relationship("CompanyEntity", back_populates="task_boards")
     work_groups = relationship("WorkGroupEntity", back_populates="task_boards")
     tasks = relationship(
