@@ -104,11 +104,15 @@ class TaskBoardService(ITaskBoardService):
         )
     
     async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
-        taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
+        user_role = await UserDataService.get_user_role(user_id=user_id, company_id=company_id)
+        if user_role == RoleType.OWNER:
+            taskboards = await self.tb_repo.get_task_boards_by_company_id(company_id=company_id)
+        elif user_role == RoleType.ADMIN:
+            taskboards = await self.tb_repo.get_taskboard_by_admin_id(admin_id=user_id)
+            taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
         taskboards_to_response = []
         for taskboard in taskboards:
             taskpoints = await self.tp_repo.get_task_point_by_taskboard_id(taskboard.id)
-
             taskboards_to_response.append(TaskBoardResponse(
             id=taskboard.id,
             title=taskboard.title,

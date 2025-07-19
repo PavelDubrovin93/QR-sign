@@ -10,14 +10,15 @@ from app.infrastructure.db.session import fastapi_get_db
 from app.services.TaskBoardService import TaskBoardService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import (
-    CreateTaskBoardResponse, TaskBoardResponse)
+    TaskBoardResponse
+    )
 
 router = APIRouter()
 
 
 @router.post("", response_model=TaskBoardResponse)
 async def create_taskboard(
-    taskboard_data: CreateTaskBoardResponse,
+    taskboard_data: TaskBoardResponse,
     session: AsyncSession = Depends(fastapi_get_db),
     user=Depends(get_current_user),
 ) -> TaskBoardResponse:
