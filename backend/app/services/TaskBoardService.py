@@ -109,6 +109,7 @@ class TaskBoardService(ITaskBoardService):
             taskboards = await self.tb_repo.get_task_boards_by_company_id(company_id=company_id)
         elif user_role == RoleType.ADMIN:
             taskboards = await self.tb_repo.get_taskboard_by_admin_id(admin_id=user_id)
+        else:
             taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
         taskboards_to_response = []
         for taskboard in taskboards:
