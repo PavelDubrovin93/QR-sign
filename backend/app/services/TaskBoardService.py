@@ -24,6 +24,7 @@ class TaskBoardService(ITaskBoardService):
         self.tb_repo = TaskBoardRepository(self.session)
         self.tp_repo = TaskPointRepository(self.session)
         self.user_repo = UserRepository(self.session)
+        self.user_data_service = UserDataService(self.session)
     
     async def get_task_board_by_id(self, taskboard_id: int) -> TaskBoardResponse:
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
@@ -58,8 +59,11 @@ class TaskBoardService(ITaskBoardService):
             return taskboard          
 
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
-        user_role = await UserDataService.get_user_role(user_id=user.id, company_id=taskboard.company_id)
-        creator_role = await UserDataService.get_user_role(user_id=taskboard.created_by, company_id=taskboard.company_id)
+        if taskboard is None or user.id is None:
+            return None
+        
+        user_role = await self.user_data_service.get_user_role(user_id=user.id, company_id=taskboard.company_id)
+        creator_role = await self.user_data_service.get_user_role(user_id=taskboard.created_by, company_id=taskboard.company_id)
         if creator_role == RoleType.OWNER and creator_role == user_role:
             await conform_delete(taskboard_id)
         elif creator_role == RoleType.OWNER:
@@ -104,7 +108,7 @@ class TaskBoardService(ITaskBoardService):
         )
     
     async def get_task_boards_by_company_id_and_user_id(self, company_id: int, user_id: int) -> List[TaskBoardResponse]:
-        user_role = await UserDataService.get_user_role(user_id=user_id, company_id=company_id)
+        user_role = await self.user_data_service.get_user_role(user_id=user_id, company_id=company_id)
         if user_role == RoleType.OWNER:
             taskboards = await self.tb_repo.get_task_boards_by_company_id(company_id=company_id)
         elif user_role == RoleType.ADMIN:
