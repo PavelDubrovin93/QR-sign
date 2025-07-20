@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class RoleType(str, Enum):
-    EMPLOYER = "employer"
+    OWNER = "owner"
     ADMIN = "admin"
     FOREMAN = "foreman"
-    MEMBER = "member"
+    EMPLOYER = "employer"
     PENDING = "not_approved"

@@ -34,7 +34,7 @@ class CompanyService(ICompanyService):
                 user_id=user.id,
                 company_id=new_copmany.id,
                 workgroup_id=None,
-                role=RoleType.ADMIN,
+                role=RoleType.OWNER,
             )
         )
         return new_copmany

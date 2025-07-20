@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from app.validation.responses.TaskBoardResponse import (
-    CreateTaskBoardResponse, TaskBoardResponse)
+    TaskBoardResponse
+)
+from app.validation.dtoModels.UserDTO import UserDTO
 
 
 class ITaskBoardService(ABC):
@@ -23,7 +25,7 @@ class ITaskBoardService(ABC):
 
     @abstractmethod
     async def delete_task_board_and_task_points_by_tb_id(
-        self, taskboard_id: int
+        self, taskboard_id: int, user: UserDTO
     ) -> TaskBoardResponse:
         """
         Удалить таскборд и его таскпоинты по идентификатору.
@@ -56,7 +58,7 @@ class ITaskBoardService(ABC):
 
     @abstractmethod
     async def create_taskboard(
-        self, taskboard_data: CreateTaskBoardResponse
+        self, taskboard_data: TaskBoardResponse, creator: UserDTO
     ) -> TaskBoardResponse:
         """
         Создать таскборд.

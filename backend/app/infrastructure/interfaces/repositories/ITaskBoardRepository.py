@@ -23,25 +23,35 @@ class ITaskBoardRepository(ABC):
     @abstractmethod
     async def get_task_board_by_company_id(
         self, company_id: int
-    ) -> Optional[TaskBoardDTO]:
+    ) -> List[TaskBoardDTO]:
         """
-        Возвращает доску задач по указанному Company ID.
+        Возвращает доск задач по указанному Company ID.
         :param company_id: Идентификатор компании
-        :return: экземпляр TaskBoard или None, если доска задач не найден
+        :return: лист TaskBoard или None, если доска задач не найден
         """
         pass
 
     @abstractmethod
-    async def get_task_board_by_work_group_id(
+    async def get_task_boards_by_work_group_id(
         self, work_group_id: int
-    ) -> Optional[TaskBoardDTO]:
+    ) -> List[TaskBoardDTO]:
         """
-        Возвращает доску задач по указанному Work Group ID.
+        Возвращает доскуи задач по указанному Work Group ID.
         :param work_group_id: Идентификатор рабочей группы
-        :return: экземпляр TaskBoard или None, если доска задач не найден
+        :return: лист эксемпляров TaskBoard или пустой лист, если задач не найдено
         """
         pass
-
+    
+    @abstractmethod
+    async def get_taskboard_by_admin_id(
+        self, admin_id: int
+    ) -> List[TaskBoardDTO]:
+        """
+        Возвращает список досок по указанному admin_id.
+        :param admin_id: Идентификатор назначеного админа
+        :return: лист TaskBoard или пустой лист, если доска задач не найден
+        """
+        pass
     @abstractmethod
     async def get_task_board_by_type(self, type: str) -> Optional[TaskBoardDTO]:
         """

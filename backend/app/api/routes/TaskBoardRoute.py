@@ -10,14 +10,15 @@ from app.infrastructure.db.session import fastapi_get_db
 from app.services.TaskBoardService import TaskBoardService
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import (
-    CreateTaskBoardResponse, TaskBoardResponse)
+    TaskBoardResponse
+    )
 
 router = APIRouter()
 
 
 @router.post("", response_model=TaskBoardResponse)
 async def create_taskboard(
-    taskboard_data: CreateTaskBoardResponse,
+    taskboard_data: TaskBoardResponse,
     session: AsyncSession = Depends(fastapi_get_db),
     user=Depends(get_current_user),
 ) -> TaskBoardResponse:
@@ -26,7 +27,7 @@ async def create_taskboard(
         uploaded_url = s3_service.upload_image(taskboard_data.image)
     taskboard_data.image = uploaded_url
     service = TaskBoardService(session)
-    task_board = await service.create_taskboard(taskboard_data=taskboard_data)
+    task_board = await service.create_taskboard(taskboard_data=taskboard_data, creator=user)
 
     return task_board
 
@@ -88,7 +89,11 @@ async def delete_task_board_and_task_points_by_tb_id(
 
     service = TaskBoardService(session)
     status = await service.delete_task_board_and_task_points_by_tb_id(
-        taskboard_id=taskboard_id
+        taskboard_id=taskboard_id, user = user
     )
-
-    return status
+    if status:
+        return status
+    else:
+        raise HTTPException(
+            status_code=403, detail="Вы не можете удалять задачи владельца."
+            )

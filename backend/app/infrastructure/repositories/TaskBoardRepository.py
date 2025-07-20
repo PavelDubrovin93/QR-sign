@@ -12,6 +12,7 @@ from app.models.dbModels.UserCompany.UserCompanyEntity import \
     UserCompanyEntity as UserCompany  # TODO: FIX LATER
 from app.validation.dtoModels.TaskBoardDTO import TaskBoardDTO
 from app.validation.responses.TaskBoardResponse import TaskBoardResponse
+from app.infrastructure.repositories.UserCompanyRepository import UserCompanyRepository
 
 
 # pesos
@@ -26,12 +27,14 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_board_dto = await self.__to_dto(task_board) if task_board else None
         return task_board_dto
 
-    async def get_task_board_by_company_id(self, company_id: int) -> TaskBoardDTO:
+    async def get_task_boards_by_company_id(self, company_id: int) -> List[TaskBoardDTO]:
         query = select(TaskBoard).where(TaskBoard.company_id == company_id)
         result = await self.session.execute(query)
-        task_board = result.scalar_one_or_none()
-        task_board_dto = await self.__to_dto(task_board) if task_board else None
-        return task_board_dto
+        task_boards = result.scalars().all()
+        task_boards_dto = [
+            await self.__to_dto(task_board) for task_board in task_boards
+        ]
+        return task_boards_dto
 
     async def get_task_board_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:
         query = select(TaskBoard).where(TaskBoard.work_group_id == work_group_id)
@@ -117,31 +120,32 @@ class TaskBoardRepository(ITaskBoardRepository):
 
         return taskboard
 
-    async def get_task_boards_by_company_id_and_user_id(
-        self, company_id: int, user_id: int
-    ) -> List[TaskBoardResponse]:
-        query = select(UserCompany).where(
-            UserCompany.company_id == company_id and UserCompany.user_id == user_id
-        )  # TODO: rebase to proper repo
-        result = await self.session.execute(query)
-        usercompanies = result.scalars().all()
-        work_group_ids = [usercompany.workgroup_id for usercompany in usercompanies]
-
-        query = select(TaskBoard).where(TaskBoard.work_group_id.in_(work_group_ids))
+    async def get_taskboards_by_work_group_id(self, work_group_id: int) -> List[TaskBoardDTO]:
+        query = select(TaskBoard).where(TaskBoard.work_group_id == work_group_id)
         result = await self.session.execute(query)
         task_boards = result.scalars().all()
         task_boards_dto = [
             await self.__to_dto(task_board) for task_board in task_boards
         ]
-
         return task_boards_dto
 
-    async def get_taskboard_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:
-        query = select(TaskBoard).where(TaskBoard.work_group_id == work_group_id)
+    async def get_task_boards_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> List[TaskBoardResponse]:
+        uc_repo = UserCompanyRepository(self.session)
+        usercompany = await uc_repo.get_user_company_by_company_id_and_user_id(company_id=user_id,user_id=user_id)
+        work_group_id = usercompany.workgroup_id
+        task_boards_dto = await self.get_taskboards_by_work_group_id(work_group_id)
+        return task_boards_dto
+
+    async def get_taskboard_by_admin_id(self, admin_id: int) -> List[TaskBoardDTO]:
+        query = select(TaskBoard).where(TaskBoard.admin_id == admin_id)
         result = await self.session.execute(query)
-        task_board = result.scalar_one_or_none()
-        task_board_dto = await self.__to_dto(task_board) if task_board else None
-        return task_board_dto
+        task_boards = result.scalars().all()
+        task_boards_dto = [
+            await self.__to_dto(task_board) for task_board in task_boards
+        ]
+        return task_boards_dto
 
     async def __to_dto(self, taskboard: TaskBoard) -> TaskBoardDTO:
         return TaskBoardDTO(
