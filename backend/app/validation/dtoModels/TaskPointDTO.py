@@ -7,7 +7,7 @@ from app.validation.Entity import Entity
 class TaskPointDTO(Entity):
     id: Optional[int] = None
     title: str
-    taskboard_id: int
+    taskboard_id: Optional[int] = None
     thumbnails: str
     mark_icon: str
     coordinates: list
