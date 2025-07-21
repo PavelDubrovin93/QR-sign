@@ -10,6 +10,8 @@ from app.infrastructure.exception_handler import global_exception_handler
 from app.infrastructure.init_db import init_db
 from app.infrastructure.logger import logger
 
+#checksomeone
+
 env = Env()
 env.read_env()
 logging.basicConfig(level=logging.INFO)
