@@ -38,7 +38,7 @@ async def get_workgroups_by_company_id(
     user=Depends(get_current_user),
 ) -> List[WorkGroupDTO]:
     service = WorkGroupService(session)
-    workgroups = await service.get_workgroups_by_company_id(company_id=company_id)
+    workgroups = await service.get_workgroups_by_company_id(company_id=company_id, user_id=user.id)
 
     return workgroups
 

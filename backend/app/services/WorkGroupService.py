@@ -12,12 +12,15 @@ from app.infrastructure.repositories.WorkGroupRepository import \
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
 from app.validation.responses.WorkGroupResponse import (
     CreateWorkGroupResponse, UserAndUC)
+from app.services.UserDataService import UserDataService
+from app.models.dbEnums.RoleType import RoleType
+
 
 
 class WorkGroupService(IWorkGroupService):
     def __init__(self, session: AsyncSession):
         self.session = session
-
+        self.user_data_service = UserDataService(self.session)
     async def create_workgroup(
         self, workgroup_data: CreateWorkGroupResponse
     ) -> WorkGroupDTO:
@@ -26,10 +29,13 @@ class WorkGroupService(IWorkGroupService):
 
         return workgroup
 
-    async def get_workgroups_by_company_id(self, company_id: int) -> List[WorkGroupDTO]:
+    async def get_workgroups_by_company_id(self, company_id: int, user_id: int) -> List[WorkGroupDTO]:
         repo = WorkGroupRepository(self.session)
-        workgroups = await repo.get_work_groups_by_company(company_id=company_id)
-
+        user_role = await self.user_data_service.get_user_role(user_id=user_id, company_id=company_id)
+        if user_role == RoleType.OWNER:
+            workgroups = await repo.get_work_groups_by_company(company_id=company_id)
+        elif user_role == RoleType.ADMIN:
+            workgroups = await repo.get_work_groups_by_admin(admin_id=user_id)
         return workgroups
 
     async def delete_workgroup(self, workgroup_id: int) -> None:

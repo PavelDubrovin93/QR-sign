@@ -29,6 +29,16 @@ class IWorkGroupRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_work_groups_by_admin(self, admin_id: int) -> List[WorkGroupDTO]:
+        """
+        Возвращает список рабочих групп по указанному администратору.
+        
+        :param admin_id: Идентификатор администратора, чьи группы будут получены.
+        :return: Список объектов WorkGroupDTO, соответствующих переданному администратору.
+        """
+        pass
+
+    @abstractmethod
     async def create_work_group(self, wg_dto: CreateWorkGroupResponse) -> WorkGroupDTO:
         """
         Создать новую рабочую группу.

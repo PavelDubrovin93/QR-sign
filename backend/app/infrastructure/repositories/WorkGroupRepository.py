@@ -28,6 +28,13 @@ class WorkGroupRepository(IWorkGroupRepository):
         workgroups = result.scalars().all()
         workgroups_dto = [await self.__to_dto(workgroup) for workgroup in workgroups]
         return workgroups_dto
+    
+    async def get_work_groups_by_admin(self, admin_id: int) -> List[WorkGroupDTO]:
+        query = select(WorkGroup).where(WorkGroup.admin_id == admin_id)
+        result = await self.session.execute(query)
+        workgroups = result.scalars().all()
+        workgroups_dto = [await self.__to_dto(workgroup) for workgroup in workgroups]
+        return workgroups_dto
 
     async def edit_work_group(self, workgroup: WorkGroupDTO) -> WorkGroupDTO:
         query = select(WorkGroup).where(WorkGroup.id == workgroup.id)
