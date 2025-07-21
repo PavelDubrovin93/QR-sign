@@ -47,12 +47,12 @@ async def get_workgroups_by_company_id(
 async def get_workgroups_and_taskboards_by_company_id(
     company_id: int,
     session: AsyncSession = Depends(fastapi_get_db),
-    # user = Depends(get_current_user)
+     user = Depends(get_current_user)
 ) -> List[WorkGroupAndTaskboardResponse]:
     service_wg = WorkGroupService(session)
     service_tb = TaskBoardService(session)
     service_tp = TaskPointService(session)
-    workgroups = await service_wg.get_workgroups_by_company_id(company_id=company_id)
+    workgroups = await service_wg.get_workgroups_by_company_id(company_id=company_id, user_id=user.id)
 
     ret_list = []
 
