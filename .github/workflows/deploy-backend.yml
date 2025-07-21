@@ -69,6 +69,7 @@ jobs:
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
             
+            sudo docker image prune -f
             echo "Done!"
 
 

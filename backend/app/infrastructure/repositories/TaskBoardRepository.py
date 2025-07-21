@@ -68,6 +68,8 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=new_task_board.location,
             type=new_task_board.type,
             description=new_task_board.description or "",
+            created_by=new_task_board.created_by,
+            admin_id=new_task_board.admin_id,
             done_at=new_task_board.done_at,
         )
         self.session.add(new_task_board)
@@ -114,6 +116,8 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_board_to_edit.location = taskboard.location
         task_board_to_edit.type = taskboard.type
         task_board_to_edit.description = taskboard.description or ""
+        task_board_to_edit.created_by = taskboard.created_by
+        task_board_to_edit.admin_id = taskboard.admin_id,
         task_board_to_edit.done_at = taskboard.done_at
 
         await self.session.commit()
