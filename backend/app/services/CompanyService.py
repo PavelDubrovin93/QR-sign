@@ -79,6 +79,9 @@ class CompanyService(ICompanyService):
         result = await self.uc_repo.delete_user_company_by_id(uc_id)
         return result
 
+    async def create_user_company(self, user_company: UserCompanyDTO) -> UserCompanyDTO:
+        return await self.uc_repo.create_user_company(user_company)
+
     async def get_all_users_in_company_and_uc_id(
         self, company_id: int
     ) -> List[UsersInCompanyResponse]:

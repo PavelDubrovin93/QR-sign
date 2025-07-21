@@ -53,6 +53,16 @@ async def get_confirmation_info(
     return info
 
 
+@router.post("/user-company", response_model=UserCompanyDTO)
+async def create_user_company(
+    user_company: UserCompanyDTO,
+    session: AsyncSession = Depends(fastapi_get_db),
+) -> UserCompanyDTO:
+    service = CompanyService(session)
+    created_uc = await service.create_user_company(user_company)
+    return created_uc
+
+
 @router.put("/{uc_id}", response_model=UserCompanyDTO)
 async def update_user_company_role(
     uc_id: int,

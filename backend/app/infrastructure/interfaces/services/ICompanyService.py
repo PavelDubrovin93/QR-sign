@@ -77,3 +77,12 @@ class ICompanyService(ABC):
         :return: List[UsersInCompanyResponse]
         """
         pass
+
+    @abstractmethod
+    async def create_user_company(
+        self, user_company: UserCompanyDTO
+    ) -> UserCompanyDTO:
+        """
+        создает UC, описание дополнить
+        """
+        pass
