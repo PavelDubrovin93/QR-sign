@@ -12,6 +12,6 @@ class TaskBoardDTO(Entity):
     location: list
     type: str
     description: Optional[str]
-    created_by: int
+    created_by: Optional[int] = None
     admin_id: Optional[int] = None
     done_at: Optional[str] = None
