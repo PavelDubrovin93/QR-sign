@@ -132,6 +132,7 @@ class TaskBoardService(ITaskBoardService):
         return taskboards_to_response
     
     async def create_taskboard(self, taskboard_data: TaskBoardResponse, creator: UserDTO) -> TaskBoardResponse:
+        print(creator.id, creator.name)
         new_taskboard = await self.tb_repo.add_task_board(
             new_task_board=TaskBoardDTO(
                 title=taskboard_data.title,
