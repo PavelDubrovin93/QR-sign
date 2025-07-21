@@ -36,7 +36,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         ]
         return task_boards_dto
 
-    async def get_task_board_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:
+    async def get_task_boards_by_work_group_id(self, work_group_id: int) -> TaskBoardDTO:
         query = select(TaskBoard).where(TaskBoard.work_group_id == work_group_id)
         result = await self.session.execute(query)
         task_boards = result.scalars().all()
