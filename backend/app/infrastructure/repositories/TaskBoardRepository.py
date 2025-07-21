@@ -135,7 +135,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         uc_repo = UserCompanyRepository(self.session)
         usercompany = await uc_repo.get_user_company_by_company_id_and_user_id(company_id=user_id,user_id=user_id)
         work_group_id = usercompany.workgroup_id
-        task_boards_dto = await self.get_taskboards_by_work_group_id(work_group_id)
+        task_boards_dto = await self.get_taskboards_by_work_group_id(work_group_id=work_group_id)
         return task_boards_dto
 
     async def get_taskboard_by_admin_id(self, admin_id: int) -> List[TaskBoardDTO]:
