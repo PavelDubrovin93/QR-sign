@@ -116,7 +116,6 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_board_to_edit.location = taskboard.location
         task_board_to_edit.type = taskboard.type
         task_board_to_edit.description = taskboard.description or ""
-        task_board_to_edit.created_by = taskboard.created_by
         task_board_to_edit.admin_id = taskboard.admin_id
         task_board_to_edit.done_at = taskboard.done_at
 
