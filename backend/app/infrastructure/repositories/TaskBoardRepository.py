@@ -135,12 +135,23 @@ class TaskBoardRepository(ITaskBoardRepository):
 
     async def get_task_boards_by_company_id_and_user_id(
         self, company_id: int, user_id: int
-    ) -> List[TaskBoardResponse]:
+    ) -> List[TaskBoardDTO]:
         uc_repo = UserCompanyRepository(self.session)
-        usercompany = await uc_repo.get_user_company_by_company_id_and_user_id(company_id=user_id,user_id=user_id)
-        work_group_id = usercompany.workgroup_id
-        task_boards_dto = await self.get_taskboards_by_work_group_id(work_group_id=work_group_id)
-        return task_boards_dto
+        # Получаем ВСЕ записи UserCompany для пользователя в данной компании
+        user_companies = await uc_repo.get_user_companies_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
+        
+        all_task_boards = []
+        processed_workgroup_ids = set()
+        
+        for user_company in user_companies:
+            # Проверяем, что у пользователя есть workgroup и мы еще не обрабатывали эту группу
+            if user_company.workgroup_id is not None and user_company.workgroup_id not in processed_workgroup_ids:
+                processed_workgroup_ids.add(user_company.workgroup_id)
+                # Получаем задачи для каждой workgroup
+                task_boards_in_group = await self.get_taskboards_by_work_group_id(work_group_id=user_company.workgroup_id)
+                all_task_boards.extend(task_boards_in_group)
+        
+        return all_task_boards
 
     async def get_taskboard_by_admin_id(self, admin_id: int) -> List[TaskBoardDTO]:
         query = select(TaskBoard).where(TaskBoard.admin_id == admin_id)

@@ -112,7 +112,8 @@ class TaskBoardService(ITaskBoardService):
         if user_role == RoleType.OWNER:
             taskboards = await self.tb_repo.get_task_boards_by_company_id(company_id=company_id)
         elif user_role == RoleType.ADMIN:
-            taskboards = await self.tb_repo.get_taskboard_by_admin_id(admin_id=user_id)
+            # Для админа получаем задачи из всех workgroup'ов, где он участник
+            taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
         else:
             taskboards = await self.tb_repo.get_task_boards_by_company_id_and_user_id(company_id=company_id, user_id=user_id)
         taskboards_to_response = []

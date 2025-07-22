@@ -55,3 +55,15 @@ class IUserCompanyRepository(ABC):
         self, company_id: int, user_id: int
     ) -> Optional[UserCompanyDTO]:
         pass
+
+    @abstractmethod
+    async def get_user_companies_by_company_id_and_user_id(
+        self, company_id: int, user_id: int
+    ) -> List[UserCompanyDTO]:
+        """
+        Получить ВСЕ записи UserCompany для пользователя в указанной компании.
+        :param company_id: ID компании
+        :param user_id: ID пользователя
+        :return: список всех записей UserCompanyDTO для пользователя в компании
+        """
+        pass
