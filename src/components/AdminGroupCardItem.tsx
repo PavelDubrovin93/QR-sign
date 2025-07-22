@@ -78,6 +78,44 @@ const AdminGroupCardItem = ({
   const currentUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
+  // Функция для открытия чата Telegram
+  const openTelegramChat = (user: any) => {
+    if (!user) return;
+    
+    try {
+      // Пытаемся открыть чат через tg_id
+      if (user.tg_id) {
+        const chatUrl = `tg://user?id=${user.tg_id}`;
+        window.open(chatUrl, '_blank');
+      } else if (user.username) {
+        // Если есть username, используем его
+        const chatUrl = `tg://resolve?domain=${user.username}`;
+        window.open(chatUrl, '_blank');
+      } else {
+        // Fallback - пытаемся через имя пользователя
+        console.log('Нет tg_id или username для открытия чата');
+      }
+    } catch (error) {
+      console.error('Ошибка при открытии чата Telegram:', error);
+    }
+  };
+
+  // Дедупликация пользователей для отображения
+  const getDeduplicatedUsers = () => {
+    if (!users || users.length === 0) return [];
+    
+    const userMap = new Map();
+    
+    users.forEach(userData => {
+      const userId = userData.user.id || userData.user.tg_id;
+      if (userId && !userMap.has(userId)) {
+        userMap.set(userId, userData);
+      }
+    });
+    
+    return Array.from(userMap.values());
+  };
+
   // Получаем роль текущего пользователя
   useEffect(() => {
     const getCurrentUserRole = async () => {
@@ -777,9 +815,9 @@ const AdminGroupCardItem = ({
                   {`Участники в группе ${workgroup?.title || 'Неизвестная группа'}:`}
                 </p>
 
-                <div>
-                  {users && users?.length > 0 ? (
-                    users?.map((userData) => {
+                                <div>
+                  {getDeduplicatedUsers().length > 0 ? (
+                    getDeduplicatedUsers().map((userData) => {
                       const { user } = userData;
 
                       return (
@@ -808,6 +846,27 @@ const AdminGroupCardItem = ({
                                 return role ? <RoleBadge role={role} /> : null;
                               })()}
                             </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openTelegramChat(user)}
+                              className="p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                              aria-label="Open Telegram Chat"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       );
@@ -956,18 +1015,32 @@ const AdminGroupCardItem = ({
                             
                           )}
                         </span>
-                                                  <div className="flex items-center gap-2">
-                            <p className="font-medium">{userData.user.name}</p>
-                            {(() => {
-                              const role = getUserRoleFromData(userData.user.id || 0);
-                              return role ? <RoleBadge role={role} /> : null;
-                            })()}
-                            {/* {!canRemoveUserFromWorkgroup(userData.user.id || 0) && (
-                              <span className="text-xs text-orange-600">
-                                (не может быть удален)
-                              </span>
-                            )} */}
-                          </div>
+                        <div className="flex items-center gap-2 flex-1">
+                          <p className="font-medium">{userData.user.name}</p>
+                          {(() => {
+                            const role = getUserRoleFromData(userData.user.id || 0);
+                            return role ? <RoleBadge role={role} /> : null;
+                          })()}
+                        </div>
+                        <button
+                          onClick={() => openTelegramChat(userData.user)}
+                          className="p-1 text-blue-500 hover:text-blue-600 transition-colors ml-2"
+                          aria-label="Open Telegram Chat"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1024,11 +1097,6 @@ const AdminGroupCardItem = ({
                                   const role = getUserRoleFromData(user.id || 0);
                                   return role ? <RoleBadge role={role} /> : null;
                                 })()}
-                                {/* {canAddUserToMultipleWorkgroups(user.id || 0) && userWorkgroups.length === 0 && (
-                                  <span className="text-xs text-green-600">
-                                    (может быть добавлен в несколько бригад)
-                                  </span>
-                                )} */}
                                 {canAddUserToMultipleWorkgroups(user.id || 0) && userWorkgroups.length > 0 && (
                                   <span className="text-xs text-blue-600">
                                     (создаст дополнительную запись)
@@ -1052,6 +1120,25 @@ const AdminGroupCardItem = ({
                                 );
                               })()}
                             </div>
+                            <button
+                              onClick={() => openTelegramChat(user)}
+                              className="p-1 text-blue-500 hover:text-blue-600 transition-colors ml-2"
+                              aria-label="Open Telegram Chat"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       );

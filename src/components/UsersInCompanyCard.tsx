@@ -40,6 +40,44 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
     (state: RootState) => state.entities.user_companies
   );
 
+  // Функция для открытия чата Telegram
+  const openTelegramChat = (user: UsersInCompany) => {
+    if (!user) return;
+    
+    try {
+      // Пытаемся открыть чат через tg_id
+      if (user.tg_id) {
+        const chatUrl = `tg://user?id=${user.tg_id}`;
+        window.open(chatUrl, '_blank');
+      } else if ((user as any).username) {
+        // Если есть username, используем его
+        const chatUrl = `tg://resolve?domain=${(user as any).username}`;
+        window.open(chatUrl, '_blank');
+      } else {
+        // Fallback - пытаемся через имя пользователя
+        console.log('Нет tg_id или username для открытия чата');
+      }
+    } catch (error) {
+      console.error('Ошибка при открытии чата Telegram:', error);
+    }
+  };
+
+  // Дедупликация пользователей
+  const getDeduplicatedUsers = () => {
+    if (!data || data.length === 0) return [];
+    
+    const userMap = new Map<number, UsersInCompany>();
+    
+    data.forEach(user => {
+      const userId = user.id || user.tg_id;
+      if (userId && !userMap.has(userId)) {
+        userMap.set(userId, user);
+      }
+    });
+    
+    return Array.from(userMap.values());
+  };
+
   const fetchGroups = useCallback(async (companyId: string | number) => {
     if (!companyId) {
       setGroups([]);
@@ -177,16 +215,15 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
               <div>
                 {!loading ? (
                   data && data.length > 0 ? (
-                    data.map((user: UsersInCompany) => {
+                    getDeduplicatedUsers().map((user: UsersInCompany) => {
                       const { id, name, photo_url, tg_id } = user;
 
                       return (
                         <div
                           key={id || tg_id}
                           className="flex items-center justify-between mb-1"
-                          onClick={() => handleEditClick(user)}
                         >
-                          <div className="flex items-center">
+                          <div className="flex items-center" onClick={() => handleEditClick(user)}>
                             <span className="w-5 h-5 rounded-full mr-2 overflow-hidden flex items-center justify-center bg-gray-300">
                               {photo_url ? (
                                 <img
@@ -202,8 +239,26 @@ const UsersInCompanyCard = ({ data, loading, selectedValue }: UsersInCompanyCard
                             </span>
                             <p>{name}</p>
                           </div>
-                          <div>
-                            {/* <IoIosAddCircleOutline size={20} /> */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openTelegramChat(user)}
+                              className="p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                              aria-label="Open Telegram Chat"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       );

@@ -29,6 +29,28 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
 
   const telegramData = getTelegramData();
 
+  // Функция для открытия чата Telegram
+  const openTelegramChat = (user: UsersInCompany) => {
+    if (!user) return;
+    
+    try {
+      // Пытаемся открыть чат через tg_id
+      if (user.tg_id) {
+        const chatUrl = `tg://user?id=${user.tg_id}`;
+        window.open(chatUrl, '_blank');
+      } else if ((user as any).username) {
+        // Если есть username, используем его
+        const chatUrl = `tg://resolve?domain=${(user as any).username}`;
+        window.open(chatUrl, '_blank');
+      } else {
+        // Fallback - пытаемся через имя пользователя
+        console.log('Нет tg_id или username для открытия чата');
+      }
+    } catch (error) {
+      console.error('Ошибка при открытии чата Telegram:', error);
+    }
+  };
+
   // Filter users with not_approved role (including variations)
   const notApprovedUsers = data.filter(user => {
     const role = user.role?.toLowerCase();
@@ -117,10 +139,9 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
           {notApprovedUsers.map((user) => (
             <div
               key={user.uc_id}
-              className="flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors"
-              onClick={() => handleUserClick(user)}
+              className="flex items-center justify-between p-3 rounded-lg transition-colors"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 cursor-pointer flex-1" onClick={() => handleUserClick(user)}>
                 <div className="flex-shrink-0 w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {user.name.charAt(0).toUpperCase()}
@@ -136,6 +157,25 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
                 </div>
               </div>
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => openTelegramChat(user)}
+                  className="p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                  aria-label="Open Telegram Chat"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                </button>
                 <span className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
                   Не подтвержден
                 </span>
