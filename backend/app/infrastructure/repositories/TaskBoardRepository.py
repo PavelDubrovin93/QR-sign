@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+import datetime as dt
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -117,7 +117,7 @@ class TaskBoardRepository(ITaskBoardRepository):
         task_board_to_edit.type = taskboard.type
         task_board_to_edit.description = taskboard.description or ""
         task_board_to_edit.admin_id = taskboard.admin_id
-        task_board_to_edit.done_at = taskboard.done_at
+        task_board_to_edit.done_at = dt.datetime.strptime(taskboard.done_at, '%Y-%m-%dT%H:%M:%S')
 
         await self.session.commit()
 
