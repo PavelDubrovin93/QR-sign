@@ -64,7 +64,7 @@ class TaskBoardService(ITaskBoardService):
         
         user_role = await self.user_data_service.get_user_role(user_id=user.id, company_id=taskboard.company_id)
         creator_role = await self.user_data_service.get_user_role(user_id=taskboard.created_by, company_id=taskboard.company_id)
-        if creator_role == RoleType.OWNER and creator_role == user_role:
+        if creator_role == RoleType.OWNER and user_role == RoleType.OWNER:
             await conform_delete(taskboard_id)
         elif creator_role == RoleType.OWNER:
             return None
