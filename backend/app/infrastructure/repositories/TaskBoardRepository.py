@@ -171,5 +171,7 @@ class TaskBoardRepository(ITaskBoardRepository):
             location=taskboard.location,
             type=taskboard.type,
             description=taskboard.description or "",
+            created_by=taskboard.created_by,
+            admin_id=taskboard.admin_id,
             done_at=taskboard.done_at,
         )

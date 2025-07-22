@@ -90,4 +90,4 @@ class UserDataService(IUserDataService):
         )
         if uc is None or uc.role is None:
             raise ValueError(f"User {user_id} not found in company {company_id} or has no role")
-        return uc.role
+        return uc.role.value
