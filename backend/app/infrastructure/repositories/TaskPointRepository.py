@@ -199,7 +199,7 @@ class TaskPointRepository(ITaskPointRepository):
         task_point.qrcode = new_task_point.qrcode
         task_point.description = new_task_point.description
         task_point.voice_message = new_task_point.voice_message
-        task_point.done_at = dt.fromisoformat(new_task_point.done_at)
+        task_point.done_at = dt.datetime.fromisoformat(new_task_point.done_at)
         task_point.issued_at = dt.datetime.new_task_point.issued_at
         task_point.warning_at = new_task_point.warning_at
 
