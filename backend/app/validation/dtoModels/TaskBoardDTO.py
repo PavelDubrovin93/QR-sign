@@ -7,7 +7,7 @@ class TaskBoardDTO(Entity):
     id: Optional[int] = None
     title: str
     company_id: int
-    work_group_id: int
+    work_group_id: Optional[int] = None
     image: str
     location: list
     type: str
