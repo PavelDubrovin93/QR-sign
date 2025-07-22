@@ -38,6 +38,8 @@ import type { RootState } from "../store/rootReducer";
 import type { TaskBoard } from "../@types/task";
 import type { UserCompanies, UsersInCompany } from "../@types/user";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
+import { getUserRole } from "../api/user/get-user-role";
+import { Roles } from "../@types/role";
 
 const AdminPage = () => {
   const dispatch = useDispatch();
@@ -61,9 +63,11 @@ const AdminPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
   const telegramData = getTelegramData();
 
+  const currentUser = useSelector((state: RootState) => state.entities.user);
   const dataCompanies: UserCompanies[] = useSelector(
     (state: RootState) => state.entities.user_companies?.data
   );
@@ -157,6 +161,26 @@ const AdminPage = () => {
     }
   }, [selectedValue]);
 
+  // Получаем роль текущего пользователя
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        if (selectedValue && currentUser.id) {
+          const roleResponse = await getUserRole(Number(selectedValue), currentUser.id);
+          setCurrentUserRole(roleResponse);
+        }
+      } catch (error) {
+        console.error('Error loading current user role:', error);
+        // Fallback к роли из Redux store
+        setCurrentUserRole(currentUser.current_role || '');
+      }
+    };
+
+    if (selectedValue && currentUser.id) {
+      getCurrentUserRole();
+    }
+  }, [selectedValue, currentUser.id, currentUser.current_role]);
+
   const handleOpenModal = () => {
     setFormErrors({
       groupName: false,
@@ -198,10 +222,10 @@ const AdminPage = () => {
         company_id: Number(modalSelectedCompanyId),
       };
       const newAdded = await createWorkGroup(newGroupData);
+      
       if (newAdded.data as any) {
-        await getWorkGroupsByCompanyId(String(selectedValue)).then((res) => {
-          dispatch(setTasksBoardByCompany(res.data));
-        });
+        // Обновляем данные групп и пользователей
+        await refreshWorkgroupData();
       }
 
       handleCloseModal();
@@ -281,11 +305,13 @@ const AdminPage = () => {
 
   return (
     <>
-      <div className="flex w-full justify-center px-5">
-        <Button className="mb-4 w-full" onClick={handleOpenModal}>
-          Добавить группу
-        </Button>
-      </div>
+      {currentUserRole === Roles.OWNER && (
+        <div className="flex w-full justify-center px-5">
+          <Button className="mb-4 w-full" onClick={handleOpenModal}>
+            Добавить группу
+          </Button>
+        </div>
+      )}
       <Section>
         <Section.Header
           style={

@@ -10,6 +10,13 @@ const axios = Axios.create();
 
 axios.interceptors.request.use((config) => {
   const token = sessionToken.get();
+  
+  // Логируем только важные запросы для отладки
+  if (config.url?.includes('/taskboard/') || config.url?.includes('/user_data/user_role/')) {
+    console.log('🔍 API Request:', config.method?.toUpperCase(), config.url);
+    console.log('🔍 Authorization Token:', token);
+  }
+  
   token &&
     config.headers &&
     (config.headers["Authorization"] = `${token}`);

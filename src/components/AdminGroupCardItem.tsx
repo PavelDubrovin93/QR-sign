@@ -115,49 +115,13 @@ const AdminGroupCardItem = ({
     return Array.from(userMap.values());
   };
 
-  // Получаем роль текущего пользователя
+  // Получаем роль текущего пользователя (упрощенная версия как в AdminPage)
   useEffect(() => {
     const getCurrentUserRole = async () => {
       try {
-        // Сначала пробуем определить роль через getUserRoleFromData
-        // который работает с загруженными данными и более надежен
-        const webapp = window.Telegram?.WebApp;
-        const telegramUserId = webapp?.initDataUnsafe?.user?.id || 3232323232;
-        
-        // Ищем роль текущего пользователя в загруженных данных
-        let roleFromData = '';
-        
-        // Пробуем найти по currentUser.id
-        if (currentUser.id) {
-          roleFromData = getUserRoleFromData(currentUser.id) || '';
-        }
-        
-        // Если не нашли, ищем среди всех пользователей по Telegram ID
-        if (!roleFromData) {
-          // Ищем пользователя с таким же Telegram ID среди всех доступных
-          for (const workgroupData of allWorkgroupData) {
-            for (const userData of workgroupData.users || []) {
-              if (userData.user?.tg_id === telegramUserId) {
-                roleFromData = userData.uc?.role || '';
-                break;
-              }
-            }
-            if (roleFromData) break;
-          }
-        }
-        
-
-        
-        if (roleFromData) {
-          setCurrentUserRole(roleFromData);
-        } else {
-          // Fallback к API вызову только если не нашли в данных
-          if (currentUser.id) {
-            const roleResponse = await getUserRole(companyId, currentUser.id);
-            setCurrentUserRole(roleResponse);
-          } else {
-            setCurrentUserRole(currentUser.current_role || '');
-          }
+        if (companyId && currentUser.id) {
+          const roleResponse = await getUserRole(companyId, currentUser.id);
+          setCurrentUserRole(roleResponse);
         }
       } catch (error) {
         console.error('Error loading current user role:', error);
@@ -166,10 +130,10 @@ const AdminGroupCardItem = ({
       }
     };
 
-    if (companyId && allWorkgroupData.length > 0) {
+    if (companyId && currentUser.id) {
       getCurrentUserRole();
     }
-  }, [companyId, currentUser.id, currentUser.current_role, allWorkgroupData]);
+  }, [companyId, currentUser.id, currentUser.current_role]);
 
   useEffect(() => {
     // Загружаем роли для пользователей при изменении allWorkgroupData
@@ -439,7 +403,7 @@ const AdminGroupCardItem = ({
     
     // Проверяем несколькими способами, является ли этот пользователь текущим пользователем
     const webapp = window.Telegram?.WebApp;
-    const currentTelegramId = webapp?.initDataUnsafe?.user?.id || 3232323232;
+    const currentTelegramId = webapp?.initDataUnsafe?.user?.id || 601732567;
     
     // Способ 1: По Telegram ID среди участников группы
     const currentUserInGroup = users?.find(userData => userData.user.tg_id === currentTelegramId);
@@ -862,19 +826,21 @@ const AdminGroupCardItem = ({
                   >
                     {isLoadingModalData ? "Загрузка..." : "Редактировать"}
                   </Button>
-                  <Button
-                    mode="outline"
-                    onClick={handleDeleteClick}
-                    className="w-full max-w-xs"
-                    style={{
-                      border: '2px solid #ff4757',
-                      borderRadius: '20px',
-                      borderColor: '#ff4757',
-                      color: '#ff4757'
-                    }}
-                  >
-                    Удалить  
-                  </Button>
+                  {currentUserRole === Roles.OWNER && (
+                    <Button
+                      mode="outline"
+                      onClick={handleDeleteClick}
+                      className="w-full max-w-xs"
+                      style={{
+                        border: '2px solid #ff4757',
+                        borderRadius: '20px',
+                        borderColor: '#ff4757',
+                        color: '#ff4757'
+                      }}
+                    >
+                      Удалить  
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

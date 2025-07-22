@@ -220,7 +220,9 @@ function HomePage() {
           Задачи
         </Section.Header>
 
-        {isLoadingTasks ? (
+        
+      </Section>
+      {isLoadingTasks ? (
           <div
             style={{
               padding: "10px",
@@ -260,7 +262,6 @@ function HomePage() {
             )}
           </>
         )}
-      </Section>
     </>
   );
 }

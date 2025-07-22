@@ -27,7 +27,7 @@ export const createUserCompany = (data: UpdateUserCompanyRequest) =>
   put<UpdateUserCompanyResponse, UpdateUserCompanyRequest>(
     `${config.BACKEND_URL}/${apiPrefix.api}/companies/0`,
     data
-  );
+  ); 
 
 export const createAdditionalUserCompany = async (data: UpdateUserCompanyRequest): Promise<{ data: UpdateUserCompanyResponse }> => {
   // Создаем новую запись UserCompany для прораба, который может быть в нескольких бригадах

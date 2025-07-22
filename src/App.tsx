@@ -66,7 +66,20 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = webapp?.initDataUnsafe?.user?.id || 3232323232; //webapp?.initDataUnsafe?.user?.id || 3232323232;
+  const token_mock = webapp?.initDataUnsafe?.user?.id || 601732567;
+  
+  // Логируем для отладки
+  console.log('🔍 WebApp объект:', webapp);
+  console.log('🔍 WebApp initDataUnsafe:', webapp?.initDataUnsafe);
+  console.log('🔍 WebApp user:', webapp?.initDataUnsafe?.user);
+  console.log('🔍 Telegram User ID:', webapp?.initDataUnsafe?.user?.id);
+  console.log('🔍 Token Mock (используется в Authorization):', token_mock);
+  
+  // Если telegram user id недоступен, покажем это как проблему
+  if (!webapp?.initDataUnsafe?.user?.id) {
+    console.warn('⚠️ Telegram User ID недоступен! Используется mock значение:', 601732567);
+    console.warn('⚠️ Возможно, приложение запущено не в Telegram WebApp среде');
+  }
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -109,7 +122,9 @@ function App() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      sessionToken.set(token_mock?.toString() || "");
+      const tokenToSet = token_mock?.toString() || "";
+      sessionToken.set(tokenToSet);
+      console.log('🔧 SessionToken установлен как:', tokenToSet);
       // if(webapp?.initDataUnsafe?.user?.id) {
       // sessionToken.set(webapp?.initDataUnsafe?.user?.id.toString());
       // }
@@ -264,7 +279,9 @@ function App() {
     setShowRegistrationModal(false);
     setIsFirstTimeUser(false);
     
-    sessionToken.set(token_mock?.toString() || "");
+    const registrationToken = token_mock?.toString() || "";
+    sessionToken.set(registrationToken);
+    console.log('🔧 SessionToken установлен после регистрации как:', registrationToken);
     
     setTimeout(() => {
       getUserProfile().then(async (res) => {

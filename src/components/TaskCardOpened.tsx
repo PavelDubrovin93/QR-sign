@@ -1142,7 +1142,7 @@ function TaskCard({ editMode }: TaskCardProps) {
             >
               <img
                 ref={thumbnailRef}
-                alt="Task image"
+                alt="Task image x"
                 src={task?.image || ""}
                 className="w-full h-auto object-cover rounded-xl p-2 pb-0"
               />
