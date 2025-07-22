@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { Select, Section } from "@telegram-apps/telegram-ui";
+import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import TaskCard from "../components/TaskCard";
 import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
+import { setUserCompanies } from "../store/slices/entities/user_companies/user_companiesSlice";
 import { useDispatch, useSelector } from "react-redux";
 import type { Task } from "../@types/task";
 import Loading from "../components/Loading";
 import type { UserCompanies } from "../@types/user";
+import type { WorkGroup } from "../@types/group";
+import { getCompaniesByClient } from "../api/company/get-companies-byClient";
+import { getTasksByCompany } from "../api/task/get-tasksByCompany";
+import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 
 // Импорт оптимизированных хуков
-import { useTelegram, useCompanyData, useWorkGroups } from "../utils/hooks";
+// import { useTelegram, useCompanyData, useWorkGroups } from "../utils/hooks";
 
 function HomePage() {
   const dispatch = useDispatch();

@@ -56,6 +56,7 @@ const AdminGroupCardItem = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] =
     useState<UsersInCompany | null>(null);
+  console.log(currentUserToEdit);
   const [editedUserName, setEditedUserName] = useState("");
   const [editedUserNameError, setEditedUserNameError] = useState(false);
 
@@ -74,8 +75,6 @@ const AdminGroupCardItem = ({
   
   // Получаем информацию о текущем пользователе
   const currentUser = useSelector((state: RootState) => state.entities.user);
-  const webapp = window.Telegram?.WebApp;
-  const currentUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
 
   // Функция для открытия чата Telegram
@@ -123,7 +122,7 @@ const AdminGroupCardItem = ({
         // Сначала пробуем определить роль через getUserRoleFromData
         // который работает с загруженными данными и более надежен
         const webapp = window.Telegram?.WebApp;
-        const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
+        const telegramUserId = webapp?.initDataUnsafe?.user?.id || 3232323232;
         
         // Ищем роль текущего пользователя в загруженных данных
         let roleFromData = '';
@@ -337,20 +336,7 @@ const AdminGroupCardItem = ({
     return null;
   };
 
-  // Получает название группы по uc_id
-  const getUserWorkgroupName = (ucId?: number | null): string | null => {
-    if (!ucId) return null;
-    
-    for (const workgroupData of allWorkgroupData) {
-      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
-        userData.uc?.id === ucId
-      );
-      if (userInWorkgroup) {
-        return workgroupData.workgroup?.title || null;
-      }
-    }
-    return null;
-  };
+
 
   // Получает ВСЕ названия групп для пользователя по user_id
   const getUserWorkgroupNameByUserId = (userId: number): string[] => {
@@ -410,16 +396,7 @@ const AdminGroupCardItem = ({
     return null;
   };
 
-  const loadUserRole = async (userId: number) => {
-    if (getUserRoleFromData(userId)) return;
-    
-    try {
-      const roleResponse = await getUserRole(companyId, userId);
-      setUserRoles(prev => ({ ...prev, [userId]: roleResponse }));
-    } catch (error) {
-      console.error('Error loading user role:', error);
-    }
-  };
+
 
   const getRoleDisplayName = (role: string): string => {
     const roleMap: Record<string, string> = {
@@ -462,7 +439,7 @@ const AdminGroupCardItem = ({
     
     // Проверяем несколькими способами, является ли этот пользователь текущим пользователем
     const webapp = window.Telegram?.WebApp;
-    const currentTelegramId = webapp?.initDataUnsafe?.user?.id || 123123123123;
+    const currentTelegramId = webapp?.initDataUnsafe?.user?.id || 3232323232;
     
     // Способ 1: По Telegram ID среди участников группы
     const currentUserInGroup = users?.find(userData => userData.user.tg_id === currentTelegramId);

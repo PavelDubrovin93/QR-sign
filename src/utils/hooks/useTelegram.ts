@@ -14,7 +14,7 @@ export const useTelegram = (): UseTelegramReturn => {
   const telegramData = getTelegramData();
   
   const userId = useMemo(() => {
-    return webapp?.initDataUnsafe?.user?.id || 123123123123;
+    return webapp?.initDataUnsafe?.user?.id || 3232323232;
   }, [webapp?.initDataUnsafe?.user?.id]);
 
   const themeParams = useMemo(() => {

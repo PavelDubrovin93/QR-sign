@@ -13,7 +13,7 @@ import { useDispatch } from "react-redux";
 import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import { getSelectedCompany } from "../utils/selectedCompany";
-import type { WorkGroup } from "../@types/group";
+// import type { WorkGroup } from "../@types/group";
 
 // Импорт оптимизированных хуков
 import { useTelegram, useWorkGroups, useApiWithRetry } from "../utils/hooks";
