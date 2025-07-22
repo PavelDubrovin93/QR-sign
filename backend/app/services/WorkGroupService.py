@@ -36,6 +36,8 @@ class WorkGroupService(IWorkGroupService):
             workgroups = await repo.get_work_groups_by_company(company_id=company_id)
         elif user_role == RoleType.ADMIN:
             workgroups = await repo.get_work_groups_by_admin(admin_id=user_id)
+        else:
+            workgroups = []
         return workgroups
 
     async def delete_workgroup(self, workgroup_id: int) -> None:

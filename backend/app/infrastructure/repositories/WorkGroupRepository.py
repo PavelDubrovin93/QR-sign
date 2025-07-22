@@ -7,6 +7,8 @@ from app.infrastructure.interfaces.repositories.IWorkGroupRepository import \
     IWorkGroupRepository
 from app.models.dbModels.WorkGroup.WorkGroupEntity import \
     WorkGroupEntity as WorkGroup
+from app.models.dbModels.UserCompany.UserCompanyEntity import UserCompanyEntity
+from app.models.dbEnums.RoleType import RoleType
 from app.validation.dtoModels.WorkGroupDTO import WorkGroupDTO
 from app.validation.responses.WorkGroupResponse import CreateWorkGroupResponse
 
@@ -30,7 +32,11 @@ class WorkGroupRepository(IWorkGroupRepository):
         return workgroups_dto
     
     async def get_work_groups_by_admin(self, admin_id: int) -> List[WorkGroupDTO]:
-        query = select(WorkGroup).where(WorkGroup.admin_id == admin_id)
+        query = select(WorkGroup).join(UserCompanyEntity).where(
+            UserCompanyEntity.user_id == admin_id,
+            UserCompanyEntity.role == RoleType.ADMIN,
+            UserCompanyEntity.workgroup_id == WorkGroup.id
+        )
         result = await self.session.execute(query)
         workgroups = result.scalars().all()
         workgroups_dto = [await self.__to_dto(workgroup) for workgroup in workgroups]
