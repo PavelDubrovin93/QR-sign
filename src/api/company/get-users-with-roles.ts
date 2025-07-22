@@ -9,11 +9,10 @@ export interface UserWithRole extends UsersInCompany {
 export const getUsersWithRoles = async (companyId: string): Promise<{ data: UserWithRole[] }> => {
   try {
     const webapp = window.Telegram?.WebApp;
-    const telegramUserId = webapp?.initDataUnsafe?.user?.id || 601732567; //webapp?.initDataUnsafe?.user?.id || 601732567;
+    const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123123; 
     
     const usersUrl = `${config.BACKEND_URL}/${apiPrefix.api}/companies/get_all_users_in_company_and_uc_id/${companyId}`;
-    console.log("getUsersWithRoles - Getting users from:", usersUrl);
-    console.log("getUsersWithRoles - Using telegram_id:", telegramUserId);
+    
     
     const usersResponse = await fetch(usersUrl, {
       method: 'GET',
@@ -28,7 +27,6 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
     }
     
     const users = await usersResponse.json();
-    console.log("getUsersWithRoles - Users response:", users);
     
     const usersWithRoles: UserWithRole[] = await Promise.all(
       users.map(async (user: any) => {
@@ -41,20 +39,15 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
             },
           });
 
-          console.log("getUsersWithRoles - Role response:", roleResponse);
           
           let userRole = 'not_approved';
           if (roleResponse.ok) {
             const roleData = await roleResponse.json();
             userRole = roleData || 'not_approved';
-            console.log(`getUsersWithRoles - Fetched role for user ${user.name}: ${userRole}`);
-          } else {
-            console.log(`getUsersWithRoles - Failed to fetch role for user ${user.name}, using default: not_approved`);
           }
-          
-          const validRoles = ["admin", "employer", "not_approved"];
+
+          const validRoles = ["owner", "admin", "foreman", "employer", "not_approved"];
           if (!validRoles.includes(userRole)) {
-            console.log(`getUsersWithRoles - Invalid role for user ${user.name}: ${userRole}, setting to not_approved`);
             userRole = 'not_approved';
           }
           
@@ -63,7 +56,6 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
             role: userRole
           };
         } catch (error) {
-          console.error(`getUsersWithRoles - Error fetching role for user ${user.name}:`, error);
           return {
             ...user,
             role: 'not_approved'
@@ -72,11 +64,9 @@ export const getUsersWithRoles = async (companyId: string): Promise<{ data: User
       })
     );
     
-    console.log("getUsersWithRoles - Users with validated roles:", usersWithRoles);
     return { data: usersWithRoles };
     
   } catch (error) {
-    console.error("getUsersWithRoles - Error:", error);
     throw error;
   }
 }; 

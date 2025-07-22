@@ -5,8 +5,8 @@ export interface UpdateUserRoleRequest {
   id: number;
   user_id: number;
   company_id: number;
-  workgroup_id?: number | null;
-  role: "admin" | "employer" | "not_approved";
+  workgroup_id: number | null;
+  role: "owner" | "admin" | "foreman" | "employer" | "not_approved";
 }
 
 export interface UpdateUserRoleResponse {

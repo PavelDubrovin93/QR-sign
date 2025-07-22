@@ -241,6 +241,17 @@ const AdminPage = () => {
     );
     
     return workgroupMatch || userMatch;
+  })?.map((workgroupData: any) => {
+    // Фильтруем пользователей: исключаем тех, у кого workgroup_id = null (не назначены в группу)
+    const filteredUsers = (workgroupData.users || []).filter((userData: any) => {
+      // Пользователь должен иметь uc (user_company) и workgroup_id не должен быть null
+      return userData.uc?.workgroup_id !== null && userData.uc?.workgroup_id !== undefined;
+    });
+    
+    return {
+      ...workgroupData,
+      users: filteredUsers
+    };
   }) || [];
 
   const refreshWorkgroupData = async () => {

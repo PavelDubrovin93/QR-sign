@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -10,13 +10,17 @@ import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegra
 import { SlArrowDown, SlArrowUp } from "react-icons/sl";
 import { IoEyeOffSharp, IoEyeOutline } from "react-icons/io5";
 import { PiExclamationMarkFill } from "react-icons/pi";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/rootReducer";
 
 import doneTasks from "../utils/doneTasks";
 import type { UsersInCompany } from "../@types/user";
 import { getUsersInCompany } from "../api/company/get-users-incompany";
-import { updateUserCompany } from "../api/company/update-user-company";
+import { updateUserCompany, createAdditionalUserCompany, deleteUserCompany } from "../api/company/update-user-company";
 import { getWorkGroupsByCompanyId } from "../api/work_group/get-work_groupsByCompanyId";
 import { deleteWorkgroup } from "../api/company/delete-workgroup";
+import { getUserRole } from "../api/user/get-user-role";
+import { Roles } from "../@types/role";
 
 interface WorkGroup {
   id: number;
@@ -46,6 +50,8 @@ const AdminGroupCardItem = ({
   companyId,
   onDataRefresh,
 }: AdminGroupCardItemProps) => {
+  
+
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] =
@@ -62,8 +68,101 @@ const AdminGroupCardItem = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingModalData, setIsLoadingModalData] = useState(false);
+  const [userRoles, setUserRoles] = useState<Record<number, string>>({});
 
   const telegramData = getTelegramData();
+  
+  // Получаем информацию о текущем пользователе
+  const currentUser = useSelector((state: RootState) => state.entities.user);
+  const webapp = window.Telegram?.WebApp;
+  const currentUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
+  // Получаем роль текущего пользователя
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        // Сначала пробуем определить роль через getUserRoleFromData
+        // который работает с загруженными данными и более надежен
+        const webapp = window.Telegram?.WebApp;
+        const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
+        
+        // Ищем роль текущего пользователя в загруженных данных
+        let roleFromData = '';
+        
+        // Пробуем найти по currentUser.id
+        if (currentUser.id) {
+          roleFromData = getUserRoleFromData(currentUser.id) || '';
+        }
+        
+        // Если не нашли, ищем среди всех пользователей по Telegram ID
+        if (!roleFromData) {
+          // Ищем пользователя с таким же Telegram ID среди всех доступных
+          for (const workgroupData of allWorkgroupData) {
+            for (const userData of workgroupData.users || []) {
+              if (userData.user?.tg_id === telegramUserId) {
+                roleFromData = userData.uc?.role || '';
+                break;
+              }
+            }
+            if (roleFromData) break;
+          }
+        }
+        
+
+        
+        if (roleFromData) {
+          setCurrentUserRole(roleFromData);
+        } else {
+          // Fallback к API вызову только если не нашли в данных
+          if (currentUser.id) {
+            const roleResponse = await getUserRole(companyId, currentUser.id);
+            setCurrentUserRole(roleResponse);
+          } else {
+            setCurrentUserRole(currentUser.current_role || '');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading current user role:', error);
+        // Fallback к роли из Redux store
+        setCurrentUserRole(currentUser.current_role || '');
+      }
+    };
+
+    if (companyId && allWorkgroupData.length > 0) {
+      getCurrentUserRole();
+    }
+  }, [companyId, currentUser.id, currentUser.current_role, allWorkgroupData]);
+
+  useEffect(() => {
+    // Загружаем роли для пользователей при изменении allWorkgroupData
+    if (allWorkgroupData.length > 0) {
+      allWorkgroupData.forEach(workgroupData => {
+        workgroupData.users?.forEach((userData: any) => {
+          if (userData.user?.id && userData.uc?.role) {
+            setUserRoles(prev => ({ 
+              ...prev, 
+              [userData.user.id as number]: userData.uc.role 
+            }));
+          }
+        });
+      });
+    }
+  }, [allWorkgroupData]);
+
+  useEffect(() => {
+    // Загружаем роли для текущих пользователей в группе
+    if (users && users.length > 0) {
+      users.forEach(userData => {
+        if (userData.user.id && userData.uc?.role) {
+          setUserRoles(prev => ({ 
+            ...prev, 
+            [userData.user.id as number]: userData.uc.role 
+          }));
+        }
+      });
+    }
+  }, [users]);
 
   const [_, setTasks] = useState<TasksGroup[]>([
     { id: 1, text: "Установка лесов", isCompleted: true, isVisible: false },
@@ -109,9 +208,7 @@ const AdminGroupCardItem = ({
       return;
     }
 
-    console.log(
-      `Сохраняем изменения для пользователя ${currentUserToEdit?.name}: Новое имя - ${editedUserName}`
-    );
+
     handleCloseEditModal();
   };
 
@@ -133,10 +230,43 @@ const AdminGroupCardItem = ({
       ]);
       
       if (usersResponse.data) {
-        setAvailableUsers(usersResponse.data);
+        // Дедуплицируем пользователей и собираем информацию о группах
+        const userMap = new Map<number, UsersInCompany & { workgroups: string[] }>();
+        
+        usersResponse.data.forEach((user: UsersInCompany) => {
+          if (user.id) {
+            if (userMap.has(user.id)) {
+              // Пользователь уже есть, добавляем информацию о группе
+              const existingUser = userMap.get(user.id)!;
+              const workgroupNames = getUserWorkgroupNameByUserId(user.id);
+              workgroupNames.forEach((groupName: string) => {
+                if (!existingUser.workgroups.includes(groupName)) {
+                  existingUser.workgroups.push(groupName);
+                }
+              });
+            } else {
+              // Новый пользователь
+              const workgroupNames = getUserWorkgroupNameByUserId(user.id);
+              userMap.set(user.id, {
+                ...user,
+                workgroups: workgroupNames
+              });
+            }
+          }
+        });
+        
+        const deduplicatedUsers = Array.from(userMap.values());
+        setAvailableUsers(deduplicatedUsers);
         
         const currentMemberIds = users?.map(userData => userData.user.id).filter(id => id !== null) || [];
         setSelectedUserIds(currentMemberIds as number[]);
+        
+        // Загружаем роли для доступных пользователей
+        deduplicatedUsers.forEach((user: UsersInCompany) => {
+          if (user.id && user.role) {
+            setUserRoles(prev => ({ ...prev, [user.id!]: user.role! }));
+          }
+        });
       }
       
       if (workgroupsResponse.data) {
@@ -169,6 +299,217 @@ const AdminGroupCardItem = ({
     return null;
   };
 
+  // Получает название группы по uc_id
+  const getUserWorkgroupName = (ucId?: number | null): string | null => {
+    if (!ucId) return null;
+    
+    for (const workgroupData of allWorkgroupData) {
+      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
+        userData.uc?.id === ucId
+      );
+      if (userInWorkgroup) {
+        return workgroupData.workgroup?.title || null;
+      }
+    }
+    return null;
+  };
+
+  // Получает ВСЕ названия групп для пользователя по user_id
+  const getUserWorkgroupNameByUserId = (userId: number): string[] => {
+    const workgroupNames: string[] = [];
+    
+    for (const workgroupData of allWorkgroupData) {
+      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
+        userData.user?.id === userId
+      );
+      if (userInWorkgroup && workgroupData.workgroup?.title) {
+        workgroupNames.push(workgroupData.workgroup.title);
+      }
+    }
+    
+    return workgroupNames;
+  };
+
+  // Подсчитывает количество записей user_company для пользователя в текущей компании
+  const getUserCompanyRecordsCount = (userId: number): number => {
+    let count = 0;
+    
+    for (const workgroupData of allWorkgroupData) {
+      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
+        userData.user?.id === userId
+      );
+      if (userInWorkgroup) {
+        count++;
+      }
+    }
+    
+    return count;
+  };
+
+  const getUserRoleFromData = (userId: number): string | null => {
+    // Сначала ищем в уже загруженных данных allWorkgroupData
+    for (const workgroupData of allWorkgroupData) {
+      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
+        userData.user?.id === userId
+      );
+      if (userInWorkgroup && userInWorkgroup.uc?.role) {
+        return userInWorkgroup.uc.role;
+      }
+    }
+    
+    // Если не найдено в workgroups, ищем в текущих users данного workgroup
+    const userData = users?.find(u => u.user.id === userId);
+    if (userData?.uc?.role) {
+      return userData.uc.role;
+    }
+    
+    // Ищем в кэше ролей
+    const cachedRole = userRoles[userId];
+    if (cachedRole) {
+      return cachedRole;
+    }
+    
+    return null;
+  };
+
+  const loadUserRole = async (userId: number) => {
+    if (getUserRoleFromData(userId)) return;
+    
+    try {
+      const roleResponse = await getUserRole(companyId, userId);
+      setUserRoles(prev => ({ ...prev, [userId]: roleResponse }));
+    } catch (error) {
+      console.error('Error loading user role:', error);
+    }
+  };
+
+  const getRoleDisplayName = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      'owner': 'Владелец',
+      'admin': 'Прораб', 
+      'foreman': 'Бригадир',
+      'employer': 'Сотрудник',
+      'not_approved': 'Не подтвержден'
+    };
+    return roleMap[role] || role;
+  };
+
+  const getRoleColor = (role: string): string => {
+    const colorMap: Record<string, string> = {
+      'owner': '#10b981',
+      'admin': '#3b82f6',
+      'foreman': '#f59e0b',
+      'employer': '#6b7280',
+      'not_approved': '#ef4444'
+    };
+    return colorMap[role] || '#6b7280';
+  };
+
+  const RoleBadge = ({ role }: { role: string }) => (
+    <span
+      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+      style={{
+        backgroundColor: `${getRoleColor(role)}20`,
+        color: getRoleColor(role),
+        border: `1px solid ${getRoleColor(role)}40`
+      }}
+    >
+      {getRoleDisplayName(role)}
+    </span>
+  );
+
+  // Проверяет, может ли пользователь быть удален из бригады
+  const canRemoveUserFromWorkgroup = (userId: number): boolean => {
+    const userRole = getUserRoleFromData(userId);
+    
+    // Проверяем несколькими способами, является ли этот пользователь текущим пользователем
+    const webapp = window.Telegram?.WebApp;
+    const currentTelegramId = webapp?.initDataUnsafe?.user?.id || 123123123123;
+    
+    // Способ 1: По Telegram ID среди участников группы
+    const currentUserInGroup = users?.find(userData => userData.user.tg_id === currentTelegramId);
+    const isCurrentUserByTgId = currentUserInGroup?.user.id === userId;
+    
+    // Способ 2: По Redux currentUser.id (может быть user_id из базы)
+    const isCurrentUserByRedux = userId === currentUser.id;
+    
+    // Способ 3: Проверяем, если пользователь - админ и это его ID из Redux
+    const isCurrentUserAdmin = currentUserRole === Roles.ADMIN && isCurrentUserByRedux;
+    
+    // Окончательная проверка - это текущий пользователь?
+    const isCurrentUser = isCurrentUserByTgId || isCurrentUserByRedux || isCurrentUserAdmin;
+    
+
+    
+    // Если текущий пользователь - овнер, он может удалять всех кроме себя-админа
+    if (currentUserRole === Roles.OWNER) {
+      // Но если он админ в этой группе, не может удалить себя
+      if (isCurrentUser && userRole === Roles.ADMIN) {
+        return false;
+      }
+      return true;
+    }
+    
+    // Админ не может удалить себя из бригады
+    if (currentUserRole === Roles.ADMIN && isCurrentUser) {
+      return false;
+    }
+    
+    // В остальных случаях можно удалять
+    return true;
+  };
+
+  // Проверяет, может ли пользователь быть добавлен в несколько бригад
+  const canAddUserToMultipleWorkgroups = (userId: number): boolean => {
+    const userRole = getUserRoleFromData(userId);
+    
+    // Овнер может добавлять админов в несколько бригад
+    if (currentUserRole === Roles.OWNER && userRole === Roles.ADMIN) {
+      return true;
+    }
+    
+    // В остальных случаях пользователь может быть только в одной бригаде
+    return false;
+  };
+
+  // Проверяет, есть ли у пользователя уже записи в других workgroup'ах этой компании
+  const getUserWorkgroupsInCompany = (userId: number): any[] => {
+    const userWorkgroups: any[] = [];
+    
+    // Ищем во всех данных workgroup'ов
+    allWorkgroupData.forEach(workgroupData => {
+      const userInWorkgroup = workgroupData.users?.find((userData: any) => 
+        userData.user?.id === userId
+      );
+      if (userInWorkgroup) {
+        userWorkgroups.push({
+          workgroup: workgroupData.workgroup,
+          uc: userInWorkgroup.uc
+        });
+      }
+    });
+    
+    return userWorkgroups;
+  };
+
+  // Определяет, нужно ли создать новую запись или обновить существующую
+  const shouldCreateNewUserCompanyRecord = (userId: number): boolean => {
+    const userRole = getUserRoleFromData(userId);
+    const userWorkgroups = getUserWorkgroupsInCompany(userId);
+    const currentWorkgroup = getUserCurrentWorkgroup(userId);
+    
+
+    
+    // Если это прораб, овнер добавляет его, и у него уже есть workgroup в этой компании
+    const shouldCreate = (
+      currentUserRole === Roles.OWNER && 
+      userRole === Roles.ADMIN && 
+      (userWorkgroups.length > 0 || !!currentWorkgroup)
+    );
+
+    return shouldCreate;
+  };
+
   const handleUserToggle = (userId: number) => {
     setUsersToAdd(prev => 
       prev.includes(userId)
@@ -179,7 +520,7 @@ const AdminGroupCardItem = ({
 
   const handleSaveMembers = async () => {
     const currentMemberIds = users?.map(userData => userData.user.id).filter(id => id !== null) as number[] || [];
-    const usersToRemove = currentMemberIds.filter(id => !selectedUserIds.includes(id));
+    const usersToRemove = currentMemberIds.filter(id => !selectedUserIds.includes(id) && canRemoveUserFromWorkgroup(id));
     const usersToAddToGroup = usersToAdd;
 
     if (usersToRemove.length === 0 && usersToAddToGroup.length === 0) {
@@ -191,33 +532,76 @@ const AdminGroupCardItem = ({
     try {
       const updatePromises: Promise<any>[] = [];
       
+      // Удаляем пользователей из бригады (только тех, кого можно удалить)
       for (const userId of usersToRemove) {
-        const userToRemove = availableUsers.find(user => user.id === userId);
-        if (userToRemove && userToRemove.uc_id) {
-          updatePromises.push(
-            updateUserCompany(userToRemove.uc_id, { 
-              user_id: userId,
-              company_id: companyId,
-              workgroup_id: null 
-            })
-          );
+        // Ищем пользователя в текущей группе (users - это пользователи именно этой группы)
+        const userInCurrentGroup = users?.find(userData => userData.user.id === userId);
+        
+        if (userInCurrentGroup && userInCurrentGroup.uc?.id) {
+          // Проверяем, сколько записей user_company у пользователя в этой компании
+          const userRecordsCount = getUserCompanyRecordsCount(userId);
+          
+          if (userRecordsCount <= 1) {
+            // Если это последняя запись - обновляем workgroup_id = null (оставляем связь с компанией)
+            updatePromises.push(
+              updateUserCompany(userInCurrentGroup.uc.id, { 
+                user_id: userId,
+                company_id: companyId,
+                workgroup_id: null 
+              })
+            );
+          } else {
+            // Если есть другие записи - полностью удаляем эту запись
+            updatePromises.push(
+              deleteUserCompany(userInCurrentGroup.uc.id)
+            );
+          }
         }
       }
       
+      // Добавляем пользователей в бригаду
       for (const userId of usersToAddToGroup) {
         const userToAdd = availableUsers.find(user => user.id === userId);
         if (userToAdd && userToAdd.uc_id) {
-          updatePromises.push(
-            updateUserCompany(userToAdd.uc_id, { 
-              user_id: userId,
-              company_id: companyId,
-              workgroup_id: workgroup?.id 
-            })
-          );
+          const userRole = getUserRoleFromData(userId);
+          const shouldCreate = shouldCreateNewUserCompanyRecord(userId);
+          
+          // Логика выбора API (ИСПРАВЛЕННАЯ для многогрупповости):
+          // 1. ПРИОРИТЕТ: Если это прораб у овнера с существующими группами - создаем дополнительную запись (POST)
+          // 2. Иначе если есть uc_id - обновляем существующую запись (UPDATE)  
+          // 3. Иначе - ошибка
+          
+          if (shouldCreate) {
+            // ПРИОРИТЕТ: Многогрупповость для прорабов
+            updatePromises.push(
+              createAdditionalUserCompany({ 
+                user_id: userId,
+                company_id: companyId,
+                workgroup_id: workgroup?.id,
+                role: userRole || undefined 
+              })
+            );
+          } else if (userToAdd.uc_id) {
+            // Обычный случай: обновляем существующую запись
+            updatePromises.push(
+              updateUserCompany(userToAdd.uc_id, { 
+                user_id: userId,
+                company_id: companyId,
+                workgroup_id: workgroup?.id 
+              })
+            );
+          }
         }
       }
       
-      await Promise.all(updatePromises);
+      const results = await Promise.allSettled(updatePromises);
+      
+      // Проверяем результаты и логируем ошибки
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Ошибка при обновлении записи ${index + 1}:`, result.reason);
+        }
+      });
       
       handleCloseMembersModal();
       
@@ -318,9 +702,9 @@ const AdminGroupCardItem = ({
                       <p className="text-base font-semibold pb-1">
                         {task.title}
                       </p>
-                      <p className="text-xs pb-1" style={{ color: telegramData?.themeParams.button_color || "#3B82F6" }}>
+                      {/* <p className="text-xs pb-1" style={{ color: telegramData?.themeParams.button_color || "#3B82F6" }}>
                         Группа: {workgroup.title}
-                      </p>
+                      </p> */}
                     </div>
                     <p className="text-base font-semibold pb-2">{task.created_at}</p>
                   </div>
@@ -417,7 +801,13 @@ const AdminGroupCardItem = ({
                                 </p>
                               )}
                             </span>
-                            <p>{user.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{user.name}</p>
+                              {(() => {
+                                const role = getUserRoleFromData(user.id || 0);
+                                return role ? <RoleBadge role={role} /> : null;
+                              })()}
+                            </div>
                           </div>
                         </div>
                       );
@@ -522,8 +912,16 @@ const AdminGroupCardItem = ({
 
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800 text-center">
-                Пользователь, находящийся в другой бригаде, будет удален из предыдущей
+                {currentUserRole === Roles.OWNER 
+                  ? "Прорабы могут работать в нескольких бригадах одновременно. Остальные сотрудники будут перемещены из предыдущей бригады."
+                  : "Пользователь, находящийся в другой бригаде, будет удален из предыдущей"
+                }
               </p>
+              {currentUserRole === Roles.ADMIN && (
+                <p className="text-sm text-orange-600 text-center mt-2">
+                  Вы не можете удалить себя из бригады
+                </p>
+              )}
             </div>
 
             <div className="mb-6">
@@ -541,6 +939,7 @@ const AdminGroupCardItem = ({
                         checked={selectedUserIds.includes(userData.user.id || 0)}
                         onChange={() => handleCurrentMemberToggle(userData.user.id || 0)}
                         className="mr-3"
+                        disabled={!canRemoveUserFromWorkgroup(userData.user.id || 0)}
                       />
                       <div className="flex items-center flex-1">
                         <span className="w-8 h-8 rounded-full mr-3 overflow-hidden flex items-center justify-center bg-gray-300">
@@ -554,9 +953,21 @@ const AdminGroupCardItem = ({
                             <p className="text-white text-sm">
                               {userData.user.name?.charAt(0).toUpperCase()}
                             </p>
+                            
                           )}
                         </span>
-                        <p className="font-medium">{userData.user.name}</p>
+                                                  <div className="flex items-center gap-2">
+                            <p className="font-medium">{userData.user.name}</p>
+                            {(() => {
+                              const role = getUserRoleFromData(userData.user.id || 0);
+                              return role ? <RoleBadge role={role} /> : null;
+                            })()}
+                            {/* {!canRemoveUserFromWorkgroup(userData.user.id || 0) && (
+                              <span className="text-xs text-orange-600">
+                                (не может быть удален)
+                              </span>
+                            )} */}
+                          </div>
                       </div>
                     </div>
                   ))}
@@ -580,7 +991,7 @@ const AdminGroupCardItem = ({
                     return !isCurrentlySelected && !isCurrentMember;
                   })
                     .map((user) => {
-                      const currentWorkgroup = getUserCurrentWorkgroup(user.id || 0);
+                      const userWorkgroups = (user as any).workgroups || [];
                       
                       return (
                         <div
@@ -607,14 +1018,39 @@ const AdminGroupCardItem = ({
                               )}
                             </span>
                             <div className="flex-1">
-                              <p className="font-medium">{user.name}</p>
-                              {currentWorkgroup ? (
-                                <p className="text-xs text-orange-600">
-                                  В бригаде: {currentWorkgroup.title}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-gray-500">Не назначен в бригаду</p>
-                              )}
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium">{user.name}</p>
+                                {(() => {
+                                  const role = getUserRoleFromData(user.id || 0);
+                                  return role ? <RoleBadge role={role} /> : null;
+                                })()}
+                                {/* {canAddUserToMultipleWorkgroups(user.id || 0) && userWorkgroups.length === 0 && (
+                                  <span className="text-xs text-green-600">
+                                    (может быть добавлен в несколько бригад)
+                                  </span>
+                                )} */}
+                                {canAddUserToMultipleWorkgroups(user.id || 0) && userWorkgroups.length > 0 && (
+                                  <span className="text-xs text-blue-600">
+                                    (создаст дополнительную запись)
+                                  </span>
+                                )}
+                              </div>
+                              {(() => {
+                                const actualWorkgroups = getUserWorkgroupNameByUserId(user.id || 0);
+                                const userRole = getUserRoleFromData(user.id || 0);
+                                
+                                // Определяем цвет текста в зависимости от роли
+                                const isAdmin = userRole === Roles.ADMIN;
+                                const textColor = isAdmin ? "text-green-600" : "text-red-600";
+                                
+                                return actualWorkgroups.length > 0 ? (
+                                  <p className={`text-xs ${textColor}`}>
+                                    В бригаде: {actualWorkgroups.join(', ')}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-gray-500">Не назначен в бригаду</p>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>

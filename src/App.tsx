@@ -10,7 +10,7 @@ import AdminLayout from "./components/layouts/AdminLayout.tsx";
 import AdminPage from "./pages/adminPage.tsx";
 import AdminTaskboardPage from "./pages/adminTaskboardPage.tsx";
 
-import UserLayout from "./components/layouts/UserLayout.tsx";
+
 
 import MainPage from "./pages/mainPage.tsx";
 import ScanPage from "./pages/scanPage.tsx";
@@ -42,7 +42,6 @@ function App() {
   const dispatch = useDispatch();
   const webapp = window.Telegram?.WebApp;
   const telegramData = getTelegramData();
-  console.log("ci/cd check check");
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(true);
@@ -67,7 +66,7 @@ function App() {
     webapp.setBackgroundColor(webapp.themeParams.secondary_bg_color);
   }
 
-  const token_mock = webapp?.initDataUnsafe?.user?.id || 601732567; //webapp?.initDataUnsafe?.user?.id || 601732567;
+  const token_mock = webapp?.initDataUnsafe?.user?.id || 123123123123; //webapp?.initDataUnsafe?.user?.id || 123123123123;
 
   const fetchUserRoleByUserId = async (userId: number | null, defaultCompanyId: number | null) => {
     if (!userId) {
@@ -295,6 +294,7 @@ function App() {
 
   const renderLayout = () => {
     switch (userRole) {
+      case Roles.OWNER:
       case Roles.ADMIN:
         return (
           <AdminLayout>
@@ -309,9 +309,10 @@ function App() {
             </Routes>
           </AdminLayout>
         );
+      case Roles.FOREMAN:
       case Roles.EMPLOYER:
         return (
-          <UserLayout>
+          <>
             <div className="p-4">
               <Header nav={headerNavigationConfig.user} />
             </div>
@@ -321,7 +322,7 @@ function App() {
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
-          </UserLayout>
+          </>
         );
       case Roles.NOT_APPROVED:
         return (

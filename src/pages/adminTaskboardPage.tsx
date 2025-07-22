@@ -9,30 +9,29 @@ import {
 import { FiTrash2, FiLock, FiUnlock } from "react-icons/fi";
 import { MdUpload } from "react-icons/md";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
-import type { UserCompanies } from "../@types/user";
 import type { TaskPoint } from "../@types/task";
 import Loading from "../components/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../store/rootReducer";
-import { getCompaniesByClient } from "../api/company/get-companies-byClient";
-import {
-  setIsLoadingCompanies,
-  setUserCompanies,
-} from "../store/slices/entities/user_companies/user_companiesSlice";
-import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import {
   setIsLoadingTasksBoard,
   setTasksBoardByCompany,
 } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import AdminTasks from "../components/AdminTasks";
-
-import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
 import { createTask } from "../api/task/create-task";
+import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import type { CreateTaskPayload } from "../@types/task";
+import type { UserCompanies } from "../@types/user";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
-
 import ImageUpload from "../components/ImageUpload";
+
+// Импорт новых хуков
+import { 
+  useTelegram, 
+  useCompanyData, 
+  useWorkGroups, 
+  useApiWithRetry 
+} from "../utils/hooks";
 
 export interface WorkGroup {
   id: number;
@@ -43,7 +42,17 @@ export interface WorkGroup {
 
 const adminTaskboardPage = () => {
   const dispatch = useDispatch();
-  const telegramData = getTelegramData();
+  
+  // Используем новые хуки
+  const { telegramData } = useTelegram();
+  const { fetchCompanies } = useCompanyData();
+  const { 
+    workGroups, 
+    isLoadingWorkGroups, 
+    fetchWorkGroups,
+    setWorkGroups 
+  } = useWorkGroups();
+  const { retryApiCall } = useApiWithRetry();
 
   const [selectedValue, setSelectedValue] = useState<string | number>(() => {
     return getSelectedCompany() || "";
@@ -55,9 +64,6 @@ const adminTaskboardPage = () => {
   const [modalSelectedWorkGroupId, setModalSelectedWorkGroupId] = useState<
     string | number
   >("");
-  const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
-  const [isLoadingWorkGroups, setIsLoadingWorkGroups] =
-    useState<boolean>(false);
 
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
@@ -120,90 +126,13 @@ const adminTaskboardPage = () => {
 
 
 
-  const fetchCompanies = useCallback(async () => {
-    dispatch(setIsLoadingCompanies(true));
-    try {
-      const res = await retryApiCall(() => getCompaniesByClient());
-      if (res.data) {
-        dispatch(setUserCompanies(res.data));
-        
-        const savedCompanyId = getSelectedCompany();
-        const validSavedCompany = savedCompanyId && res.data.find((c: UserCompanies) => 
-          String(c.company_id) === savedCompanyId
-        );
-        
-        if (validSavedCompany) {
-          setSelectedValue(savedCompanyId);
-          setModalSelectedCompanyId(savedCompanyId);
-        } else if (res.data.length > 0) {
-          const firstCompanyId = res.data[0].company_id || "";
-          setSelectedValue(firstCompanyId);
-          setModalSelectedCompanyId(firstCompanyId);
-          setSelectedCompany(firstCompanyId);
-        }
-      }
-    } catch (e: any) {
-      console.error("Ошибка загрузки компаний:", e);
-      
-      const isConnectionError = 
-        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
-        e?.response?.data?.message?.includes('connection was closed') ||
-        e?.response?.data?.error === 'Internal Server Error';
-      
-      if (isConnectionError) {
-        console.log("Не удалось загрузить компании после нескольких попыток. Проблемы с подключением к серверу.");
-      }
-    } finally {
-      dispatch(setIsLoadingCompanies(false));
-    }
-  }, []);
+  const handleFetchCompanies = useCallback(async () => {
+    await fetchCompanies(setSelectedValue, setModalSelectedCompanyId);
+  }, [fetchCompanies]);
 
-  const fetchWorkGroups = useCallback(async (companyId: string | number) => {
-
-    if (!companyId) {
-
-      setWorkGroups([]);
-      setModalSelectedWorkGroupId("");
-      return;
-    }
-
-    setIsLoadingWorkGroups(true);
-    try {
-
-      const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
-      if (res.data) {
-
-        setWorkGroups(res.data);
-        if (res.data.length > 0) {
-          setModalSelectedWorkGroupId(res.data[0].id || "");
-        } else {
-          setModalSelectedWorkGroupId("");
-        }
-      } else {
-
-        setWorkGroups([]);
-      }
-    } catch (e: any) {
-      console.error(
-        `Ошибка загрузки рабочих групп для компании ${companyId}:`,
-        e
-      );
-      
-      const isConnectionError = 
-        e?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
-        e?.response?.data?.message?.includes('connection was closed') ||
-        e?.response?.data?.error === 'Internal Server Error';
-      
-      if (isConnectionError) {
-        console.log("Не удалось загрузить рабочие группы после нескольких попыток. Проблемы с подключением к серверу.");
-      }
-      
-      setWorkGroups([]);
-      setModalSelectedWorkGroupId("");
-    } finally {
-      setIsLoadingWorkGroups(false);
-    }
-  }, []);
+  const handleFetchWorkGroups = useCallback(async (companyId: string | number) => {
+    await fetchWorkGroups(companyId, setModalSelectedWorkGroupId);
+  }, [fetchWorkGroups]);
 
   const fetchTasks = useCallback(async (companyId: string | number) => {
     if (!companyId) {
@@ -230,33 +159,30 @@ const adminTaskboardPage = () => {
     } finally {
       dispatch(setIsLoadingTasksBoard(false));
     }
-  }, []);
+  }, [retryApiCall]);
 
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    handleFetchCompanies();
+  }, [handleFetchCompanies]);
 
 
 
   useEffect(() => {
-
     if (selectedValue !== "") {
-
       fetchTasks(selectedValue);
-      fetchWorkGroups(selectedValue);
+      handleFetchWorkGroups(selectedValue);
     } else {
-
       dispatch(setTasksBoardByCompany([]));
       setWorkGroups([]);
     }
-  }, [selectedValue, fetchTasks, fetchWorkGroups]);
+  }, [selectedValue, fetchTasks, handleFetchWorkGroups]);
 
 
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
     if (modalSelectedCompanyId) {
-      fetchWorkGroups(modalSelectedCompanyId);
+      handleFetchWorkGroups(modalSelectedCompanyId);
     }
   };
 
@@ -299,49 +225,14 @@ const adminTaskboardPage = () => {
   const handleModalCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCompanyId = event.target.value;
     setModalSelectedCompanyId(selectedCompanyId);
-    fetchWorkGroups(selectedCompanyId);
+    handleFetchWorkGroups(selectedCompanyId);
   };
 
   const handleModalWorkGroupChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setModalSelectedWorkGroupId(event.target.value);
   };
 
-  // Функция для повторных попыток при ошибках соединения с БД
-  const retryApiCall = async <T,>(
-    apiCall: () => Promise<T>, 
-    maxRetries: number = 3,
-    delay: number = 1000
-  ): Promise<T> => {
-    let lastError: any;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        return await apiCall();
-      } catch (error: any) {
-        lastError = error;
-        
-        // Проверяем, является ли это ошибкой соединения с БД
-        const isConnectionError = 
-          error?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
-          error?.response?.data?.message?.includes('connection was closed') ||
-          error?.response?.data?.error === 'Internal Server Error';
-        
-        // Если это не ошибка соединения или это последняя попытка, выбрасываем ошибку
-        if (!isConnectionError || attempt === maxRetries) {
-          throw error;
-        }
-        
-        // Ждем перед следующей попыткой
-        console.log(`Попытка ${attempt} не удалась, пробуем еще раз через ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Увеличиваем задержку для следующей попытки
-        delay *= 1.5;
-      }
-    }
-    
-    throw lastError;
-  };
+
 
   const handleSave = async () => {
     if (isSaving) return; // Предотвращаем повторную отправку
@@ -716,7 +607,7 @@ const adminTaskboardPage = () => {
                         <hr key={point.id} className="border-gray-200" />
                         <div className="px-4 pt-2 flex items-center justify-left">
                           <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
-                            {point.id}
+                            {point.id} 
                           </span>
                           <Input
                             value={point.title}
