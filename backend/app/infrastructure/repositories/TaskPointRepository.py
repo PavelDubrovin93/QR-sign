@@ -205,7 +205,8 @@ class TaskPointRepository(ITaskPointRepository):
 
         await self.session.commit()
         await self.session.refresh(task_point)
-        return task_point
+        task_point_dto = await self.__to_dto(task_point) if task_point else None
+        return task_point_dto
 
     async def edit_task_points_by_dto_list(
         self, task_points: List[TaskPointDTO], task_board: int
