@@ -23,7 +23,6 @@ const RegistrationSteps = ({
   const [isModalOpen, setIsModalOpen] = useState(showModal);
   // const [currentStep, setCurrentStep] = useState(1);
   let currentStep = 1;
-  console.log("currentStep", currentStep); // shit fix
 
   const [userName, setUserName] = useState("");
   // const [companyChoice, setCompanyChoice] = useState<"join" | "create" | "">("join");
@@ -115,7 +114,7 @@ const RegistrationSteps = ({
     setErrors(prev => ({ ...prev, api: "" }));
 
     try {
-      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 77777777777;
+      const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
       const telegramPhotoUrl = "";
       
       if (!telegramUserId) {

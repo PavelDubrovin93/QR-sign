@@ -7,12 +7,12 @@ export interface UserRoleResponse {
   user_id: number;
 }
 
-export const getUserRole = async (companyId: number): Promise<UserRoleResponse> => {
+export const getUserRole = async (companyId: number, userId: number): Promise<string> => {
   const webapp = window.Telegram?.WebApp;
-  const telegramUserId = webapp?.initDataUnsafe?.user?.id || 601732567; //webapp?.initDataUnsafe?.user?.id || 601732567;
+  const telegramUserId = webapp?.initDataUnsafe?.user?.id || 123123123123;
 
   const response = await fetch(
-    `${config.BACKEND_URL}/${apiPrefix.api}/user_data/user_role/${companyId}`,
+    `${config.BACKEND_URL}/${apiPrefix.api}/user_data/user_role/${companyId}/${userId}`,
     {
       method: "GET",
       headers: {

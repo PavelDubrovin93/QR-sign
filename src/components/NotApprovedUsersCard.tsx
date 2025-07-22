@@ -23,7 +23,7 @@ interface RoleSelection {
 
 const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotApprovedUsersCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"admin" | "employer">("employer");
+  const [selectedRole, setSelectedRole] = useState<"admin" | "foreman" | "employer">("employer");
   const [selectedUser, setSelectedUser] = useState<RoleSelection | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -62,7 +62,7 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
         id: selectedUser.ucId,
         user_id: selectedUser.userId,
         company_id: selectedUser.companyId,
-        workgroup_id: selectedUser.workgroupId,
+        workgroup_id: selectedUser.workgroupId || null,
         role: selectedRole,
       });
 
@@ -192,6 +192,20 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
                 }
               >
                 <p style={{ color: "var(--tgui--text_color)" }}>Сотрудник</p>
+              </Cell>
+              <Cell
+                Component="label"
+                before={
+                  <Radio
+                    name="role"
+                    value="foreman"
+                    checked={selectedRole === "foreman"}
+                    onChange={() => setSelectedRole("foreman")}
+                    disabled={isUpdating}
+                  />
+                }
+              >
+                <p style={{ color: "var(--tgui--text_color)" }}>Бригадир</p>
               </Cell>
               <Cell
                 Component="label"

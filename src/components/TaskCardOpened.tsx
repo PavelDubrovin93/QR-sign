@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, Checkbox, CompactPagination, Select } from "@telegram-apps/telegram-ui";
-import { getTelegramData } from "@telegram-apps/telegram-ui/dist/helpers/telegram";
 import { useNavigate, useParams } from "react-router-dom";
 import { SlArrowLeft } from "react-icons/sl";
-import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi"; //FiChevronDown
+import { FiTrash2, FiLock, FiUnlock, FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
-// import AudioMessageComposer from "./AudioMessageComposer";
-// import Waveform from "./Waveform";
 import { getTaskById } from "../api/task/get-taskbyId";
 import type { Task, TaskPoint } from "../@types/task";
 import { editTask } from "../api/task/edit-task";
@@ -17,23 +14,26 @@ import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/task
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import { getSelectedCompany } from "../utils/selectedCompany";
 import type { WorkGroup } from "../@types/group";
-import { getWorkGroupsSelect } from "../api/work_group/get-work_groupsSelect";
+
+// Импорт оптимизированных хуков
+import { useTelegram, useWorkGroups, useApiWithRetry } from "../utils/hooks";
 
 interface TaskCardProps {
   editMode: boolean;
 }
 
 function TaskCard({ editMode }: TaskCardProps) {
-  // const mockAudioUrl =
-  //   "https://api.twilio.com/2010-04-01/Accounts/AC25aa00521bfac6d667f13fec086072df/Recordings/RE6d44bc34911342ce03d6ad290b66580c.mp3";
-  const telegramData = getTelegramData();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { taskboard_id } = useParams<{ taskboard_id: string }>();
 
+  // Используем оптимизированные хуки
+  const { telegramData } = useTelegram();
+  const { workGroups, fetchWorkGroups, getWorkGroupName } = useWorkGroups();
+  const { retryApiCall } = useApiWithRetry();
+
   const [task, setTask] = useState<Task | null>(null);
   const [taskPoints, setTaskPoints] = useState<TaskPoint[]>([]);
-  const [workGroups, setWorkGroups] = useState<WorkGroup[]>([]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activePoint, setActivePoint] = useState<TaskPoint | null>(null);
   const [currentScale, setCurrentScale] = useState(1);
@@ -66,42 +66,7 @@ function TaskCard({ editMode }: TaskCardProps) {
     return paginationHeight;
   }, [taskPoints.length]);
 
-  // Функция для повторных попыток при ошибках соединения с БД
-  const retryApiCall = async <T,>(
-    apiCall: () => Promise<T>, 
-    maxRetries: number = 3,
-    delay: number = 1000
-  ): Promise<T> => {
-    let lastError: any;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        return await apiCall();
-      } catch (error: any) {
-        lastError = error;
-        
-        // Проверяем, является ли это ошибкой соединения с БД
-        const isConnectionError = 
-          error?.response?.data?.message?.includes('ConnectionDoesNotExistError') ||
-          error?.response?.data?.message?.includes('connection was closed') ||
-          error?.response?.data?.error === 'Internal Server Error';
-        
-        // Если это не ошибка соединения или это последняя попытка, выбрасываем ошибку
-        if (!isConnectionError || attempt === maxRetries) {
-          throw error;
-        }
-        
-        // Ждем перед следующей попыткой
-        console.log(`Попытка ${attempt} не удалась, пробуем еще раз через ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Увеличиваем задержку для следующей попытки
-        delay *= 1.5;
-      }
-    }
-    
-    throw lastError;
-  };
+
 
   // Функция для обновления списка задач при навигации назад
   const refreshTasksAndNavigateBack = useCallback(async () => {
@@ -177,22 +142,7 @@ function TaskCard({ editMode }: TaskCardProps) {
     };
   }, [activePoint]);
 
-  const fetchWorkGroups = useCallback(async (companyId: number) => {
-    try {
-      const res = await retryApiCall(() => getWorkGroupsSelect(String(companyId)));
-      if (res.data) {
-        setWorkGroups(res.data);
-      }
-    } catch (e: any) {
-      console.error("Ошибка при получении workgroups:", e);
-    }
-  }, []);
 
-  // Функция для получения названия workgroup
-  const getWorkGroupName = useCallback((workGroupId: number) => {
-    const workGroup = workGroups.find(wg => wg.id === workGroupId);
-    return workGroup?.title || '';
-  }, [workGroups]);
 
   const fetchAndSetTaskData = useCallback(async () => {
     if (!taskboard_id) return;
