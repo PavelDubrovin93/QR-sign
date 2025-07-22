@@ -1,5 +1,5 @@
-from typing import Optional
-
+from typing import Optional, Union
+from datetime import datetime
 from app.validation.Entity import Entity
 
 
@@ -14,4 +14,4 @@ class TaskBoardDTO(Entity):
     description: Optional[str]
     created_by: Optional[int] = None
     admin_id: Optional[int] = None
-    done_at: Optional[str] = None
+    done_at: Optional[Union[datetime, str]] = None
