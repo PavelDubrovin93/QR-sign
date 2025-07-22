@@ -1,5 +1,6 @@
 import { config } from "../../configs/app.config";
 import { apiPrefix } from "../constants";
+import { checkUserExists } from "./check-user-exists";
 
 export interface UserRoleResponse {
   role: string;
@@ -7,9 +8,17 @@ export interface UserRoleResponse {
   user_id: number;
 }
 
-export const getUserRole = async (companyId: number, userId: number): Promise<string> => {
+export const getUserRole = async (companyId: number): Promise<string> => {
   const webapp = window.Telegram?.WebApp;
   const telegramUserId = webapp?.initDataUnsafe?.user?.id || 601732567;
+
+  // Получаем правильный user_id по Telegram ID
+  const userExistsResponse = await checkUserExists(telegramUserId);
+  if (!userExistsResponse.data?.user_id) {
+    throw new Error('User not found');
+  }
+  
+  const userId = userExistsResponse.data.user_id;
 
   const response = await fetch(
     `${config.BACKEND_URL}/${apiPrefix.api}/user_data/user_role/${companyId}/${userId}`,

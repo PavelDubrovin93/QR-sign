@@ -8,6 +8,8 @@ export interface Task {
   type: string;
   description: string;
   done_at: string | null;
+  created_by?: number;
+  admin_id?: number;
   task_points: TaskPoint[];
 }
 

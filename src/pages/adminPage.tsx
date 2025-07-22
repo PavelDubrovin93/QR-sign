@@ -165,8 +165,8 @@ const AdminPage = () => {
   useEffect(() => {
     const getCurrentUserRole = async () => {
       try {
-        if (selectedValue && currentUser.id) {
-          const roleResponse = await getUserRole(Number(selectedValue), currentUser.id);
+        if (selectedValue) {
+          const roleResponse = await getUserRole(Number(selectedValue));
           setCurrentUserRole(roleResponse);
         }
       } catch (error) {
@@ -176,10 +176,10 @@ const AdminPage = () => {
       }
     };
 
-    if (selectedValue && currentUser.id) {
+    if (selectedValue) {
       getCurrentUserRole();
     }
-  }, [selectedValue, currentUser.id, currentUser.current_role]);
+  }, [selectedValue]);
 
   const handleOpenModal = () => {
     setFormErrors({

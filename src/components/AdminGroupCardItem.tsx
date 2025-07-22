@@ -119,8 +119,8 @@ const AdminGroupCardItem = ({
   useEffect(() => {
     const getCurrentUserRole = async () => {
       try {
-        if (companyId && currentUser.id) {
-          const roleResponse = await getUserRole(companyId, currentUser.id);
+        if (companyId) {
+          const roleResponse = await getUserRole(companyId);
           setCurrentUserRole(roleResponse);
         }
       } catch (error) {
@@ -130,10 +130,10 @@ const AdminGroupCardItem = ({
       }
     };
 
-    if (companyId && currentUser.id) {
+    if (companyId) {
       getCurrentUserRole();
     }
-  }, [companyId, currentUser.id, currentUser.current_role]);
+  }, [companyId]);
 
   useEffect(() => {
     // Загружаем роли для пользователей при изменении allWorkgroupData

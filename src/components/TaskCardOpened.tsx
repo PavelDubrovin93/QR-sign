@@ -13,6 +13,11 @@ import { useDispatch } from "react-redux";
 import { setTasksBoardByCompany } from "../store/slices/entities/tasksBoard/tasksBoardSlice";
 import { getTasksByCompany } from "../api/task/get-tasksByCompany";
 import { getSelectedCompany } from "../utils/selectedCompany";
+import { getUserRole } from "../api/user/get-user-role";
+import { checkUserExists } from "../api/user/check-user-exists";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/rootReducer";
+import { Roles } from "../@types/role";
 // import type { WorkGroup } from "../@types/group";
 
 // Импорт оптимизированных хуков
@@ -55,7 +60,11 @@ function TaskCard({ editMode }: TaskCardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
+  const [canDeleteCurrentTask, setCanDeleteCurrentTask] = useState<boolean>(false);
 
+  const currentUser = useSelector((state: RootState) => state.entities.user);
+  console.log(currentUser);
   // отступ для пагинации
   const calculatePaginationOffset = useCallback(() => {
     if (taskPoints.length === 0) return 0;
@@ -186,6 +195,72 @@ function TaskCard({ editMode }: TaskCardProps) {
   useEffect(() => {
     fetchAndSetTaskData();
   }, []);
+
+  // Получаем роль текущего пользователя
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        if (task?.company_id) {
+          const roleResponse = await getUserRole(task.company_id);
+          setCurrentUserRole(roleResponse);
+        }
+      } catch (error) {
+        console.error('Error loading current user role:', error);
+      }
+    };
+
+    if (task?.company_id) {
+      getCurrentUserRole();
+    }
+  }, [task?.company_id]);
+
+  // Проверяем права на удаление при изменении задачи или роли
+  useEffect(() => {
+    const checkDeletePermissions = async () => {
+      if (!task || !currentUserRole) {
+        setCanDeleteCurrentTask(false);
+        return;
+      }
+
+             // Владелец может удалять любые задачи
+      if (currentUserRole === Roles.OWNER) {
+        setCanDeleteCurrentTask(true);
+        console.log('🔓 Owner может удалять любые задачи');
+        return;
+      }
+
+      // Админ может удалять только свои задачи
+      if (currentUserRole === Roles.ADMIN) {
+        try {
+          const webapp = window.Telegram?.WebApp;
+          const telegramUserId = webapp?.initDataUnsafe?.user?.id || 601732567;
+          const userExistsResponse = await checkUserExists(telegramUserId);
+          
+          if (userExistsResponse.data?.user_id && task.created_by) {
+            const isCreator = task.created_by === userExistsResponse.data.user_id;
+            setCanDeleteCurrentTask(isCreator);
+            console.log('🔍 Админ проверка:', {
+              created_by: task.created_by,
+              current_user_id: userExistsResponse.data.user_id,
+              isCreator,
+              canDelete: isCreator
+            });
+          } else {
+            setCanDeleteCurrentTask(false);
+            console.log('❌ Админ не может удалить: нет created_by или user_id');
+          }
+        } catch (error) {
+          console.error('Error checking user permissions:', error);
+          setCanDeleteCurrentTask(false);
+        }
+        return;
+      }
+
+      setCanDeleteCurrentTask(false);
+    };
+
+    checkDeletePermissions();
+  }, [task, currentUserRole]);
 
   const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent, point: TaskPoint) => {
     if (!editMode || point.locked) return;
@@ -1445,26 +1520,28 @@ function TaskCard({ editMode }: TaskCardProps) {
                     "Сохранить изменения"
                   )}
                 </Button>
-                <Button
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    opacity: isDeleting ? 0.7 : 1,
-                    cursor: isDeleting ? 'not-allowed' : 'pointer'
-                  }}
-                  onClick={handleDeleteTask}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div className="spinner"></div>
-                      Удаление...
-                    </div>
-                  ) : (
-                    "Удалить"
-                  )}
-                </Button>
+                {canDeleteCurrentTask && (
+                  <Button
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      opacity: isDeleting ? 0.7 : 1,
+                      cursor: isDeleting ? 'not-allowed' : 'pointer'
+                    }}
+                    onClick={handleDeleteTask}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="spinner"></div>
+                        Удаление...
+                      </div>
+                    ) : (
+                      "Удалить"
+                    )}
+                  </Button>
+                )}
               </>
             )}
             <div className="flex justify-end">
