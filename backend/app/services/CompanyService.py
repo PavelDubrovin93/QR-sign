@@ -58,13 +58,11 @@ class CompanyService(ICompanyService):
         self, uc_id: int, new_user_company: UserCompanyDTO
     ) -> Optional[UserCompanyDTO]:
         uc = await self.uc_repo.get_user_company_by_id(uc_id)
-        # dafuck? Проверка наличия переменных в запросе. Если что то не передается, то он по умолчанию впаяет None из валидатора.
+        # Проверка наличия переменных в запросе. Для role используем старое значение если не передано.
+        # Для workgroup_id используем переданное значение (может быть None для удаления из всех групп)
         role = new_user_company.role if new_user_company.role is not None else uc.role
-        workgroup_id = (
-            new_user_company.workgroup_id
-            if new_user_company.workgroup_id is not None
-            else uc.workgroup_id
-        )
+        workgroup_id = new_user_company.workgroup_id  # для удаления из групп
+            
         updated_uc_dto = UserCompanyDTO(
             id=uc.id,
             user_id=new_user_company.user_id,
