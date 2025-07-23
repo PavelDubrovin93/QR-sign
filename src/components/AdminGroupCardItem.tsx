@@ -665,7 +665,14 @@ const AdminGroupCardItem = ({
         </div>
         
         <div 
-          className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}
+          className={`task-group-scroll overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-80 md:max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+          style={{
+            overflowY: isExpanded ? 'auto' : 'hidden',
+            maxHeight: isExpanded ? 
+              (window.innerWidth < 768 ? '20rem' : '24rem') : '0',
+            borderTop: isExpanded ? '1px solid rgba(0,0,0,0.1)' : 'none',
+            paddingTop: isExpanded ? '8px' : '0'
+          }}
         >
           <div
             style={{ height: "1px" }}

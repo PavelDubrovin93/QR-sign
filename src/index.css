@@ -196,3 +196,42 @@ button:focus-visible {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Стили для скроллбара групп задач */
+.task-group-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.task-group-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb:active {
+  background: #333;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .task-group-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
+/* Для Firefox */
+.task-group-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Для плавной прокрутки на iOS */
+}
