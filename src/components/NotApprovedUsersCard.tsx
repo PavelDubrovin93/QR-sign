@@ -231,7 +231,7 @@ const NotApprovedUsersCard = ({ data, loading, onDataRefresh, companyId }: NotAp
                   />
                 }
               >
-                <p style={{ color: "var(--tgui--text_color)" }}>Сотрудник</p>
+                                        <p style={{ color: "var(--tgui--text_color)" }}>Исполнитель</p>
               </Cell>
               <Cell
                 Component="label"

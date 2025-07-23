@@ -365,9 +365,9 @@ const AdminGroupCardItem = ({
   const getRoleDisplayName = (role: string): string => {
     const roleMap: Record<string, string> = {
       'owner': 'Владелец',
-      'admin': 'Прораб', 
-      'foreman': 'Бригадир',
-      'employer': 'Сотрудник',
+      'admin': 'Администратор', 
+      'foreman': 'Руководитель группы',
+      'employer': 'Исполнитель',
       'not_approved': 'Не подтвержден'
     };
     return roleMap[role] || role;
