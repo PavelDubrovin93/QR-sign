@@ -522,13 +522,13 @@ const AdminGroupCardItem = ({
           
           if (userRecordsCount <= 1) {
             // Если это последняя запись - обновляем workgroup_id = null (оставляем связь с компанией)
-            updatePromises.push(
+          updatePromises.push(
               updateUserCompany(userInCurrentGroup.uc.id, { 
-                user_id: userId,
-                company_id: companyId,
-                workgroup_id: null 
-              })
-            );
+              user_id: userId,
+              company_id: companyId,
+              workgroup_id: null 
+            })
+          );
           } else {
             // Если есть другие записи - полностью удаляем эту запись
             updatePromises.push(
@@ -562,14 +562,14 @@ const AdminGroupCardItem = ({
             );
           } else if (userToAdd.uc_id) {
             // Обычный случай: обновляем существующую запись
-            updatePromises.push(
-              updateUserCompany(userToAdd.uc_id, { 
-                user_id: userId,
-                company_id: companyId,
-                workgroup_id: workgroup?.id 
-              })
-            );
-          }
+          updatePromises.push(
+            updateUserCompany(userToAdd.uc_id, { 
+              user_id: userId,
+              company_id: companyId,
+              workgroup_id: workgroup?.id 
+            })
+          );
+        }
         }
       }
       
@@ -756,7 +756,7 @@ const AdminGroupCardItem = ({
                   {`Участники в группе ${workgroup?.title || 'Неизвестная группа'}:`}
                 </p>
 
-                                <div>
+                <div>
                   {getDeduplicatedUsers().length > 0 ? (
                     getDeduplicatedUsers().map((userData) => {
                       const { user } = userData;
@@ -827,19 +827,19 @@ const AdminGroupCardItem = ({
                     {isLoadingModalData ? "Загрузка..." : "Редактировать"}
                   </Button>
                   {currentUserRole === Roles.OWNER && (
-                    <Button
-                      mode="outline"
-                      onClick={handleDeleteClick}
-                      className="w-full max-w-xs"
-                      style={{
-                        border: '2px solid #ff4757',
-                        borderRadius: '20px',
-                        borderColor: '#ff4757',
-                        color: '#ff4757'
-                      }}
-                    >
-                      Удалить  
-                    </Button>
+                  <Button
+                    mode="outline"
+                    onClick={handleDeleteClick}
+                    className="w-full max-w-xs"
+                    style={{
+                      border: '2px solid #ff4757',
+                      borderRadius: '20px',
+                      borderColor: '#ff4757',
+                      color: '#ff4757'
+                    }}
+                  >
+                    Удалить  
+                  </Button>
                   )}
                 </div>
               </div>
@@ -959,7 +959,7 @@ const AdminGroupCardItem = ({
                           )}
                         </span>
                         <div className="flex items-center gap-2 flex-1">
-                          <p className="font-medium">{userData.user.name}</p>
+                        <p className="font-medium">{userData.user.name}</p>
                           {(() => {
                             const role = getUserRoleFromData(userData.user.id || 0);
                             return role ? <RoleBadge role={role} /> : null;
@@ -1035,7 +1035,7 @@ const AdminGroupCardItem = ({
                             </span>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <p className="font-medium">{user.name}</p>
+                              <p className="font-medium">{user.name}</p>
                                 {(() => {
                                   const role = getUserRoleFromData(user.id || 0);
                                   return role ? <RoleBadge role={role} /> : null;
@@ -1057,9 +1057,9 @@ const AdminGroupCardItem = ({
                                 return actualWorkgroups.length > 0 ? (
                                   <p className={`text-xs ${textColor}`}>
                                     В бригаде: {actualWorkgroups.join(', ')}
-                                  </p>
-                                ) : (
-                                  <p className="text-xs text-gray-500">Не назначен в бригаду</p>
+                                </p>
+                              ) : (
+                                <p className="text-xs text-gray-500">Не назначен в бригаду</p>
                                 );
                               })()}
                             </div>

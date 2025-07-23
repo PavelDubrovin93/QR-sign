@@ -306,11 +306,11 @@ const AdminPage = () => {
   return (
     <>
       {currentUserRole === Roles.OWNER && (
-        <div className="flex w-full justify-center px-5">
-          <Button className="mb-4 w-full" onClick={handleOpenModal}>
-            Добавить группу
-          </Button>
-        </div>
+      <div className="flex w-full justify-center px-5">
+        <Button className="mb-4 w-full" onClick={handleOpenModal}>
+          Добавить группу
+        </Button>
+      </div>
       )}
       <Section>
         <Section.Header

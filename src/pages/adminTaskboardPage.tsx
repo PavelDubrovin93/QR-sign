@@ -24,6 +24,8 @@ import type { CreateTaskPayload } from "../@types/task";
 import type { UserCompanies } from "../@types/user";
 import { getSelectedCompany, setSelectedCompany } from "../utils/selectedCompany";
 import ImageUpload from "../components/ImageUpload";
+import { getUserRole } from "../api/user/get-user-role";
+import { Roles } from "../@types/role";
 
 // Импорт новых хуков
 import { 
@@ -76,6 +78,7 @@ const adminTaskboardPage = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
   console.log(isImageFullScreen); //shit fix
   console.log(isKeyboardOpen); //shit fix
 
@@ -120,10 +123,32 @@ const adminTaskboardPage = () => {
     };
   }, []);
 
+  // Получение роли пользователя
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        if (selectedValue) {
+          const roleResponse = await getUserRole(Number(selectedValue));
+          setCurrentUserRole(roleResponse);
+          console.log('👤 Роль пользователя на странице задач:', roleResponse);
+        }
+      } catch (error) {
+        console.error('Error loading current user role:', error);
+        setCurrentUserRole('');
+      }
+    };
+
+    if (selectedValue) {
+      getCurrentUserRole();
+    }
+  }, [selectedValue]);
+
   const { data: dataCompanies, isLoading: isLoadingCompanies } = useSelector(
     (state: RootState) => state.entities.user_companies
   );
 
+  const currentUser = useSelector((state: RootState) => state.entities.user);
+  console.log(currentUser);
 
 
   const handleFetchCompanies = useCallback(async () => {
@@ -374,11 +399,13 @@ const adminTaskboardPage = () => {
           100% { transform: rotate(360deg); }
         }
       `}</style>
-      <div className="flex w-full justify-center px-5">
-        <Button className="mb-4 w-full" onClick={handleOpenModal}>
-          Добавить задачу
-        </Button>
-      </div>
+      {currentUserRole === Roles.OWNER && (
+        <div className="flex w-full justify-center px-5">
+          <Button className="mb-4 w-full" onClick={handleOpenModal}>
+            Добавить задачу
+          </Button>
+        </div>
+      )}
       <Section>
         <Section.Header
           style={
