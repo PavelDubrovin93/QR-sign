@@ -85,15 +85,13 @@ async def delete_task_board_and_task_points_by_tb_id(
     taskboard_id: int,
     session: AsyncSession = Depends(fastapi_get_db),
     user=Depends(get_current_user),
-) -> TaskBoardResponse:
+    ):
 
     service = TaskBoardService(session)
     status = await service.delete_task_board_and_task_points_by_tb_id(
         taskboard_id=taskboard_id, user = user
     )
-    if status:
-        return status
-    else:
+    if not status:
         raise HTTPException(
             status_code=403, detail="Вы не можете удалять задачи владельца."
-            )
+        )
