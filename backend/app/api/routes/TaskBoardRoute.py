@@ -80,7 +80,7 @@ async def edit_task_board_with_task_points(
     return task_board
 
 
-@router.delete("/{taskboard_id}", response_model=TaskBoardResponse)
+@router.delete("/{taskboard_id}", status_code=204)
 async def delete_task_board_and_task_points_by_tb_id(
     taskboard_id: int,
     session: AsyncSession = Depends(fastapi_get_db),

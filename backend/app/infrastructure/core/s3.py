@@ -68,6 +68,7 @@ class S3Service:
 
         # Преобразование изображения в WebP с качеством 95%
         img = Image.open(io.BytesIO(file_binary))
+        img = ImageOps.exif_transpose(img)  # Применяем поворот согласно EXIF
         buffer = io.BytesIO()
         img.save(buffer, format="WebP", quality=95)
         processed_image = buffer.getvalue()

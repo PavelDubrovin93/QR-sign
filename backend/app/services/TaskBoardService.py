@@ -56,7 +56,7 @@ class TaskBoardService(ITaskBoardService):
             task_points = await self.tp_repo.delete_task_point_by_taskboard_id(taskboard_id)
             taskboard = await self.tb_repo.delete_task_board_by_id(taskboard_id)
             taskboard.task_points = task_points
-            return taskboard          
+            return True     
 
         taskboard = await self.tb_repo.get_task_board_by_id(taskboard_id)
         if taskboard is None or user.id is None:
