@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import boto3
 from botocore.exceptions import ClientError
 from environs import Env
-from PIL import Image
+from PIL import Image, ImageOps
 
 # Инициализируем Environs для работы с переменными окружения
 env = Env()
