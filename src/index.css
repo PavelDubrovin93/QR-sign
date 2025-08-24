@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--tgui--tertiary_bg_color);
+  max-width: 1280px;
+  margin: 0 auto;
+  /* line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; */
+}
+
+.ring-custom {
+  --tw-ring-color: var(--custom-ring-color);
+}
+/* выше фикс для цвета ринга в цвет кнопки */
+
+/* 
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+} */
+
+.pulse {
+  position: relative;
+  text-align: center;
+  /* padding: 20px; */
+  border-radius: 50%;
+  background: #7c3aed;
+  width: 30px;
+  height: 30px;
+}
+
+.pulse::before {
+  content: "";
+  position: absolute;
+  border: 2px solid #7c3aed;
+  left: -20px;
+  opacity: 0;
+  right: -20px;
+  top: -20px;
+  bottom: -20px;
+  border-radius: 50%;
+  animation: pulse 2.5s linear infinite;
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+.pulse::after,
+.pulse::before {
+  content: "";
+  position: absolute;
+  border: 2px solid #7c3aed;
+  left: -20px;
+  opacity: 0;
+  right: -20px;
+  top: -20px;
+  bottom: -20px;
+  border-radius: 50%;
+  animation: pulse 2.5s linear infinite;
+}
+
+.pulse::after {
+  /* animation-delay: 0.1s; */
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+}
+
+.top-shadow-container {
+  position: relative;
+  overflow: hidden;
+
+}
+
+.top-shadow-container::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  transform: translateY(-50%);
+
+  box-shadow: 0 0 16px 0 rgba(42, 144, 255, 0.6);
+  pointer-events: none;
+  z-index: 1;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.loading-spinner {
+  display: inline-block; /* Или block, в зависимости от контекста */
+  border-radius: 50%;
+  animation: spin 1s linear infinite; /* Анимация вращения */
+}
+
+/* Анимация вращения */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для скрытого текста (только для скринридеров) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Стили для скроллбара групп задач */
+.task-group-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.task-group-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.task-group-scroll::-webkit-scrollbar-thumb:active {
+  background: #333;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .task-group-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
+/* Для Firefox */
+.task-group-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Для плавной прокрутки на iOS */
+}
