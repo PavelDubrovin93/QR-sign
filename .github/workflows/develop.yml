@@ -42,7 +42,10 @@ jobs:
           docker build -t $DOCKERHUB_USERNAME/qr-sigh_frontend ./frontend
           docker push $DOCKERHUB_USERNAME/qr-sigh_frontend
   deploy:
-    needs: build-and-push
+    needs:
+      - build-and-push-backend
+      - build-and-push-frontend
+
     runs-on: ubuntu-latest
     
     steps:
