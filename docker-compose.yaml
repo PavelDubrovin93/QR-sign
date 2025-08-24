@@ -1,0 +1,52 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+  static:
+services:
+  db:
+    image: postgres:17
+    container_name: qrs_database
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DATABASE_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    env_file: .env
+    command: poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      - db
+    volumes:
+      - static:/static
+
+  frontend:
+    build: ./frontend
+    env_file: .env
+    command: cp -r /app/dist/. /static/
+    volumes:
+      - static:/static
+    depends_on:
+      - backend
+
+  gateway:
+    build: ./gateway
+    env_file: .env
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "90:80"
+    volumes:
+      - static:/static

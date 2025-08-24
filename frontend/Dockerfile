@@ -1,14 +1,13 @@
-FROM node:20.11.1-bullseye-slim AS builder
-ARG VITE_BACKEND_URL
-#ENV NODE_ENV=production
+FROM node:18
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package.json
+COPY package-lock.json package-lock.json
+
 RUN npm install
 
 COPY . .
 RUN npm run build
+RUN npm install --global http-server
 
-FROM node:18.17.0-bullseye-slim AS release
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 8080
+CMD ["npx", "-y", "http-server", "-p", "3000", "/app/build"]
