@@ -93,13 +93,13 @@ jobs:
             cd taskmap
             
             echo "Pulling images..."
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml pull
+            sudo docker compose --env-file .env -f docker-compose.production.yaml pull
             
             echo "Stopping and starting containers..."
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml down
-            sudo docker-compose --env-file .env -f docker-compose.production.yaml up -d
+            sudo docker compose --env-file .env -f docker-compose.production.yaml down
+            sudo docker compose --env-file .env -f docker-compose.production.yaml up -d
 
-            sudo docker-compose -f docker-compose.production.yaml exec backend poetry run alembic upgrade head
+            sudo docker compose -f docker-compose.production.yaml exec backend poetry run alembic upgrade head
 
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
