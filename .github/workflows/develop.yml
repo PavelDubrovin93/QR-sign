@@ -40,7 +40,23 @@ jobs:
         run: |
           docker build -t $DOCKERHUB_USERNAME/qr-sigh_frontend ./frontend
           docker push $DOCKERHUB_USERNAME/qr-sigh_frontend
-  
+
+  copy_nginx:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Copy docker-compose.yml via ssh
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        source: "gateway/nginx.conf"
+        target: "taskmap"
+
   deploy:
     needs:
       - build-and-push-backend
@@ -51,15 +67,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Check if file exists
-        run: |
-          if [[ ! -f docker-compose.production.yaml ]]; then
-            echo "Error: File docker-compose.production.yaml not found."
-            exit 1
-          fi
 
-      - name: Copy docker-compose.yml via ssh
+      - name: Copy docker-compose.production.yaml via ssh
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
