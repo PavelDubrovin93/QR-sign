@@ -33,8 +33,6 @@ services:
       - "8000:8000"
     volumes:
       - static_data:/app/static
-    networks:
-      - backend_network
     logging:
       driver: "json-file"
       options:
@@ -44,7 +42,3 @@ services:
 volumes:
   postgres_data:
   static_data:
-
-networks:
-  backend_network:
-    driver: bridge
