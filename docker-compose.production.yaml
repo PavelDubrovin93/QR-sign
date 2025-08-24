@@ -41,7 +41,7 @@ services:
       - "3000:3000"
 
   gateway:
-    image: ${DOCKERHUB_USERNAME}/qr-sigh_gateway:latest
+    image: nginx:1.25.4-alpine
     env_file: .env
     depends_on:
       - backend
