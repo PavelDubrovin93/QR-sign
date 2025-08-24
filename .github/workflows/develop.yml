@@ -52,7 +52,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "gateway/nginx.conf"
         target: "taskmap"
@@ -61,6 +61,7 @@ jobs:
     needs:
       - build-and-push-backend
       - build-and-push-frontend
+      - copy_nginx
 
     runs-on: ubuntu-latest
     
