@@ -4,8 +4,6 @@
 node_modules/
 .ruff_cache
 .vscode
-package-lock.json
-package.json
 .flake8
 # Logs
 logs
