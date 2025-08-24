@@ -67,7 +67,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.production.yaml"
-          target: "/root/taskmap"
+          target: "taskmap"
       
       - name: Execute commands on remote server
         uses: appleboy/ssh-action@master
