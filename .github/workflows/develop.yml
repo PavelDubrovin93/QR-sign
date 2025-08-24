@@ -51,9 +51,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: List files in the backend directory
-        run: ls -la backend
       
       - name: Copy docker-compose.yml via ssh
         uses: appleboy/scp-action@master
@@ -73,16 +70,16 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd taskmap/backend
+            cd taskmap
             
             echo "Pulling images..."
-            sudo docker-compose --env-file .env -f docker-compose.prod.yaml pull
+            sudo docker-compose --env-file .env -f docker-compose.production.yaml pull
             
             echo "Stopping and starting containers..."
-            sudo docker-compose --env-file .env -f docker-compose.prod.yaml down
-            sudo docker-compose --env-file .env -f docker-compose.prod.yaml up -d
+            sudo docker-compose --env-file .env -f docker-compose.production.yaml down
+            sudo docker-compose --env-file .env -f docker-compose.production.yaml up -d
 
-            sudo docker-compose -f docker-compose.prod.yaml exec backend poetry run alembic upgrade head
+            sudo docker-compose -f docker-compose.production.yaml exec backend poetry run alembic upgrade head
 
             echo "Restarting Nginx..."
             sudo systemctl restart nginx
